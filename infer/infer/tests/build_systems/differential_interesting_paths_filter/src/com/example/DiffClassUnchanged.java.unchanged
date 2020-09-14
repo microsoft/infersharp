@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) 2017-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+package com.example;
+
+class DiffClassUnchanged {
+  private int tellMeTheLength() {
+      return DiffClassThree.createString3().length();
+  }
+
+  private String createNullString() {
+      return null;
+  }
+
+
+  private int doWrongStuff() {
+      return this.createNullString().length();
+  }
+}

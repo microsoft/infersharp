@@ -1,0 +1,16 @@
+cxx_library(
+  name = 'Hel lo',
+  srcs = [
+    'hello.cpp', 'lib1.cpp', 'lib2.cpp', 'lib3.cpp',
+  ],
+  compiler_flags = [
+    '-std=c++11',
+  ],
+)
+
+cxx_library(
+  name = 'hello_test',
+  srcs = [
+    'hello_test.c',
+  ],
+)

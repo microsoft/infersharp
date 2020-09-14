@@ -1,0 +1,9 @@
+[
+  {
+    "supportedIssueType": "NULL_DEREFERENCE",
+    "textMustContain": "could be null and is dereferenced at"
+  },
+  {
+    "supportedIssueType": "RESOURCE_LEAK"
+  }
+]
