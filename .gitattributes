@@ -1,0 +1,10 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text eol=lf
+
+# Declare files that will always have CRLF line endings on checkout.
+*.sln text eol=crlf
+*.fs text eol=crlf
+*.fsproj text eol=crlf
+
+*.jar binary
+*.png binary

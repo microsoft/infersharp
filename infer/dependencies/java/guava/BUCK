@@ -1,0 +1,7 @@
+prebuilt_jar(
+    name = 'guava',
+    binary_jar = 'guava-23.0.jar',
+    visibility = [
+        'PUBLIC'
+    ]
+)
