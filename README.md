@@ -1,13 +1,13 @@
 # Infer#
 
-**Infer# (InferSharp)** is an interprocedural and scalable static code analyzer for C#. Via the capabilities of Facebook's [Infer](https://fbinfer.com/), this tool detects null pointer dereferences and resource leak.
+**Infer# (InferSharp)** is an interprocedural and scalable static code analyzer for C#. Via the capabilities of Facebook's [Infer](https://fbinfer.com/), this tool detects null pointer dereferences and resource leak. Read more about our approach in the [Wiki page](https://github.com/microsoft/infersharp/wiki).
 
 ## Get Started
 ### GitHub Action
-You can find the instructions on how to run Infer# as a GitHub Action here: [C# Code Analyzer](https://github.com/microsoft/CSharpCodeAnalyzer).
+The instructions on how to run Infer# as a GitHub Action can be found here: [C# Code Analyzer](https://github.com/microsoft/CSharpCodeAnalyzer).
 
 ### Docker Image
-Alternatively, you can use our Docker image:
+Alternatively, use our Docker image:
 ```shell
 docker pull mcr.microsoft.com/infersharp:latest
 ```
