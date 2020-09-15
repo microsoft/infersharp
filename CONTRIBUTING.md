@@ -5,7 +5,7 @@
 
 We welcome contributions to infersharp. To do that, you'll want to fork a copy of infersharp to your account and contribute your hack via [pull requests on GitHub](https://github.com/microsoft/infersharp/pulls).
 
-To hack infer bakcend, please follow [infer's contribuution guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
+To hack infer bakcend, please follow [infer's contribution guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
 
 ### Building InferSharp
 
@@ -24,18 +24,16 @@ Optionally, build and install C# models for better C# language support:
 ``` 
 
 Language agnostic translation module is located under "Cilsil/" directory. Run the following commands in the main directory to build:
-'''bash
-dotnet clean Infersharp.sln
+```bash
 dotnet build Infersharp.sln
-'''
+```
 
 ### Debugging infersharp
 
-Run infersharp on a targeting repository using the following commands:
+Run infersharp on a target repository using the following commands:
 ```bash
 # Extract CFGs from binary files.
-dotnet Cilsil/bin/Debug/netcoreapp2.2/Cilsil.dll translate \
-                                                {directory_to_binary_files} \
+dotnet Cilsil/bin/Debug/netcoreapp2.2/Cilsil.dll translate {directory_to_binary_files} \
                                                 --outcfg {output_directory}/cfg.json \
                                                 --outtenv {output_directory}/tenv.json \
                                                 --cfgtxt {output_directory}/cfg.txt
@@ -77,6 +75,8 @@ Please follow [infer's Ocaml coding style guideline](https://github.com/facebook
 
 - To add a test that infersharp finds (or does not find) a particular issue, add your test in
   "Cilsil.Test/E2E/NPETest.cs". 
+  
+- Try to reuse existing test modules if necessary. Otherwise, add new test modules in "Cilsil.Test/Assets/".
 
 
 ## Reporting Issues
