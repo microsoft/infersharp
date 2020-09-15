@@ -46,7 +46,7 @@ infer analyzejson --debug \
                   --tenv-json {output_directory}/tenv.json
 ```
 
-Debug infersharp in your test following these conventions:
+Tips for debuging infersharp in your test:
 - Check "{output_directory}/cfg.txt" to confirm the correctness of CFG.
 - Browse "infer-out/bugs.txt" to confirm bugs are identified as expected.
 - It can be useful to look at the debug HTML output of infer located in "infer-out/captured/" to see the detail of the symbolic execution.
