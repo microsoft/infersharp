@@ -3,7 +3,7 @@
 
 ## Contributing to Infer#
 
-We welcome contributions to Infer#. To do that, you'll want to fork a copy of Infer# to your account and contribute your hack via [pull requests on GitHub](https://github.com/microsoft/Infer#/pulls).
+We welcome contributions to Infer#. To do that, you'll want to fork a copy of Infer# to your account and contribute your hack via [pull requests on GitHub](https://github.com/microsoft/infersharp/pulls).
 
 To hack infer bakcend, please follow [infer's contribution guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
 
@@ -78,7 +78,7 @@ Please follow [Infer's Ocaml coding style guideline](https://github.com/facebook
 ## Reporting Issues
 
 If you encounter a problem when using Infer# or if you have any questions, please open a
-[GitHub issue](https://github.com/microsoft/Infer#/issues).
+[GitHub issue](https://github.com/microsoft/infersharp/issues).
 
 
 ## Contributor License Agreement
