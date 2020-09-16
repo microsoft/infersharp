@@ -12,8 +12,6 @@ function section {
 section "Build Infer# and models"
 dotnet clean Cilsil/Cilsil.csproj
 dotnet build Cilsil/Cilsil.csproj
-dotnet clean AnalysisResultParser/AnalysisResultParser/AnalysisResultParser.csproj
-dotnet build AnalysisResultParser/AnalysisResultParser/AnalysisResultParser.csproj
 dotnet clean InferSharpModels/InferSharpModels.csproj
 dotnet build InferSharpModels/InferSharpModels.csproj
 dotnet clean System/System.csproj
