@@ -3,13 +3,22 @@
 
 ## Contributing to Infer#
 
-We welcome contributions to Infer#. To do that, you'll want to fork a copy of Infer# to your account and contribute your hack via [pull requests on GitHub](https://github.com/microsoft/infersharp/pulls).
+We welcome contributions to Infer#. To contribute, fork InferSharp and file a [pull request](https://github.com/microsoft/infersharp/pulls).
 
-To hack Infer bakcend, please follow [Infer's contribution guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
+When contributing to OCaml source code, please follow Infer's [contribution guidelines](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
 
-### Building Infer#
+### Prerequisites
 
-Infer backend is located under "infer/" directory. Run the following commands to get Infer up and running:
+* [.NET Core 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2)
+
+* Packages identified in our dockerfile [here](https://github.com/microsoft/infersharp/blob/main/Dockerfile).
+
+### Installation and Build
+
+Both the C# and the OCaml components must be separately built. Each set of build commands is assumed to be executed from the repository root.
+
+**OCaml**
+
 ```bash
 cd infer
 ./build-infer.sh ./autogen.sh
@@ -18,19 +27,22 @@ cd infer
 sudo make install 
 ```
 
-Optionally, build and install C# models for better C# language support:
-```bash
-./build_csharp_models.sh
-``` 
+**C#**
 
-Language agnostic translation module is located under "Cilsil/" directory. Run the following commands in the main directory to build:
+For the core translation pipeline:
 ```bash
 dotnet build Infersharp.sln
 ```
 
+For C# library models (optional but highly recommended for reducing false positive warnings):
+
+```bash
+./build_csharp_models.sh
+``` 
+
 ### Debugging Infer#
 
-Run Infer# on a target repository using the following commands:
+To obtain an analysis on a directory tree of .NET binaries (comprised of both DLLs and PDBs), execute the following commands from the repository root:
 ```bash
 # Extract CFGs from binary files.
 dotnet Cilsil/bin/Debug/netcoreapp2.2/Cilsil.dll translate {directory_to_binary_files} \
@@ -38,7 +50,7 @@ dotnet Cilsil/bin/Debug/netcoreapp2.2/Cilsil.dll translate {directory_to_binary_
                                                 --outtenv {output_directory}/tenv.json \
                                                 --cfgtxt {output_directory}/cfg.txt
 
-# Run infer backend analysis
+# Run Infer on extracted CFGs.
 infer capture
 mkdir infer-out/captured
 infer analyzejson --debug \
@@ -47,9 +59,9 @@ infer analyzejson --debug \
 ```
 
 Tips for debugging Infer# in your test:
-- Check "{output_directory}/cfg.txt" to confirm the correctness of CFG.
-- Browse "infer-out/bugs.txt" to confirm bugs are identified as expected.
-- It can be useful to look at the debug HTML output of Infer located in "infer-out/captured/" to see the detail of the symbolic execution.
+- The CFG is expressed in a text format in {output_directory}/cfg.txt.
+- Reported bugs are located at /infer-out/bugs.txt.
+- Detailed analysis information is located at /infer-out/captured/.
 
 ## Coding Style
 
