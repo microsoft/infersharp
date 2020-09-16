@@ -61,7 +61,7 @@ infer analyzejson --debug \
 Tips for debugging Infer# in your test:
 - The CFG is expressed in a text format in {output_directory}/cfg.txt.
 - Reported bugs are located at /infer-out/bugs.txt.
-- Detailed analysis information is located at /infer-out/captured/.
+- Infer output is located at /infer-out/; Detailed analysis information is located at /infer-out/captured/.
 
 ## Coding Style
 
