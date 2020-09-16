@@ -5,11 +5,11 @@
 
 We welcome contributions to Infer#. To do that, you'll want to fork a copy of Infer# to your account and contribute your hack via [pull requests on GitHub](https://github.com/microsoft/infersharp/pulls).
 
-To hack infer bakcend, please follow [infer's contribution guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
+To hack infer bakcend, please follow [Infer's contribution guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
 
 ### Building Infer#
 
-infer backend is located under "infer/" directory. Run the following commands to get infer up and running:
+Infer backend is located under "infer/" directory. Run the following commands to get infer up and running:
 ```bash
 cd infer
 ./build-infer.sh ./autogen.sh
