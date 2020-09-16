@@ -81,7 +81,7 @@ RUN dotnet build Examples/Examples/Examples.csproj
 FROM buildbackend AS release
 WORKDIR /app
 COPY --from=buildfrontend /app/AnalysisResultParser/AnalysisResultParser/bin/Release/netcoreapp2.2/ubuntu.16.10-x64/publish/ /app/AnalysisResultParser/
-COPY --from=buildfrontend /app/ExamplesExamples/bin/Debug/netcoreapp2.2/ /app/Examples/
+COPY --from=buildfrontend /app/Examples/Examples/bin/Debug/netcoreapp2.2/ /app/Examples/
 COPY --from=buildfrontend /app/Cilsil/bin/Release/netcoreapp2.2/ubuntu.16.10-x64/publish/ /app/Cilsil/
 COPY --from=buildfrontend /usr/local/lib/infer/infer/lib/specs/ /usr/local/lib/infer/infer/lib/specs/
 COPY --from=buildfrontend /app/run_infersharp.sh /app/
