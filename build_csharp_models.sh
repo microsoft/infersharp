@@ -10,8 +10,12 @@ function section {
 }
 
 section "Build Infer# and models"
-dotnet clean Infersharp.sln
-dotnet build Infersharp.sln
+dotnet clean Cilsil/Cilsil.csproj
+dotnet build Cilsil/Cilsil.csproj
+dotnet clean InferSharpModels/InferSharpModels.csproj
+dotnet build InferSharpModels/InferSharpModels.csproj
+dotnet clean System/System.csproj
+dotnet build System/System.csproj
 
 mkdir -p models_out
 
