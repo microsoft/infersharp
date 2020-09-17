@@ -3,7 +3,7 @@
 
 ## Contributing to Infer#
 
-We welcome contributions to Infer#. To contribute, fork InferSharp and file a [pull request](https://github.com/microsoft/infersharp/pulls).
+To contribute, fork InferSharp and file a [pull request](https://github.com/microsoft/infersharp/pulls).
 
 When contributing to OCaml source code, please follow Infer's [contribution guidelines](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
 
@@ -11,7 +11,7 @@ When contributing to OCaml source code, please follow Infer's [contribution guid
 
 * [.NET Core 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2)
 
-* Packages identified in our dockerfile [here](https://github.com/microsoft/infersharp/blob/main/Dockerfile).
+* Packages identified in our dockerfile [here](https://github.com/microsoft/infersharp/blob/main/Dockerfile)
 
 ### Installation and Build
 
@@ -61,36 +61,41 @@ infer analyzejson --debug \
 Tips for debugging Infer# in your test:
 - The CFG is expressed in a text format in {output_directory}/cfg.txt.
 - Reported bugs are located at /infer-out/bugs.txt.
-- Infer output is located at /infer-out/; Detailed analysis information is located at /infer-out/captured/.
+- Infer output is located at /infer-out/; detailed analysis information is located at /infer-out/captured/.
 
 ## Coding Style
 
+### All Languages
+
+* Line width limit is 100 characters.
+* Follow the indentation and other stylistic aspects of the surrounding code.
+ 
 ### C#
 
-Please follow [Microsoft C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/inside-a-program/coding-conventions).
+Please conform to Microsoft's [C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/inside-a-program/coding-conventions).
 
 ### OCaml
 
-Please follow [Infer's Ocaml coding style guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml).
+Please conform to Infer's [Ocaml coding style guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml).
 
 ## Testing your Changes
 
-- Make sure Infer# builds by following [this guidance](https://github.com/microsoft/infersharp/CONTRIBUTING.md#building-infer#). 
+The testing framework first programmatically generating pieces of C# code for which the underlying bytecode isolates the instructions to be validated. Then, it builds the source code, runs the translation core on the resulting binaries in order to produce the CFG JSON, which in turn is passed to the Infer backend for analysis. The expected warnings are then validated. Utilities for generating test code are located [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/Assets/Utils.cs). The test execution is orchestrated [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/TestRunManager.cs).
 
-- Run the tests: `dotnet test`
+When making a technical contribution to the codebase, please consider the following:
 
-- If relevant, add a test for your change.
+  - [Validate](https://github.com/microsoft/infersharp/CONTRIBUTING.md#building-infer#) the build. 
 
-- To add a test that Infer# finds (or does not find) a particular issue, add your test in
-  "Cilsil.Test/E2E/NPETest.cs". 
+  - Add your unit tests in Cilsil.Test/E2E/NPETest.cs. 
   
-- Try to reuse existing test modules if necessary. Otherwise, add new test modules in "Cilsil.Test/Assets/".
+  - Try to reuse existing utilities if necessary. Otherwise, add new utilities in "Cilsil.Test/Assets/Utils.cs".
+  
+  - Run the tests using the following command: `dotnet test`
 
 
 ## Reporting Issues
 
-If you encounter a problem when using Infer# or if you have any questions, please open a
-[GitHub issue](https://github.com/microsoft/infersharp/issues).
+If you encounter any issues, please open an [issue](https://github.com/microsoft/infersharp/issues).
 
 
 ## Contributor License Agreement
