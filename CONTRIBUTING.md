@@ -5,7 +5,7 @@
 
 To contribute, fork InferSharp and file a [pull request](https://github.com/microsoft/infersharp/pulls).
 
-When contributing to OCaml source code, please follow Infer's [contribution guidelines](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
+When modifying OCaml source code, please follow Infer's [contribution guidelines](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
 
 ### Prerequisites
 
@@ -58,39 +58,41 @@ infer analyzejson --debug \
                   --tenv-json {output_directory}/tenv.json
 ```
 
-Tips for debugging Infer# in your test:
-- The CFG is expressed in a text format in {output_directory}/cfg.txt.
-- Reported bugs are located at /infer-out/bugs.txt.
-- Infer output is located at /infer-out/; detailed analysis information is located at /infer-out/captured/.
+For debugging Infer# in your test, please note:
+* The CFG is expressed in a text format in {output_directory}/cfg.txt.
+* Reported bugs are located at /infer-out/bugs.txt.
+* Infer output is located at /infer-out/; detailed analysis information is located at /infer-out/captured/.
 
 ## Coding Style
 
 ### All Languages
 
 * Line width limit is 100 characters.
-* Follow the indentation and other stylistic aspects of the surrounding code.
+* Conform to indentation conventions and other stylistic aspects of the surrounding code.
  
 ### C#
 
-Please conform to Microsoft's [C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/inside-a-program/coding-conventions).
+Please adhere to Microsoft's [C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/inside-a-program/coding-conventions).
 
 ### OCaml
 
-Please conform to Infer's [Ocaml coding style guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml).
+Please adhere to Infer's [Ocaml coding style guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml).
 
-## Testing your Changes
+## Testing Your Changes
 
-The testing framework first programmatically generating pieces of C# code for which the underlying bytecode isolates the instructions to be validated. Then, it builds the source code, runs the translation core on the resulting binaries in order to produce the CFG JSON, which in turn is passed to the Infer backend for analysis. The expected warnings are then validated. Utilities for generating test code are located [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/Assets/Utils.cs). The test execution is orchestrated [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/TestRunManager.cs).
+The testing framework first programmatically generating pieces of C# code, the underlying bytecode of which isolates the instructions to be validated. It then builds the source code and runs the translation core on the resulting binaries in order to produce the CFG, represented as a JSON file. Finally, Infer analyzes the CFG and produces warnings, which in turn are validated against those which are expected. 
+
+Utilities for generating test code are located [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/Assets/Utils.cs). The test execution is orchestrated [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/TestRunManager.cs).
 
 When making a technical contribution to the codebase, please consider the following:
 
-  - [Validate](https://github.com/microsoft/infersharp/CONTRIBUTING.md#building-infer#) the build. 
+  * [build](https://github.com/microsoft/infersharp/CONTRIBUTING.md#building-infer#) the modified codebase. 
 
-  - Add your unit tests in Cilsil.Test/E2E/NPETest.cs. 
+  * Add test cases to Cilsil.Test/E2E/NPETest.cs. 
   
-  - Try to reuse existing utilities if necessary. Otherwise, add new utilities in "Cilsil.Test/Assets/Utils.cs".
+  * Try to reuse existing [test assets] (https://github.com/microsoft/infersharp/tree/main/Cilsil.Test/Assets), but make modifications as necessary.
   
-  - Run the tests using the following command: `dotnet test`
+  * Run the tests via: `dotnet test`
 
 
 ## Reporting Issues
