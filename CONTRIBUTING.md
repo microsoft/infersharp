@@ -74,7 +74,7 @@ Please adhere to Microsoft's [C# Coding Conventions](https://docs.microsoft.com/
 
 ### OCaml
 
-Please adhere to Infer's [OCaml Style Guide](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml).
+Please adhere to Infer's [OCaml Style Guide](https://github.com/microsoft/infersharp/blob/main/CONTRIBUTING.md#ocaml).
 
 ## Testing Your Changes
 
@@ -82,11 +82,11 @@ The testing framework first programmatically generating pieces of C# code, the u
 
 Utilities for generating test code are located [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/Assets/Utils.cs). The test execution is orchestrated [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/TestRunManager.cs). After making a technical contribution to the codebase, please also consider the following:
 
-  * [Build](https://github.com/microsoft/infersharp/CONTRIBUTING.md#building-infer#) the modified codebase. 
+  * [Build](https://github.com/microsoft/infersharp/blob/main/CONTRIBUTING.md#installation-and-build) the modified codebase. 
 
   * Add test cases to Cilsil.Test/E2E/NPETest.cs. 
   
-  * Try to reuse existing [test assets] (https://github.com/microsoft/infersharp/tree/main/Cilsil.Test/Assets), but make modifications as necessary.
+  * Try to reuse existing [test assets](https://github.com/microsoft/infersharp/tree/main/Cilsil.Test/Assets), but make modifications as necessary.
   
   * Run the tests via: `dotnet test`.
 
