@@ -74,7 +74,7 @@ Please adhere to Microsoft's [C# Coding Conventions](https://docs.microsoft.com/
 
 ### OCaml
 
-Please adhere to Infer's [OCaml Style Guide](https://github.com/microsoft/infersharp/blob/main/CONTRIBUTING.md#ocaml).
+Please adhere to Infer's [OCaml Style Guide](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml).
 
 ## Testing Your Changes
 
