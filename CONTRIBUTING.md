@@ -3,15 +3,13 @@
 
 ## Contributing to Infer#
 
-To contribute, fork InferSharp and file a [pull request](https://github.com/microsoft/infersharp/pulls).
-
-When modifying OCaml source code, please follow Infer's [contribution guidelines](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
+To contribute, fork InferSharp and file a [pull request](https://github.com/microsoft/infersharp/pulls). When modifying OCaml source code, please follow Infer's [contribution guidelines](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md).
 
 ### Prerequisites
 
 * [.NET Core 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2)
 
-* Packages identified in our dockerfile [here](https://github.com/microsoft/infersharp/blob/main/Dockerfile)
+* Packages listed in our dockerfile [here](https://github.com/microsoft/infersharp/blob/main/Dockerfile)
 
 ### Installation and Build
 
@@ -60,8 +58,8 @@ infer analyzejson --debug \
 
 For debugging Infer# in your test, please note:
 * The CFG is expressed in a text format in {output_directory}/cfg.txt.
-* Reported bugs are located at /infer-out/bugs.txt.
-* Infer output is located at /infer-out/; detailed analysis information is located at /infer-out/captured/.
+* Reported bugs are located at {output_directory}/infer-out/bugs.txt.
+* Infer output is located at {output_directory}/infer-out/; detailed analysis information is located at {output_directory}/infer-out/captured/.
 
 ## Coding Style
 
@@ -76,7 +74,7 @@ Please adhere to Microsoft's [C# Coding Conventions](https://docs.microsoft.com/
 
 ### OCaml
 
-Please adhere to Infer's [Ocaml coding style guideline](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml).
+Please adhere to Infer's [OCaml Style Guide](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml).
 
 ## Testing Your Changes
 
@@ -86,13 +84,13 @@ Utilities for generating test code are located [here](https://github.com/microso
 
 When making a technical contribution to the codebase, please consider the following:
 
-  * [build](https://github.com/microsoft/infersharp/CONTRIBUTING.md#building-infer#) the modified codebase. 
+  * [Build](https://github.com/microsoft/infersharp/CONTRIBUTING.md#building-infer#) the modified codebase. 
 
   * Add test cases to Cilsil.Test/E2E/NPETest.cs. 
   
   * Try to reuse existing [test assets] (https://github.com/microsoft/infersharp/tree/main/Cilsil.Test/Assets), but make modifications as necessary.
   
-  * Run the tests via: `dotnet test`
+  * Run the tests via: `dotnet test`.
 
 
 ## Reporting Issues
