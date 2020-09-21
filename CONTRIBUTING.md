@@ -74,7 +74,7 @@ Please adhere to Microsoft's [C# Coding Conventions](https://docs.microsoft.com/
 
 ### OCaml
 
-Please adhere to Infer's [OCaml Style Guide](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml).
+Please adhere to Infer's [OCaml Style Guide](https://github.com/microsoft/infersharp/blob/main/CONTRIBUTING.md#ocaml).
 
 ## Testing Your Changes
 
@@ -86,7 +86,7 @@ Utilities for generating test code are located [here](https://github.com/microso
 
   * Add test cases to Cilsil.Test/E2E/NPETest.cs. 
   
-  * Try to reuse existing [test assets] (https://github.com/microsoft/infersharp/tree/main/Cilsil.Test/Assets), but make modifications as necessary.
+  * Try to reuse existing [test assets](https://github.com/microsoft/infersharp/tree/main/Cilsil.Test/Assets), but make modifications as necessary.
   
   * Run the tests via: `dotnet test`.
 
