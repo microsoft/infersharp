@@ -82,7 +82,7 @@ The testing framework first programmatically generating pieces of C# code, the u
 
 Utilities for generating test code are located [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/Assets/Utils.cs). The test execution is orchestrated [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/TestRunManager.cs). After making a technical contribution to the codebase, please also consider the following:
 
-  * [Build](https://github.com/microsoft/infersharp/blob/main/CONTRIBUTING.md#installation-and-build) the modified codebase. 
+  * [Build](https://github.com/facebook/infer/blob/master/CONTRIBUTING.md#ocaml) the modified codebase. 
 
   * Add test cases to Cilsil.Test/E2E/NPETest.cs. 
   
