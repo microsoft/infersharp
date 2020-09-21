@@ -80,9 +80,7 @@ Please adhere to Infer's [OCaml Style Guide](https://github.com/facebook/infer/b
 
 The testing framework first programmatically generating pieces of C# code, the underlying bytecode of which isolates the instructions to be validated. It then builds the source code and runs the translation core on the resulting binaries in order to produce the CFG, represented as a JSON file. Finally, Infer analyzes the CFG and produces warnings, which in turn are validated against those which are expected. 
 
-Utilities for generating test code are located [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/Assets/Utils.cs). The test execution is orchestrated [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/TestRunManager.cs).
-
-When making a technical contribution to the codebase, please consider the following:
+Utilities for generating test code are located [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/Assets/Utils.cs). The test execution is orchestrated [here](https://github.com/microsoft/infersharp/blob/main/Cilsil.Test/TestRunManager.cs). After making a technical contribution to the codebase, please moreover consider the following:
 
   * [Build](https://github.com/microsoft/infersharp/CONTRIBUTING.md#building-infer#) the modified codebase. 
 
