@@ -4,7 +4,7 @@
 
 ## Get Started
 ### GitHub Action
-The instructions on how to run Infer# as a GitHub Action can be found here: [C# Code Analyzer](https://github.com/microsoft/CSharpCodeAnalyzer).
+The instructions on how to run Infer# as a GitHub Action can be found here: [C# Code Analyzer](https://github.com/marketplace/actions/c-code-analyzer).
 
 ### Docker Image
 Alternatively, use our Docker image:
