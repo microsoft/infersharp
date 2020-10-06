@@ -22,7 +22,7 @@ cat output/filtered_bugs.txt
 
 ## Contributing
 
-Please follow [this guideline](https://github.com/microsoft/infersharp/blob/main/CONTRIBUTING.md).
+We welcome contributions. Please follow [this guideline](https://github.com/microsoft/infersharp/blob/main/CONTRIBUTING.md).
 
 ## Trademarks
 
