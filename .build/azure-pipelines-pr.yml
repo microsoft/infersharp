@@ -8,6 +8,6 @@ steps:
   displayName: 'Initialize'
 
 - task: Docker@2
-  displayName: 'Run integration tests in Docker'
+  displayName: 'Build and test'
   inputs:
     command: build
