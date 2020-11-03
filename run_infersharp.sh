@@ -5,7 +5,7 @@
 
 # Check if we have enough arguments.
 if [ "$#" -ne 2 ] && [ "$#" -ne 3 ] ; then
-    echo "infersharp_driver.sh <dll_files_path> <output_path> <report_On_file1,report_on_file2,...> - requires 2 arguments (dll_files_path & output_path), 1 optional (report_on_files)"
+    echo "run_infersharp.sh <dll_files_path> <output_path> <report_On_file1,report_on_file2,...> - requires 2 arguments (dll_files_path & output_path), 1 optional (report_on_files)"
     exit
 fi
 
