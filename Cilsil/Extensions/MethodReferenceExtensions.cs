@@ -28,8 +28,8 @@ namespace Cilsil.Extensions
             procName = methodReference.ReturnType.GetCompatibleFullName() + " " + procName;
             if (methodReference.DeclaringType != null)
             {
-                procName.Replace(methodReference.DeclaringType.FullName,
-                                 methodReference.DeclaringType.GetCompatibleFullName());
+                procName = procName.Replace(methodReference.DeclaringType.FullName,
+                                            methodReference.DeclaringType.GetCompatibleFullName());
             }
             return procName;
         }
