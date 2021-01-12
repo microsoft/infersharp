@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+using Cilsil.Sil.Expressions;
+using Cilsil.Sil.Instructions;
+using Cilsil.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
-using Cilsil.Sil.Expressions;
-using Cilsil.Utils;
-using Cilsil.Sil.Instructions;
 
 namespace Cilsil.Sil.Types
 {

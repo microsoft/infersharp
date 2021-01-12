@@ -64,8 +64,10 @@ namespace Cilsil.Cil.Parsers
 
                         try
                         {
-                            var parentTypeDefinitions = new HashSet<TypeDefinition>();
-                            parentTypeDefinitions.Add(structTypeDefinition);
+                            var parentTypeDefinitions = new HashSet<TypeDefinition>
+                            {
+                                structTypeDefinition
+                            };
                             InitializeStruct(structVariable,
                                              structTypeDefinition,
                                              structInitializationInstructions,

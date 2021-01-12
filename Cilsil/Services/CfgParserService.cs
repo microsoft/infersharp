@@ -13,7 +13,7 @@ namespace Cilsil.Services
 {
     internal class CfgParserService : IService
     {
-        int TimeoutMethodCount = 0;
+        private int TimeoutMethodCount = 0;
 
         public IEnumerable<MethodDefinition> Methods { get; private set; }
 
@@ -87,7 +87,7 @@ namespace Cilsil.Services
             var methodBody = method.Body;
 
             // True if the translation terminates early, false otherwise.
-            bool translationUnfinished = false;
+            var translationUnfinished = false;
             if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
                 programState.PushInstruction(methodBody.Instructions.First());

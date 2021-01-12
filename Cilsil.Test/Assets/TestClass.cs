@@ -10,6 +10,8 @@ namespace Cilsil.Test.Assets
         public static TestClass StaticObjectField;
         public TestClass[] InstanceArrayField;
 
+        public record Chicken { public string Name { get; init; } }
+
         /// <summary>
         /// Initializes a static readonly field resource. This kind of resource should not be disposed 
         /// as it will be reserved for singleton design pattern.
