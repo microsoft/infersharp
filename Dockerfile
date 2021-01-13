@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:5.0 AS base
+FROM mcr.microsoft.com/dotnet/runtime:5.0 AS base
 
 FROM base AS buildbackend
 WORKDIR /app
