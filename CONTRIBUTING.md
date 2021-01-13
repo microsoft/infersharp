@@ -19,11 +19,12 @@ Both the C# and the OCaml components must be separately built. Each set of build
 
 ```bash
 cd infer
-./build-infer.sh ./autogen.sh
 ./build-infer.sh java
 ./autogen.sh
 sudo make install 
 ```
+
+Note -- you might need to complete these instructions with sudo if there are permission issues.
 
 **C#**
 
