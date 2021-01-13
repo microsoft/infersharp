@@ -189,11 +189,10 @@ namespace Cilsil.Cil.Parsers
                          callFlags,
                          state.CurrentLocation);
 
-            var node = new StatementNode(
-                state.CurrentLocation,
-                StatementNode.StatementNodeKind.Call,
-                state.ProcDesc,
-                comment: $"System.Void {typeName}::.ctor()");
+            var node = new StatementNode(state.CurrentLocation,
+                                         StatementNode.StatementNodeKind.Call,
+                                         state.ProcDesc,
+                                         comment: $"System.Void {typeName}::.ctor()");
 
             node.Instructions.Add(objectAllocationCall);
             node.Instructions.Add(objectConstructorCall);
