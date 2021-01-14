@@ -14,7 +14,7 @@ RUN apt-get update && \
       libc6-dev \
       libsqlite3-dev \
       opam \
-      openjdk-8-jdk-headless \
+      openjdk-11-jdk-headless \
       pkg-config \
       python2.7 \
       zlib1g-dev && \
