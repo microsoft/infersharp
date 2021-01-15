@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime:5.0 AS base
+FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS base
 
 FROM base AS buildbackend
 WORKDIR /app
@@ -21,7 +21,7 @@ RUN apt-get update && \
     libmpfr-dev \
     libsqlite3-dev \
     make \
-    openjdk-11-jdk-headless \
+    openjdk-8-jdk-headless \
     patch \
     pkg-config \
     python2.7 \
