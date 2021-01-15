@@ -20,7 +20,7 @@ RUN apt-get update && \
       libmpfr-dev \
       libsqlite3-dev \
       make \
-      openjdk-11-jdk-headless \
+      openjdk-8-jdk-headless \
       patch \
       pkg-config \
       python2.7 \
