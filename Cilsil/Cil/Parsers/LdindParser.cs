@@ -29,12 +29,12 @@ namespace Cilsil.Cil.Parsers
                 case Code.Ldind_Ref:
                     (var pointerExpression, var pointerType) = state.Pop();
 
-                    if (pointerType is Address address) 
-                    { 
+                    if (pointerType is Address address)
+                    {
                         if (address.AddressType == Address.ReferenceKind.Field)
                         {
                             (var loadFieldValue, var valueIdentifier) = address.LoadValue(state);
-                            state.PushExpr(new VarExpression(valueIdentifier), 
+                            state.PushExpr(new VarExpression(valueIdentifier),
                                            pointerType.StripPointer());
                             state.PushInstruction(instruction.Next,
                                                   AddMethodBodyInstructionsToCfg(state,
@@ -42,7 +42,7 @@ namespace Cilsil.Cil.Parsers
                         }
                         else if (address.AddressType == Address.ReferenceKind.Parameter)
                         {
-                            var argumentIdentifier = 
+                            var argumentIdentifier =
                                 state.GetIdentifier(Identifier.IdentKind.Normal);
                             var loadArgument = new Load(argumentIdentifier,
                                                         pointerExpression,
@@ -55,7 +55,7 @@ namespace Cilsil.Cil.Parsers
                                                      state.CurrentLocation);
                             state.PushExpr(new VarExpression(valueIdentifier),
                                            pointerType.StripPointer());
-                            state.PushInstruction(instruction.Next, 
+                            state.PushInstruction(instruction.Next,
                                                   AddMethodBodyInstructionsToCfg(state,
                                                                                  loadArgument,
                                                                                  loadValue));
@@ -68,7 +68,7 @@ namespace Cilsil.Cil.Parsers
                                        $"{pointerType.GetType()} on stack.");
                         return false;
                     }
-                    
+
                     state.AppendToPreviousNode = true;
                     return true;
                 default:

@@ -10,7 +10,7 @@ using System.Linq;
 namespace Cilsil.Services
 {
     internal class DecompilationService : IService
-    {   
+    {
         /// <summary>
         /// If set to <c>true</c>, parsing service produces the tenv; otherwise,
         /// parsing service produces the cfg.
@@ -47,14 +47,14 @@ namespace Cilsil.Services
                     // This try catch block handles cases that the dll file is corrupted or broken.
                     try
                     {
-                        modulesWithNoSymbols = 
+                        modulesWithNoSymbols =
                             modulesWithNoSymbols.Append(ModuleDefinition.ReadModule(p, readerParamsWithoutSymbols));
                     }
                     catch
                     {
                         return null;
                     }
-                    
+
                     return null;
                 }
             }).ToList();
@@ -63,7 +63,7 @@ namespace Cilsil.Services
                 .Where(p => p != null).Distinct(new ModuleComparer());
             modulesWithNoSymbols = modulesWithNoSymbols
                 .Where(p => p != null).Distinct(new ModuleComparer());
-                
+
             var typesWithSymbols = modulesWithSymbols
                 .SelectMany(m => m.Types)
                 .SelectMany(t => t.GetAllNestedTypes());

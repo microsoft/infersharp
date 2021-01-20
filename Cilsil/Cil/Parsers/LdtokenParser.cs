@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-using Cilsil.Sil;
-using Cilsil.Sil.Expressions;
-using Cilsil.Sil.Instructions;
 using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using System.Collections.Generic;
 
 namespace Cilsil.Cil.Parsers
 {

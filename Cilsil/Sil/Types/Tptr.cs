@@ -48,7 +48,7 @@ namespace Cilsil.Sil.Types
         /// </returns>
         public override string ToString()
         {
-            switch (Kind) 
+            switch (Kind)
             {
                 case PtrKind.Pk_pointer:
                     return $"{Type}*";
@@ -64,7 +64,7 @@ namespace Cilsil.Sil.Types
                     return "";
             }
         }
-            
+
         /// <summary>
         /// Determines whether the specified <see cref="object" />, is equal to this 
         /// instance.
@@ -148,7 +148,7 @@ namespace Cilsil.Sil.Types
         /// </summary>
         [JsonIgnore]
         public Expression BoxedVal;
-        
+
         /// <summary>
         /// The type of the boxed value.
         /// </summary>

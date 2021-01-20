@@ -24,7 +24,7 @@ namespace Cilsil.Sil.Types
         /// </summary>
         /// <returns>The underlying type.</returns>
         public Typ StripPointer() => this is Tptr tptr ? tptr.Type : this;
-        
+
         /// <summary>
         /// Creates a SIL type from a <see cref="TypeReference"/>, wrapped in a Tptr if the input
         /// is non-primitive and non-void (in those cases, it returns the corresponding SIL type

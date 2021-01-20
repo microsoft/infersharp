@@ -46,7 +46,7 @@ namespace Cilsil.Sil.Instructions
                      Typ type,
                      Location location) : base(location)
         {
-            if (lvalue == null || rvalue == null || type == null || location == null) 
+            if (lvalue == null || rvalue == null || type == null || location == null)
             {
                 throw new ArgumentException("Inputs to this constructor cannot be null.");
             }

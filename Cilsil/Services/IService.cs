@@ -9,7 +9,7 @@ namespace Cilsil.Services
         /// </summary>
         /// <returns></returns>
         ServiceExecutionResult Execute();
-        
+
         /// <summary>
         /// Execute the service following the result of a previous service execution
         /// </summary>

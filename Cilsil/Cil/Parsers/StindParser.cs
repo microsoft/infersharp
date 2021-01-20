@@ -36,20 +36,20 @@ namespace Cilsil.Cil.Parsers
                         if (address.AddressType == Address.ReferenceKind.Parameter)
                         {
                             freshIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
-                            
+
                             loadExpressionValue = new Load(freshIdentifier,
                                                            address.Value,
                                                            pointerType.StripPointer(),
                                                            state.CurrentLocation);
-                            
-                            setExpressionValue = 
+
+                            setExpressionValue =
                                 new Store(new VarExpression(freshIdentifier),
                                           value,
                                           pointerType.StripPointer().StripPointer(),
                                           state.CurrentLocation);
 
                             state.PushInstruction(
-                                instruction.Next, 
+                                instruction.Next,
                                 AddMethodBodyInstructionsToCfg(state,
                                                                loadExpressionValue,
                                                                setExpressionValue));

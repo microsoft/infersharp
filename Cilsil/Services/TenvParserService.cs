@@ -15,7 +15,7 @@ namespace Cilsil.Services
         public IEnumerable<TypeDefinition> Types { get; private set; }
 
         public IEnumerable<ModuleDefinition> ModuleDefinitions { get; private set; }
-        
+
         public TenvParserService(IEnumerable<TypeDefinition> types = null,
                                  IEnumerable<ModuleDefinition> moduleDefinitions = null)
         {
@@ -133,7 +133,7 @@ namespace Cilsil.Services
                                         staticFields,
                                         baseSupers.Concat(baseTypes),
                                         procNames);
-            
+
             var typeEntry = new TypeEntry
             {
                 TypeName = TypeName.FromTypeReference(type),

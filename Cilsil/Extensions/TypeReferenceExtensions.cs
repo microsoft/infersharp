@@ -17,7 +17,7 @@ namespace Cilsil.Extensions
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns></returns>
-        public static TypeReference GetUnderlyingType(this TypeReference type) => 
+        public static TypeReference GetUnderlyingType(this TypeReference type) =>
             type.IsByReference ? type.GetElementType() : type;
 
         /// <summary>

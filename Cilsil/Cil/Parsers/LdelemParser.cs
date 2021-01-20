@@ -29,7 +29,7 @@ namespace Cilsil.Cil.Parsers
                 case Code.Ldelem_Ref:
                     (var arrayIndex, _) = state.Pop();
                     (var array, var type) = state.Pop();
-                    
+
                     if (!(array is VarExpression arrayVar) || !(type.StripPointer() is Tarray))
                     {
                         Log.WriteParserError(array, instruction, state);
@@ -39,12 +39,12 @@ namespace Cilsil.Cil.Parsers
                     if (type is Tarray)
                     {
                         arrayTypeWithPtr = new Tptr(Tptr.PtrKind.Pk_pointer, type);
-                        arrayTypeNoPtr = (Tarray) type;
+                        arrayTypeNoPtr = (Tarray)type;
                     }
                     else if (type is Tptr)
                     {
-                        arrayTypeWithPtr = (Tptr) type;
-                        arrayTypeNoPtr = (Tarray) type.StripPointer();
+                        arrayTypeWithPtr = (Tptr)type;
+                        arrayTypeNoPtr = (Tarray)type.StripPointer();
                     }
                     else
                     {

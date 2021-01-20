@@ -58,7 +58,7 @@ namespace Cilsil.Cil.Parsers
                 {
                     // Strips out the pointer because the type produced by CreateArg already
                     // carries it.
-                    var argAddressType = 
+                    var argAddressType =
                         new Address(Tptr.PtrKind.Pk_pointer,
                                     argType.StripPointer(),
                                     argVar,

@@ -39,7 +39,7 @@ namespace Cilsil.Cil.Parsers
                 default:
                     return false;
             }
-            
+
             (var variableExpression, var variableType) = CreateLocal(index, state.Method);
 
             // Updates the type to the appropriate boxed one if the variable contains a boxed

@@ -138,7 +138,7 @@ namespace Cilsil.Cil.Parsers
                              new ConstExpression(ProcedureName.BuiltIn__new),
                              args,
                              callFlags,
-                             state.CurrentLocation), 
+                             state.CurrentLocation),
                     new VarExpression(newObjectIdentifier));
         }
 
@@ -150,7 +150,7 @@ namespace Cilsil.Cil.Parsers
         /// <param name="state">Current program state.</param>
         /// <returns>Node with the object allocation instructions, as well as the variable which 
         /// represents the new object.</returns>
-        protected static (CfgNode, VarExpression) CreateObjectAllocationNode(Tptr type, 
+        protected static (CfgNode, VarExpression) CreateObjectAllocationNode(Tptr type,
                                                                              ProgramState state)
         {
             var typeName = type.StripPointer().ToString();
@@ -239,7 +239,7 @@ namespace Cilsil.Cil.Parsers
                                                out TypeReference returnType,
                                                out Identifier returnVariable,
                                                out List<Call.CallArg> callArgs,
-                                               out Call methodCall, 
+                                               out Call methodCall,
                                                bool isConstructorCall = false)
         {
             callArgs = new List<Call.CallArg>();
@@ -303,7 +303,7 @@ namespace Cilsil.Cil.Parsers
             // If the variable is by reference, its corresponding type will have an &, which we do
             // not want.
             var variableType = method.Body.Variables[index].VariableType;
-            return (new LvarExpression(new LocalVariable(name, method)), 
+            return (new LvarExpression(new LocalVariable(name, method)),
                     Typ.FromTypeReference(variableType));
         }
 

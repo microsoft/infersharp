@@ -100,7 +100,7 @@ namespace Cilsil.Cil.Parsers
                                       TypeDefinition parentTypeDefinition,
                                       List<SilInstruction> structFieldInitializationInstructions,
                                       ProgramState state,
-                                      HashSet<TypeDefinition> parentTypeDefinitions) 
+                                      HashSet<TypeDefinition> parentTypeDefinitions)
         {
             foreach (var fieldReference in parentTypeDefinition.Fields)
             {
