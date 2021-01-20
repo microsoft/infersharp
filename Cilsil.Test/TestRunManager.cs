@@ -27,7 +27,7 @@ namespace Cilsil.Test
         private string TestCodeFilePath => Path.Combine(AssetFolderPath, TestCodeFileName);
 
         private string TestBinaryFolder =>
-            Path.Combine(AssetFolderPath, "bin", "Debug", "netcoreapp2.2", "ubuntu.16.10-x64");
+            Path.Combine(AssetFolderPath, "bin", "Debug", "net5.0", "ubuntu.16.10-x64");
 
         private string CfgJsonPath => Path.Combine(TestBinaryFolder, "cfg.json");
 
