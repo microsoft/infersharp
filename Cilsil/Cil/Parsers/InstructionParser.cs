@@ -184,7 +184,7 @@ namespace Cilsil.Cil.Parsers
                                                                false)),
                          new List<Call.CallArg>
                          {
-                                     new Call.CallArg(newObjectVariable, type)
+                             new Call.CallArg(newObjectVariable, type)
                          },
                          callFlags,
                          state.CurrentLocation);
