@@ -12,7 +12,7 @@ steps:
     projects: Examples/Examples.sln
 
 - script: |
-    sh run_infersharp.sh Examples output
+    sh run_infersharp.sh $(Build.SourcesDirectory)/Examples/Examples/bin/Debug output
   displayName: 'Run Infer# analysis'
 
 - script: cat $(Build.SourcesDirectory)/infer-out/filtered_bugs.txt
