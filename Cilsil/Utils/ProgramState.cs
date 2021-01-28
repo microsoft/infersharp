@@ -20,7 +20,7 @@ namespace Cilsil.Utils
     /// </summary>
     public class ProgramState
     {
-        const int NodeVisitTimeoutThreshold = 1000;
+        private const int NodeVisitTimeoutThreshold = 1000;
 
         /// <summary>
         /// The CFG associated with the method.
@@ -219,10 +219,7 @@ namespace Cilsil.Utils
         /// </summary>
         /// <param name="exp">The expression to push.</param>
         /// <param name="type">The type of the expression being pushed.</param>
-        public void PushExpr(Expression exp, Typ type)
-        {
-            ProgramStack.Push((exp, type));
-        }
+        public void PushExpr(Expression exp, Typ type) => ProgramStack.Push((exp, type));
 
         /// <summary>
         /// Returns the top element of the stack, without removing it.

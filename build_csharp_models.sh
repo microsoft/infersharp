@@ -18,8 +18,8 @@ mkdir -p models_out
 
 section "Extract CFGs from models"
 dotnet \
-Cilsil/bin/Debug/netcoreapp2.2/Cilsil.dll translate \
-System/bin/Debug/netcoreapp2.2/System.dll \
+Cilsil/bin/Debug/net5.0/Cilsil.dll translate \
+System/bin/Debug/net5.0/System.dll \
 --outcfg models_out/cfg.json \
 --outtenv models_out/tenv.json \
 --cfgtxt models_out/cfg.txt

@@ -68,10 +68,7 @@ namespace Cilsil.Sil
         /// </summary>
         /// <param name="procId">The ID of the procedure whose nodes are to be removed from the 
         /// CFG.</param>
-        public void DeregisterProcedureNodes(long procId)
-        {
-           Nodes.RemoveAll(item => item.ProcId==procId);
-        }
+        public void DeregisterProcedureNodes(long procId) => Nodes.RemoveAll(item => item.ProcId == procId);
 
         /// <summary>
         /// Generates the dot file used for cfg visualization.

@@ -27,7 +27,7 @@ namespace Cilsil.Test
         private string TestCodeFilePath => Path.Combine(AssetFolderPath, TestCodeFileName);
 
         private string TestBinaryFolder =>
-            Path.Combine(AssetFolderPath, "bin", "Debug", "netcoreapp2.2", "ubuntu.16.10-x64");
+            Path.Combine(AssetFolderPath, "bin", "Debug", "net5.0", "ubuntu.16.10-x64");
 
         private string CfgJsonPath => Path.Combine(TestBinaryFolder, "cfg.json");
 
@@ -68,7 +68,7 @@ namespace Cilsil.Test
         /// source code if and only if this parameter is true.</param>
         /// <returns>The path to the testcode binaries produced by the build command, as well as 
         /// the path to the binaries for the test's core libraries.</returns>
-        public string [] BuildCode(string code, 
+        public string[] BuildCode(string code,
                                    String returnType,
                                    bool decorate = true)
         {
@@ -95,16 +95,16 @@ namespace Cilsil.Test
             }
 
             // C# core library DLL file path.
-            var coreLibraryFilePath = Path.Combine(TestBinaryFolder, "publish", "System.Private.CoreLib.dll");  
+            var coreLibraryFilePath = Path.Combine(TestBinaryFolder, "publish", "System.Private.CoreLib.dll");
 
             File.WriteAllText(TestCodeFilePath, code);
             if (RunCommand("dotnet", $"publish {ProjectFilePath} -c Debug -r ubuntu.16.10-x64", out var stdout, out _) != 0)
             {
                 throw new ApplicationException(
                     $"Test code failed to build with error: \n{stdout}");
-            }   
+            }
 
-            return new string[]{Path.Combine(TestBinaryFolder, "TestProject.dll"), coreLibraryFilePath};
+            return new string[] { Path.Combine(TestBinaryFolder, "TestProject.dll"), coreLibraryFilePath };
         }
 
         public void Cleanup()

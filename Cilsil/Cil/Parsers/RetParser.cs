@@ -18,7 +18,7 @@ namespace Cilsil.Cil.Parsers
             switch (instruction.OpCode.Code)
             {
                 case Code.Ret:
-                    var retType = state.Method.ReturnType;
+                    var retType = state.Method.ReturnType.GetElementType();
                     if (retType == state.Method.Module.TypeSystem.Void)
                     {
                         state.PreviousNode.Successors.Add(state.ProcDesc.ExitNode);

@@ -73,13 +73,13 @@ namespace Cilsil.Cil.Parsers
             // Instruction is either Ldflda or Ldsflda.
             else
             {
-                var fieldAddressVariableType = 
+                var fieldAddressVariableType =
                     new Address(Tptr.PtrKind.Pk_pointer,
                                 Typ.FromTypeReferenceNoPointer(
                                     field.FieldType),
                                 fieldExpression,
                                 referenceKind: Address.ReferenceKind.Field);
-                state.PushExpr(fieldExpression, fieldAddressVariableType);                
+                state.PushExpr(fieldExpression, fieldAddressVariableType);
             }
             state.PushInstruction(instruction.Next);
             return true;

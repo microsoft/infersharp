@@ -63,18 +63,18 @@ namespace Cilsil.Test.E2E
         [DataRow(false, InferError.RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakIntraprocClose(bool closeStream, InferError expectedError)
-        {   
+        {
             TestRunManager.Run(InitVars(state: TestClassState.Initialized,
                                         firstLocalVarType: VarType.StreamReader,
                                         firstLocalVarValue: CallTestClassMethod(
                                             TestClassMethod.ReturnInitializedStreamReader,
-                                            false)) + 
+                                            false)) +
                                    (closeStream ? CallMethod(
                                                     VarName.FirstLocal,
-                                                    "Close") 
+                                                    "Close")
                                                 : string.Empty),
                                GetString(expectedError));
-            
+
         }
 
         /// <summary>
@@ -88,18 +88,18 @@ namespace Cilsil.Test.E2E
         [DataRow(false, InferError.RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakIntraprocDispose(bool disposeStream, InferError expectedError)
-        {   
+        {
             TestRunManager.Run(InitVars(state: TestClassState.Initialized,
                                         firstLocalVarType: VarType.MemoryStream,
                                         firstLocalVarValue: CallTestClassMethod(
                                             TestClassMethod.ReturnInitializedMemoryStream,
-                                            false)) + 
+                                            false)) +
                                    (disposeStream ? CallMethod(
                                                         VarName.FirstLocal,
-                                                        "Dispose") 
+                                                        "Dispose")
                                                   : string.Empty),
                               GetString(expectedError));
-            
+
         }
 
         /// <summary>
@@ -112,22 +112,22 @@ namespace Cilsil.Test.E2E
         [DataRow(false, InferError.RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakInterproc(bool closeStream, InferError expectedError)
-        {   
+        {
             TestRunManager.Run(InitVars(state: TestClassState.Initialized,
                                         firstLocalVarType: VarType.StreamReader,
                                         firstLocalVarValue: CallTestClassMethod(
                                             TestClassMethod.ReturnInitializedStreamReader,
-                                            false)) + 
+                                            false)) +
                                    (closeStream ? CallTestClassMethod(
                                                     TestClassMethod.CloseStream,
                                                     true,
-                                                    new string[] 
+                                                    new string[]
                                                     {
                                                         GetString(VarName.FirstLocal)
-                                                    }) 
+                                                    })
                                                 : string.Empty),
                                GetString(expectedError));
-            
+
         }
 
         /// <summary>
@@ -140,19 +140,19 @@ namespace Cilsil.Test.E2E
         [DataRow(false, InferError.RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakInitInterproc(bool closeStream, InferError expectedError)
-        {   
-            TestRunManager.Run(InitVars(state: TestClassState.None) + 
+        {
+            TestRunManager.Run(InitVars(state: TestClassState.None) +
                                    (closeStream ? CallTestClassMethod(
                                                     TestClassMethod.CloseStream,
                                                     true,
                                                     new string[]
                                                     {
                                                         CallTestClassMethod(
-                                                            TestClassMethod.ReturnInitializedStreamReader, 
+                                                            TestClassMethod.ReturnInitializedStreamReader,
                                                             false)
                                                     })
                                                 : CallTestClassMethod(
-                                                    TestClassMethod.ReturnInitializedStreamReader, 
+                                                    TestClassMethod.ReturnInitializedStreamReader,
                                                     true)),
                                GetString(expectedError));
         }
@@ -172,8 +172,8 @@ namespace Cilsil.Test.E2E
                                         firstLocalVarType: VarType.MemoryStream,
                                         firstLocalVarValue: CallTestClassMethod(
                                                     TestClassMethod.ReturnInitializedMemoryStream,
-                                                    false)) + 
-                                   (returnsResource ? ReturnVar(VarName.FirstLocal) 
+                                                    false)) +
+                                   (returnsResource ? ReturnVar(VarName.FirstLocal)
                                                      : string.Empty),
                                GetString(expectedError),
                                returnType: returnsResource ? GetString(VarType.MemoryStream)
@@ -191,7 +191,7 @@ namespace Cilsil.Test.E2E
         [DataTestMethod]
         public void ResourceLeakStaticSingleton(bool staticSingleton, InferError expectedError)
         {
-            TestRunManager.Run(InitVars(state: TestClassState.Initialized) + 
+            TestRunManager.Run(InitVars(state: TestClassState.Initialized) +
                                    (staticSingleton ? string.Empty
                                                     : CallTestClassMethod(
                                                         TestClassMethod.InitializeStreamReaderObjectField,
@@ -658,9 +658,9 @@ namespace Cilsil.Test.E2E
                          secondLocalVarValue: comparison.ToString()) +
                     CallTestClassMethod(TestClassMethod.IncrementRefParameter,
                                         true,
-                                        args: new string[] 
-                                        { 
-                                            "ref " + VarName.FirstLocal.ToString() 
+                                        args: new string[]
+                                        {
+                                            "ref " + VarName.FirstLocal.ToString()
                                         }) +
                     GenerateSingleComparisonIfCondition(BooleanTestType.Comparison, "==") +
                 DerefObject(VarName.Tc), GetString(expectedError));
@@ -713,8 +713,8 @@ namespace Cilsil.Test.E2E
         [DataTestMethod]
         public void NullExceptionIsInst(int testInputCode, InferError expectedError)
         {
-            string inputObjectString; 
-            switch(testInputCode)
+            string inputObjectString;
+            switch (testInputCode)
             {
                 case 0:
                     inputObjectString = "new TestClass()";
@@ -765,7 +765,7 @@ namespace Cilsil.Test.E2E
                     GenerateSingleComparisonIfCondition(BooleanTestType.Unary,
                             firstOperator: modelOperator,
                             secondOperator: "==",
-                            "true") + 
+                            "true") +
                     DerefObject(VarName.Tc),
                 GetString(expectedError));
         }

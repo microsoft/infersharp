@@ -30,7 +30,7 @@ namespace Cilsil.Test.Assets
         /// </summary>
         public enum VarType
         {
-            None, Boolean, Integer, UnsignedInteger, String, TestClass, StreamReader, MemoryStream, 
+            None, Boolean, Integer, UnsignedInteger, String, TestClass, StreamReader, MemoryStream,
             TestClassArrayOneDim, TestClassArrayTwoDim
         };
 
@@ -132,7 +132,7 @@ namespace Cilsil.Test.Assets
                     return "string";
                 case VarType.StreamReader:
                     return "StreamReader";
-                 case VarType.MemoryStream:
+                case VarType.MemoryStream:
                     return "MemoryStream";
                 case VarType.TestClass:
                     return nameof(TestClass);
@@ -268,7 +268,7 @@ namespace Cilsil.Test.Assets
                                         string[] args = null)
         {
             var concatArgs = args == null ? string.Empty : string.Join(",", args);
-            return  GetString(callingVar) + "." + methodName +
+            return GetString(callingVar) + "." + methodName +
                         "(" + concatArgs + ");\n";
         }
 
@@ -279,7 +279,7 @@ namespace Cilsil.Test.Assets
         /// <returns>A string representation of the return statement.</returns>
         public static string ReturnVar(VarName returnedVar)
         {
-            return  "return " + GetString(returnedVar) + ";\n";
+            return "return " + GetString(returnedVar) + ";\n";
         }
 
         /// <summary>

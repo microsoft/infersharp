@@ -10,13 +10,15 @@ namespace Cilsil.Test.Assets
         public static TestClass StaticObjectField;
         public TestClass[] InstanceArrayField;
 
+        public record TestClassRecord { public string Name { get; init; } }
+
         /// <summary>
         /// Initializes a static readonly field resource. This kind of resource should not be disposed 
         /// as it will be reserved for singleton design pattern.
         /// </summary>
-        public static readonly StreamReader StaticStreamReaderField = new StreamReader("whatever.txt"); 
-        
-        public StreamReader InstanceStreamReaderField; 
+        public static readonly StreamReader StaticStreamReaderField = new StreamReader("whatever.txt");
+
+        public StreamReader InstanceStreamReaderField;
 
         public struct InternalStruct
         {
@@ -31,10 +33,10 @@ namespace Cilsil.Test.Assets
             public char charField;
             public TestClass objectField;
         }
-        
+
         public TestClass() { }
 
-        public TestClass(TestClass testClass) 
+        public TestClass(TestClass testClass)
         {
             InstanceObjectField = testClass;
         }
@@ -97,7 +99,7 @@ namespace Cilsil.Test.Assets
             ref TestClass testClass = ref StaticObjectField;
             testClass = initializeToNull ? null : new TestClass();
         }
-        
+
         /// <summary>
         /// Returns an initialized TestClass object on true input, and null on false input.
         /// </summary>

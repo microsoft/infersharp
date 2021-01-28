@@ -64,8 +64,10 @@ namespace Cilsil.Cil.Parsers
 
                         try
                         {
-                            var parentTypeDefinitions = new HashSet<TypeDefinition>();
-                            parentTypeDefinitions.Add(structTypeDefinition);
+                            var parentTypeDefinitions = new HashSet<TypeDefinition>
+                            {
+                                structTypeDefinition
+                            };
                             InitializeStruct(structVariable,
                                              structTypeDefinition,
                                              structInitializationInstructions,
@@ -98,7 +100,7 @@ namespace Cilsil.Cil.Parsers
                                       TypeDefinition parentTypeDefinition,
                                       List<SilInstruction> structFieldInitializationInstructions,
                                       ProgramState state,
-                                      HashSet<TypeDefinition> parentTypeDefinitions) 
+                                      HashSet<TypeDefinition> parentTypeDefinitions)
         {
             foreach (var fieldReference in parentTypeDefinition.Fields)
             {

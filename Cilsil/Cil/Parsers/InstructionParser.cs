@@ -138,8 +138,66 @@ namespace Cilsil.Cil.Parsers
                              new ConstExpression(ProcedureName.BuiltIn__new),
                              args,
                              callFlags,
-                             state.CurrentLocation), 
+                             state.CurrentLocation),
                     new VarExpression(newObjectIdentifier));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="CfgNode"/> containing instructions for memory allocation as well
+        /// as constructor invocation.
+        /// </summary>
+        /// <param name="type">The SIL type to be allocate memory for.</param>
+        /// <param name="state">Current program state.</param>
+        /// <returns>Node with the object allocation instructions, as well as the variable which 
+        /// represents the new object.</returns>
+        protected static (CfgNode, VarExpression) CreateObjectAllocationNode(Tptr type,
+                                                                             ProgramState state)
+        {
+            var typeName = type.StripPointer().ToString();
+
+            var newObjectIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            var newObjectVariable = new VarExpression(newObjectIdentifier);
+            var callFlags = new Call.CallFlags(isVirtual: false,
+                                               noReturn: false,
+                                               isObjCBlock: false);
+            var objectAllocationCall =
+                new Call(newObjectIdentifier,
+                         type,
+                         new ConstExpression(ProcedureName.BuiltIn__new),
+                         new List<Call.CallArg>
+                         {
+                                     new Call.CallArg(
+                                         new SizeofExpression(
+                                             type.StripPointer(), "exact"),
+                                         type)
+                         },
+                         callFlags,
+                         state.CurrentLocation);
+
+            var objectConstructorCall =
+                new Call(state.GetIdentifier(Identifier.IdentKind.Normal),
+                         new Tvoid(),
+                         new ConstExpression(new ProcedureName(".ctor",
+                                                               new List<string>(),
+                                                               typeName,
+                                                               "System.Void",
+                                                               false)),
+                         new List<Call.CallArg>
+                         {
+                             new Call.CallArg(newObjectVariable, type)
+                         },
+                         callFlags,
+                         state.CurrentLocation);
+
+            var node = new StatementNode(state.CurrentLocation,
+                                         StatementNode.StatementNodeKind.Call,
+                                         state.ProcDesc,
+                                         comment: $"System.Void {typeName}::.ctor()");
+
+            node.Instructions.Add(objectAllocationCall);
+            node.Instructions.Add(objectConstructorCall);
+
+            return (node, newObjectVariable);
         }
 
         /// <summary>
@@ -181,7 +239,7 @@ namespace Cilsil.Cil.Parsers
                                                out TypeReference returnType,
                                                out Identifier returnVariable,
                                                out List<Call.CallArg> callArgs,
-                                               out Call methodCall, 
+                                               out Call methodCall,
                                                bool isConstructorCall = false)
         {
             callArgs = new List<Call.CallArg>();
@@ -245,7 +303,7 @@ namespace Cilsil.Cil.Parsers
             // If the variable is by reference, its corresponding type will have an &, which we do
             // not want.
             var variableType = method.Body.Variables[index].VariableType;
-            return (new LvarExpression(new LocalVariable(name, method)), 
+            return (new LvarExpression(new LocalVariable(name, method)),
                     Typ.FromTypeReference(variableType));
         }
 
