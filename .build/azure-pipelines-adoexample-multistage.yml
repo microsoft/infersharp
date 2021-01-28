@@ -1,0 +1,54 @@
+name: "InferSharp-ADOExample-Multistage"
+
+jobs:
+# This job is an example of your existing build pipeline.
+- job: run_existing_build_pipeline
+  pool:
+    vmImage: 'windows-2019'
+
+  steps:
+  # Build
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet build'
+    inputs:
+      projects: Examples/Examples.sln
+  
+  # Copy binaries to a staging folder
+  - task: CopyFiles@2
+    displayName: 'Copy output binaries'
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)'
+      Contents: '**\?(*.dll|*.pdb|*.exe)'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  
+  # Publish the binaries with the artifact name "inferinput".
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish binaries'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'inferinput'
+      publishLocation: 'Container'
+
+- job: run_infersharp
+  dependsOn: 'run_existing_build_pipeline'
+  pool:
+    vmImage: 'ubuntu-20.04'
+  container:
+    image: mcr.microsoft.com/infersharp:v0.2
+
+  steps:
+  # Download the binaries
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download binaries'
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      artifactName: ${{ parameters.ArtifactName }}
+      downloadPath: '$(System.ArtifactsDirectory)'
+
+  - script: |
+      sh run_infersharp.sh Examples output
+    displayName: 'Run Infer# analysis'
+
+  - script: cat $(Build.SourcesDirectory)/infer-out/filtered_bugs.txt
+    displayName: 'Infer# analysis result'
