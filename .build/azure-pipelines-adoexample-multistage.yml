@@ -17,7 +17,7 @@ jobs:
   - task: CopyFiles@2
     displayName: 'Copy output binaries'
     inputs:
-      SourceFolder: '$(Build.SourcesDirectory)'
+      SourceFolder: '$(Build.SourcesDirectory)/Examples/Examples/bin/Debug'
       Contents: '**\?(*.dll|*.pdb|*.exe)'
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
   
@@ -47,7 +47,7 @@ jobs:
       downloadPath: '$(System.ArtifactsDirectory)'
 
   - script: |
-      sh run_infersharp.sh Examples output
+      sh run_infersharp.sh $(System.ArtifactsDirectory) output
     displayName: 'Run Infer# analysis'
 
   - script: cat $(Build.SourcesDirectory)/infer-out/filtered_bugs.txt
