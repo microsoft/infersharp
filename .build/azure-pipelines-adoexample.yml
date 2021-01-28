@@ -1,0 +1,19 @@
+name: "InferSharp-ADOExample"
+
+pool:
+  vmImage: 'ubuntu-latest'
+container:
+  image: mcr.microsoft.com/infersharp:v0.2
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet build'
+  inputs:
+    projects: Examples/Examples.sln
+
+- script: |
+    sh run_infersharp.sh Examples output
+  displayName: 'Run Infer# analysis'
+
+- script: cat $(Build.SourcesDirectory)/infer-out/filtered_bugs.txt
+  displayName: 'Infer# analysis result'
