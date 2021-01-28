@@ -1,7 +1,7 @@
 name: "InferSharp-ADOExample"
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-2019'
 container:
   image: mcr.microsoft.com/infersharp:v0.2
 
