@@ -2,7 +2,7 @@ name: "InferSharp-AzurePipelinesExample-Multistage"
 
 jobs:
 # Example of existing build pipeline
-- job: run_existing_build_pipeline
+- job: RunExistingBuildPipeline
   pool:
     vmImage: 'windows-2019'
 
@@ -30,8 +30,8 @@ jobs:
       publishLocation: 'Container'
 
 # Run Infer#
-- job: run_infersharp
-  dependsOn: 'run_existing_build_pipeline'
+- job: RunInferSharp
+  dependsOn: 'RunExistingBuildPipeline'
   pool:
     vmImage: 'ubuntu-20.04'
   container:
