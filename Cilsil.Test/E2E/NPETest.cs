@@ -17,27 +17,6 @@ namespace Cilsil.Test.E2E
         public void TestInitialize() => TestRunManager = new TestRunManager(TestContext.TestName);
 
         /// <summary>
-        /// Validates that a dereference on an uninitialized pointer is identified.
-        /// </summary>
-        /// <param name="initializationMethod">The TestClass method used to initialize the
-        /// object to be dereference.</param>
-        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
-        [DataRow(TestClassMethod.InitializeInstanceObjectField, InferError.None)]
-        [DataRow(TestClassMethod.None, InferError.DANGLING_POINTER_DEREFERENCE)]
-        [DataTestMethod]
-        public void DanglingPointerDerefSimple(TestClassMethod initializationMethod,
-                                               InferError expectedError)
-        {
-            // We provide the "false" argument because it is required to initialize the object.
-            TestRunManager.Run(InitVars(state: TestClassState.Initialized) +
-                                   CallTestClassMethod(initializationMethod,
-                                              true,
-                                              args: new string[] { false.ToString().ToLower() }) +
-                                   DerefObject(VarName.InstanceObjectField),
-                               GetString(expectedError));
-        }
-
-        /// <summary>
         /// Validates that a dereference on a locally initialized null pointer is identified.
         /// </summary>
         /// <param name="state">The initial state of the TestClass object.</param>
