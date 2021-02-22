@@ -12,7 +12,7 @@
 The instructions on how to run Infer# as a GitHub Action can be found here: [Infer# Action](https://github.com/marketplace/actions/infersharp).
 
 ### Azure Pipelines
-Leveraging Azure Pipelines [Container Jobs](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops), an example of how to run Infer# as an Azure Pipelines task can be found [here](https://github.com/microsoft/infersharp/blob/main/.build/azure-pipelines-example.yml).\
+Infer# can be run as an Azure Pipelines [container job](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops). An example can be found [here](https://github.com/microsoft/infersharp/blob/main/.build/azure-pipelines-example.yml).\
 If the existing pipeline runs on Windows or running a multi-stage job is desired, refer to the example [here](https://github.com/microsoft/infersharp/blob/main/.build/azure-pipelines-example-multistage.yml).
 
 ### Docker Image
