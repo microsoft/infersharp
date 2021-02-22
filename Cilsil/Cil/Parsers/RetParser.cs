@@ -43,17 +43,19 @@ namespace Cilsil.Cil.Parsers
                             // subsequently returning it.
                             var inlineReturn = new LocalVariable("inlineReturn", state.Method);
                             var inlineIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+
                             var storeInlineReturn = new Store(new LvarExpression(inlineReturn),
                                                               returnValue,
                                                               Typ.FromTypeReference(retType),
                                                               state.CurrentLocation);
-                            var loadInlineReturn = new Load(
-                                inlineIdentifier,
-                                new LvarExpression(inlineReturn),
-                                Typ.FromTypeReference(retType),
-                                state.CurrentLocation);
-                            retNode.Instructions.Add(storeInlineReturn);
-                            retNode.Instructions.Add(loadInlineReturn);
+                            AddMethodBodyInstructionsToCfg(state, storeInlineReturn);
+
+                            var loadInlineReturn = new Load(inlineIdentifier,
+                                                            new LvarExpression(inlineReturn),
+                                                            Typ.FromTypeReference(retType),
+                                                            state.CurrentLocation);
+                            AddMethodBodyInstructionsToCfg(state, loadInlineReturn);
+                            
                             retInstr = new Store(returnVariable,
                                                  new VarExpression(inlineIdentifier),
                                                  Typ.FromTypeReference(retType),
