@@ -34,7 +34,7 @@ namespace Cilsil.Cil.Parsers
                             new LocalVariable(Identifier.ReturnIdentifier,
                                               state.Method));
 
-                        if (returnValue is BinopExpression) 
+                        if (returnValue is BinopExpression)
                         {
                             // We see that for the auto-generated method op_Inequality in records, 
                             // an equality expression is pushed directly onto the stack and
@@ -55,7 +55,7 @@ namespace Cilsil.Cil.Parsers
                                                             Typ.FromTypeReference(retType),
                                                             state.CurrentLocation);
                             AddMethodBodyInstructionsToCfg(state, loadInlineReturn);
-                            
+
                             retInstr = new Store(returnVariable,
                                                  new VarExpression(inlineIdentifier),
                                                  Typ.FromTypeReference(retType),
