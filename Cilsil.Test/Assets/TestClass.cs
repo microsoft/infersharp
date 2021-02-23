@@ -10,7 +10,7 @@ namespace Cilsil.Test.Assets
         public static TestClass StaticObjectField;
         public TestClass[] InstanceArrayField;
 
-        public abstract record TestClassRecord { public string Name { get; init; } }
+        public record TestClassRecord { public string Name { get; init; } }
 
         /// <summary>
         /// Initializes a static readonly field resource. This kind of resource should not be disposed 
