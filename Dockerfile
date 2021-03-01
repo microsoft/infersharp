@@ -71,12 +71,10 @@ COPY . .
 RUN chmod +x build_csharp_models.sh && ./build_csharp_models.sh
 RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
 RUN dotnet publish -c Release Cilsil/Cilsil.csproj -r ubuntu.16.10-x64
-RUN dotnet publish -c Release AnalysisResultParser/AnalysisResultParser/AnalysisResultParser.csproj -r ubuntu.16.10-x64
 RUN dotnet build Examples/Examples/Examples.csproj
 
 FROM buildbackend AS release
 WORKDIR /app
-COPY --from=buildfrontend /app/AnalysisResultParser/AnalysisResultParser/bin/Release/net5.0/ubuntu.16.10-x64/publish/ /app/AnalysisResultParser/
 COPY --from=buildfrontend /app/Examples/Examples/bin/Debug/net5.0/ /app/Examples/
 COPY --from=buildfrontend /app/Cilsil/bin/Release/net5.0/ubuntu.16.10-x64/publish/ /app/Cilsil/
 COPY --from=buildfrontend /usr/local/lib/infer/infer/lib/models.sql /usr/local/lib/infer/infer/lib/models.sql
