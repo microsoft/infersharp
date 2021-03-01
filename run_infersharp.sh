@@ -15,13 +15,14 @@ rm -r infer-out
 coreLibraryPath=/app/Cilsil/System.Private.CoreLib.dll
 echo $coreLibraryPath
 echo "Copy binaries to a staging folder..."      
-sudo cp $coreLibraryPath $1     
+sudo cp $coreLibraryPath $1
 
 # Run InferSharp analysis.
 sudo dotnet /app/Cilsil/Cilsil.dll translate $1 --outcfg $1/cfg.json --outtenv $1/tenv.json --cfgtxt $1/cfg.txt
+echo "Translation completed. Analyzing..."
 sudo infer capture 
 sudo mkdir infer-out/captured 
-sudo infer analyzejson --debug --cfg-json $1/cfg.json --tenv-json $1/tenv.json
+sudo infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') --enable-issue-type NULL_DEREFERENCE --enable-issue-type DOTNET_RESOURCE_LEAK analyzejson --debug --cfg-json $1/cfg.json --tenv-json $1/tenv.json
 reportonfiles=$(echo $3 | sed 's/ /,/g')
 sudo dotnet /app/AnalysisResultParser/AnalysisResultParser.dll infer-out/bugs.txt infer-out/filtered_bugs.txt $reportonfiles
 mkdir -p $2
