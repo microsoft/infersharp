@@ -37,7 +37,6 @@ sqlite3 infer-out/results.db \
 -cmd ".output `pwd`/infer-out/models.sql" \
 -cmd "select * from specs order by proc_uid ;" </dev/null
 
-cat infer-out/models.sql >> infer/lib/models.sql
 cat infer-out/models.sql >> /usr/local/lib/infer/infer/lib/models.sql
 
 cd ..
