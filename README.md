@@ -24,10 +24,6 @@ Start a container in interactive mode, then run the following command in the con
 ```shell
 sh run_infersharp.sh Examples output
 ```
-To view the bug report:
-```shell
-cat output/filtered_bugs.txt
-```
 
 ## Contributing
 
