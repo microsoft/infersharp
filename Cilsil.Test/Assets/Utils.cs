@@ -42,7 +42,7 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various error types expected to be produced by Infer in the tests.
         /// </summary>
-        public enum InferError { None, NULL_DEREFERENCE, DANGLING_POINTER_DEREFERENCE, RESOURCE_LEAK }
+        public enum InferError { None, NULL_DEREFERENCE, DANGLING_POINTER_DEREFERENCE, DOTNET_RESOURCE_LEAK }
 
         /// <summary>
         /// The various class methods in TestClass which are called in the tests.
@@ -159,7 +159,7 @@ namespace Cilsil.Test.Assets
             {
                 case InferError.DANGLING_POINTER_DEREFERENCE:
                 case InferError.NULL_DEREFERENCE:
-                case InferError.RESOURCE_LEAK:
+                case InferError.DOTNET_RESOURCE_LEAK:
                     return error.ToString();
                 case InferError.None:
                     return null;

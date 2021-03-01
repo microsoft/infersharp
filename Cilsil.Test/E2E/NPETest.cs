@@ -39,7 +39,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.RESOURCE_LEAK)]
+        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakIntraprocClose(bool closeStream, InferError expectedError)
         {
@@ -64,7 +64,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.RESOURCE_LEAK)]
+        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakIntraprocDispose(bool disposeStream, InferError expectedError)
         {
@@ -88,7 +88,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.RESOURCE_LEAK)]
+        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakInterproc(bool closeStream, InferError expectedError)
         {
@@ -116,7 +116,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.RESOURCE_LEAK)]
+        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakInitInterproc(bool closeStream, InferError expectedError)
         {
@@ -143,7 +143,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.RESOURCE_LEAK)]
+        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakReturnedResource(bool returnsResource, InferError expectedError)
         {
@@ -166,7 +166,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.RESOURCE_LEAK)]
+        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakStaticSingleton(bool staticSingleton, InferError expectedError)
         {
