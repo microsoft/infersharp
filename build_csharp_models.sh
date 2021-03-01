@@ -25,13 +25,11 @@ System/bin/Debug/net5.0/System.dll \
 --cfgtxt models_out/cfg.txt
 
 section "Analyze model CFGs using Infer#"
-cd infer
-rm -rf infer-out
 infer capture
 mkdir infer-out/captured
 infer analyzejson --debug \
---cfg-json ../models_out/cfg.json \
---tenv-json ../models_out/tenv.json
+--cfg-json models_out/cfg.json \
+--tenv-json models_out/tenv.json
 
 section "Move model DB to lib"
 sqlite3 infer-out/results.db \
