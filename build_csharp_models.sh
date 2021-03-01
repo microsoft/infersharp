@@ -33,7 +33,13 @@ infer analyzejson --debug \
 --cfg-json ../models_out/cfg.json \
 --tenv-json ../models_out/tenv.json
 
-section "Move model specs to lib"
-sudo cp -r infer-out/specs/. /usr/local/lib/infer/infer/lib/specs/
+section "Move model DB to lib"
+sqlite3 infer-out/results.db \
+-cmd ".mode insert model_specs" \
+-cmd ".output `pwd`/infer-out/models.sql" \
+-cmd "select * from specs order by proc_uid ;" </dev/null
+
+cat infer-out/models.sql >> infer/lib/models.sql
+cat infer-out/models.sql >> /usr/local/lib/infer/infer/lib/models.sql
 
 cd ..
