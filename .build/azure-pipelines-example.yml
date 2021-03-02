@@ -14,8 +14,8 @@ steps:
 - script: |
     curl -o run_infersharp.sh https://raw.githubusercontent.com/microsoft/infersharp/main/run_infersharp.sh
     chmod +x run_infersharp.sh
-    sh run_infersharp.sh $(Build.SourcesDirectory)/Examples/Examples/bin/Debug output
+    ./run_infersharp.sh $(Build.SourcesDirectory)/Examples/Examples/bin/Debug
   displayName: 'Run Infer# analysis'
 
-- script: cat $(Build.SourcesDirectory)/infer-out/filtered_bugs.txt
+- script: cat $(Build.SourcesDirectory)/infer-out/report.txt
   displayName: 'Infer# analysis result'
