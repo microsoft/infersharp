@@ -1,7 +1,0 @@
-prebuilt_jar(
-  name = 'jsr-330',
-  binary_jar = 'javax.inject.jar',
-  visibility = [
-    'PUBLIC',
-  ],
-)

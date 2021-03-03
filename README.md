@@ -6,6 +6,7 @@
 - [.NET Blog](https://devblogs.microsoft.com/dotnet/infer-interprocedural-memory-safety-analysis-for-c/)
 - [Facebook Engineering Blog](https://engineering.fb.com/2020/12/14/open-source/infer/)
 - [.NET Community Standup](https://youtu.be/cIB4gxqm6EY?list=PLdo4fOcmZ0oX-DBuRG4u58ZTAJgBAeQ-t&t=147)
+- Visual Studio Toolbox - [YouTube](https://www.youtube.com/watch?v=yNSJv5wN4OA&feature=youtu.be), [Channel9](https://channel9.msdn.com/Shows/Visual-Studio-Toolbox/Analyzing-Code-with-Infer)
 
 ## Get Started
 ### GitHub Action
@@ -22,11 +23,7 @@ docker pull mcr.microsoft.com/infersharp:latest
 ```
 Start a container in interactive mode, then run the following command in the container:
 ```shell
-sh run_infersharp.sh Examples output
-```
-To view the bug report:
-```shell
-cat output/filtered_bugs.txt
+./run_infersharp.sh Examples
 ```
 
 ## Contributing

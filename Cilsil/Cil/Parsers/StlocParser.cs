@@ -57,9 +57,9 @@ namespace Cilsil.Cil.Parsers
 
             var variable = new LocalVariable(LocalName(index), state.Method);
             var storeValueIntoVariable = new Store(new LvarExpression(variable),
-                                                    value,
-                                                    type,
-                                                    state.CurrentLocation);
+                                                   value,
+                                                   type,
+                                                   state.CurrentLocation);
             node = AddMethodBodyInstructionsToCfg(state, storeValueIntoVariable);
             RegisterLocalVariable(state, variable, type);
             state.PushInstruction(instruction.Next, node);
