@@ -2,6 +2,8 @@
 
 **InferSharp** (also referred to as Infer#) is an interprocedural and scalable static code analyzer for C#. Via the capabilities of Facebook's [Infer](https://fbinfer.com/), this tool detects null pointer dereferences and resource leak. Read more about our approach in the [Wiki page](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET).
 
+In addition to implementing the C# frontend, we contributed our [Language-agnostic Serialization Layer](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#language-agnostic-representation-of-sil) ([Commit #1361](https://github.com/facebook/infer/commit/285ddb4a98f337a40d61e73b7a0867e44fa4f042)) to facebook/infer, which opens up opportunities for [additional language support](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#overview) in the future.
+
 ## Public Announcements
 - [.NET Blog](https://devblogs.microsoft.com/dotnet/infer-interprocedural-memory-safety-analysis-for-c/)
 - [Facebook Engineering Blog](https://engineering.fb.com/2020/12/14/open-source/infer/)
@@ -9,6 +11,9 @@
 - Visual Studio Toolbox - [YouTube](https://www.youtube.com/watch?v=yNSJv5wN4OA&feature=youtu.be), [Channel9](https://channel9.msdn.com/Shows/Visual-Studio-Toolbox/Analyzing-Code-with-Infer)
 
 ## Get Started
+
+The current version is ![GitHub release (latest by date)](https://img.shields.io/github/v/release/microsoft/infersharp). Please refer to the [release page](https://github.com/microsoft/infersharp/releases) for more information on the changes.
+
 ### GitHub Action
 The instructions on how to run Infer# as a GitHub Action can be found here: [Infer# Action](https://github.com/marketplace/actions/infersharp).
 
