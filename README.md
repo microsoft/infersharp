@@ -24,7 +24,7 @@ If the existing pipeline runs on Windows or running a multi-stage job is desired
 ### Docker Image
 Alternatively, use our Docker image:
 ```shell
-docker pull mcr.microsoft.com/infersharp:latest
+docker pull mcr.microsoft.com/infersharp:v1.0
 ```
 Start a container in interactive mode, then run the following command in the container:
 ```shell
