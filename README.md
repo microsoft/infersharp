@@ -12,7 +12,7 @@ In addition to implementing the C# frontend, we contributed our [Language-agnost
 
 ## Get Started
 
-Please refer to the [release page](https://github.com/microsoft/infersharp/releases) for more information on the changes.
+The current version is ![GitHub release (latest by date)](https://img.shields.io/github/v/release/microsoft/infersharp). Please refer to the [release page](https://github.com/microsoft/infersharp/releases) for more information on the changes.
 
 ### GitHub Action
 The instructions on how to run Infer# as a GitHub Action can be found here: [Infer# Action](https://github.com/marketplace/actions/infersharp).
