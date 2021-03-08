@@ -31,10 +31,26 @@ namespace Cilsil.Cil.Parsers
                     index = 3;
                     break;
                 case Code.Stloc_S:
-                    index = (instruction.Operand as VariableDefinition).Index;
+                    try
+                    {
+                        index = (instruction.Operand as VariableDefinition).Index;
+                    }
+                    catch (System.InvalidCastException e)
+                    {
+                        Log.WriteWarning(e.Message);
+                        return false;
+                    }
                     break;
                 case Code.Stloc:
-                    index = (int)instruction.Operand;
+                    try
+                    {
+                        index = (int)instruction.Operand;
+                    }
+                    catch (System.InvalidCastException e)
+                    {
+                        Log.WriteWarning(e.Message);
+                        return false;
+                    }
                     break;
                 default:
                     return false;
