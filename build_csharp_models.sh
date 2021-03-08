@@ -25,15 +25,18 @@ System/bin/Debug/net5.0/System.dll \
 --cfgtxt models_out/cfg.txt
 
 section "Analyze model CFGs using Infer#"
-cd infer
-rm -rf infer-out
 infer capture
 mkdir infer-out/captured
 infer analyzejson --debug \
---cfg-json ../models_out/cfg.json \
---tenv-json ../models_out/tenv.json
+--cfg-json models_out/cfg.json \
+--tenv-json models_out/tenv.json
 
-section "Move model specs to lib"
-sudo cp -r infer-out/specs/. /usr/local/lib/infer/infer/lib/specs/
+section "Move model DB to lib"
+sqlite3 infer-out/results.db \
+-cmd ".mode insert model_specs" \
+-cmd ".output `pwd`/infer-out/models.sql" \
+-cmd "select * from specs order by proc_uid ;" </dev/null
+
+cat infer-out/models.sql >> /usr/local/lib/infer/infer/lib/models.sql
 
 cd ..

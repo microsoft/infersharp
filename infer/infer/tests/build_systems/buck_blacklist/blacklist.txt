@@ -1,2 +1,0 @@
---buck-blacklist
-(.*subhello2.*)|(.*subhello2.*)

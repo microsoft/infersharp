@@ -35,7 +35,7 @@ jobs:
   pool:
     vmImage: 'ubuntu-20.04'
   container:
-    image: mcr.microsoft.com/infersharp:latest
+    image: mcr.microsoft.com/infersharp:v1.0
 
   steps:
   # Download binaries
@@ -48,8 +48,10 @@ jobs:
       downloadPath: '$(System.ArtifactsDirectory)'
 
   - script: |
-      sh run_infersharp.sh $(System.ArtifactsDirectory) output
+      curl -o run_infersharp.sh https://raw.githubusercontent.com/microsoft/infersharp/v1.0/run_infersharp.sh
+      chmod +x run_infersharp.sh
+      ./run_infersharp.sh $(System.ArtifactsDirectory)
     displayName: 'Run Infer# analysis'
 
-  - script: cat $(Build.SourcesDirectory)/infer-out/filtered_bugs.txt
+  - script: cat $(Build.SourcesDirectory)/infer-out/report.txt
     displayName: 'Infer# analysis result'

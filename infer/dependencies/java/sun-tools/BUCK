@@ -1,7 +1,0 @@
-prebuilt_jar(
-    name = 'sun-tools',
-    binary_jar = 'tools.jar',
-    visibility = [
-        'PUBLIC'
-    ]
-)

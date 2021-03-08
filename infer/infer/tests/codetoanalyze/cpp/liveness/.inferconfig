@@ -1,8 +1,0 @@
-{
-  "liveness-dangerous-classes": [
-    "dead_stores::BlacklistedStruct"
-  ],
-  "cxx-scope-guards": [
-    "infer::ScopeGuard"
-  ]
-}
