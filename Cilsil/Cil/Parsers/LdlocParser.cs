@@ -18,7 +18,15 @@ namespace Cilsil.Cil.Parsers
             {
                 case Code.Ldloc:
                 case Code.Ldloca:
-                    index = (int)instruction.Operand;
+                    try
+                    {
+                        index = (int)instruction.Operand;
+                    }
+                    catch (System.InvalidCastException e)
+                    {
+                        Log.WriteWarning(e.Message);
+                        return false;
+                    }
                     break;
                 case Code.Ldloc_0:
                     index = 0;
@@ -34,7 +42,15 @@ namespace Cilsil.Cil.Parsers
                     break;
                 case Code.Ldloc_S:
                 case Code.Ldloca_S:
-                    index = (instruction.Operand as VariableDefinition).Index;
+                    try
+                    {
+                        index = (instruction.Operand as VariableDefinition).Index;
+                    }
+                    catch (System.InvalidCastException e)
+                    {
+                        Log.WriteWarning(e.Message);
+                        return false;
+                    }
                     break;
                 default:
                     return false;

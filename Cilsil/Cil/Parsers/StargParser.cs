@@ -20,7 +20,15 @@ namespace Cilsil.Cil.Parsers
                 case Code.Starg:
                 case Code.Starg_S:
                     // Sequence accounts for the implict "this" argument, if applicable.
-                    index = (instruction.Operand as ParameterDefinition).Sequence;
+                    try
+                    {
+                        index = (instruction.Operand as ParameterDefinition).Sequence;
+                    }
+                    catch (System.InvalidCastException e)
+                    {
+                        Log.WriteWarning(e.Message);
+                        return false;
+                    }
                     break;
                 default:
                     return false;
