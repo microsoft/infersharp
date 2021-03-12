@@ -32,7 +32,7 @@ Start a container in interactive mode, then run the following command in the con
 ```
 
 ## Troubleshooting
-Please refer to the [troublshooting guide](TROUBLESHOOTING.md).
+Please refer to the [troubleshooting guide](TROUBLESHOOTING.md).
 
 ## Contributing
 
