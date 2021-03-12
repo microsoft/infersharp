@@ -18,8 +18,8 @@ The current version is ![GitHub release (latest by date)](https://img.shields.io
 The instructions on how to run Infer# as a GitHub Action can be found here: [Infer# Action](https://github.com/marketplace/actions/infersharp).
 
 ### Azure Pipelines
-Infer# can be run as an Azure Pipelines [container job](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops). An example can be found [here](https://github.com/microsoft/infersharp/blob/main/.build/azure-pipelines-example.yml).\
-If the existing pipeline runs on Windows or running a multi-stage job is desired, refer to the example [here](https://github.com/microsoft/infersharp/blob/main/.build/azure-pipelines-example-multistage.yml).
+Infer# can be run as an Azure Pipelines [container job](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops). An example can be found [here](/.build/azure-pipelines-example.yml).\
+If the existing pipeline runs on Windows or running a multi-stage job is desired, refer to the example [here](/.build/azure-pipelines-example-multistage.yml).
 
 ### Docker Image
 Alternatively, use our Docker image:
@@ -31,9 +31,12 @@ Start a container in interactive mode, then run the following command in the con
 ./run_infersharp.sh Examples
 ```
 
+## Troubleshooting
+Please refer to the [troublshooting guide](TROUBLESHOOTING.md).
+
 ## Contributing
 
-We welcome contributions. Please follow [this guideline](https://github.com/microsoft/infersharp/blob/main/CONTRIBUTING.md).
+We welcome contributions. Please follow [this guideline](CONTRIBUTING.md).
 
 ## Trademarks
 
@@ -41,4 +44,4 @@ This project may contain trademarks or logos for projects, products, or services
 
 ## Security Reporting Instructions
 
-**Please do not report security vulnerabilities through public GitHub issues.** Instead, please follow [this guideline](https://github.com/microsoft/infersharp/blob/main/SECURITY.md).
+**Please do not report security vulnerabilities through public GitHub issues.** Instead, please follow [this guideline](SECURITY.md).
