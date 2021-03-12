@@ -10,7 +10,7 @@
 Fixes depend on the usage method of Infer#.
 
 ### Docker Image
-The default memory allocated by Docker is 2G, which can be inadequate for analyzing big projects. Increasing the memory limit would resolve this issue.
+The default memory allocated by Docker is 2 GB, which can be inadequate for analyzing big projects. Increasing the memory limit would resolve this issue.
 
 ### GitHub Action or Azure Pipelines
 The provided host machines may have inadequate memory. Consider running the analysis on a self-hosted machine with better hardware. 
