@@ -26,6 +26,16 @@ namespace Cilsil.Sil
         public const string ReturnIdentifier = "return";
 
         /// <summary>
+        /// String for identifying catch variables.
+        /// </summary>
+        public const string CatchIdentifier = "CatchVar";
+
+        ///<summary>
+        /// String for identifying bc variables.
+        /// </summary>
+        public const string BCIdentifier = "bcvar";
+
+        /// <summary>
         /// String used to denote the possessing object for an instance field or method.
         /// </summary>
         public const string ThisIdentifier = "this";

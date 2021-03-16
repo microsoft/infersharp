@@ -20,20 +20,24 @@ namespace Cilsil.Cil.Parsers
                 case Code.Ret:
                     Store retInstr;
                     var retType = state.Method.ReturnType.GetElementType();
-                    var retNode = new StatementNode(state.CurrentLocation,
-                                                    StatementNode.StatementNodeKind.ReturnStmt,
-                                                    state.ProcDesc);
+                    
                     if (retType == state.Method.Module.TypeSystem.Void)
                     {
                         state.PreviousNode.Successors.Add(state.ProcDesc.ExitNode);
+                        var returnVariable = new LvarExpression(
+                                new LocalVariable(Identifier.ReturnIdentifier,
+                                                  state.Method));
+                        state.PushExpr(returnVariable, Typ.FromTypeReference(retType));
                     }
                     else
                     {
                         (var returnValue, _) = state.Pop();
-                        Expression returnVariable = new LvarExpression(
-                            new LocalVariable(Identifier.ReturnIdentifier,
-                                              state.Method));
-
+                        var returnVariable = new LvarExpression(
+                                new LocalVariable(Identifier.ReturnIdentifier,
+                                                  state.Method));
+                        var retNode = new StatementNode(state.CurrentLocation,
+                                                    StatementNode.StatementNodeKind.ReturnStmt,
+                                                    state.ProcDesc);
                         if (returnValue is BinopExpression)
                         {
                             // We see that for the auto-generated method op_Inequality in records, 
@@ -68,6 +72,7 @@ namespace Cilsil.Cil.Parsers
                                                  Typ.FromTypeReference(retType),
                                                  state.CurrentLocation);
                         }
+                        state.PushExpr(returnVariable, Typ.FromTypeReference(retType));
                         retNode.Instructions.Add(retInstr);
                         retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
                         RegisterNode(state, retNode);

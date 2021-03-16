@@ -72,6 +72,18 @@ namespace Cilsil.Utils
         public List<Instruction> ParsedInstructions { get; private set; }
 
         /// <summary>
+        /// Maps catch/finally block starting offset to ending offset.
+        /// </summary>
+        public Dictionary<int, int> ExceptionBlockStartToEndOffsets { get; }
+
+        /// <summary>
+        /// Maps an catch block starting CFG node offset to exception type.
+        /// </summary>
+        public Dictionary<int, TypeReference> OffsetToExceptionType { get; }
+
+        public Boolean OffLeave { get; set; }
+
+        /// <summary>
         /// Maps an instruction offset (a unique integer identifier for a CIL instruction which has
         /// been translated) to the CFG node containing the translated SIL instruction as well as 
         /// the program stack immediately prior to the translation of that CIL instruction.
@@ -130,6 +142,10 @@ namespace Cilsil.Utils
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
 
             NextAvailableTemporaryVariableId = 0;
+
+            ExceptionBlockStartToEndOffsets = new Dictionary<int, int>();
+            OffsetToExceptionType = new Dictionary<int, TypeReference>();
+            OffLeave = false;
         }
 
         /// <summary>
@@ -157,7 +173,7 @@ namespace Cilsil.Utils
         /// required at that state).</remarks>
         public (CfgNode, bool) GetOffsetNode(int offset)
         {
-            if (OffsetToNode.ContainsKey(offset))
+            if (OffsetToNode.ContainsKey(offset) && !OffLeave)
             {
                 if (OffsetToNode[offset].Count > NodeVisitTimeoutThreshold)
                 {
@@ -176,6 +192,7 @@ namespace Cilsil.Utils
                             .Node, false);
                 }
             }
+            OffLeave = false;
             return (null, false);
         }
 
@@ -296,7 +313,8 @@ namespace Cilsil.Utils
             var snapshot = InstructionsStack.Pop();
             PreviousNode = snapshot.PreviousNode;
             CurrentInstruction = snapshot.Instruction;
-            ProgramStack = snapshot.PreviousStack;
+            if (!ExceptionBlockStartToEndOffsets.ContainsKey(CurrentInstruction.Offset))
+                ProgramStack = snapshot.PreviousStack;
             NextAvailableTemporaryVariableId = snapshot.NextAvailableTemporaryVariableId;
 
             var currentSequencePoint =

@@ -54,6 +54,39 @@ namespace Cilsil.Sil
                               BuiltInClassName,
                               string.Empty,
                               true);
+        
+        /// <summary>
+        /// Standard procedure name used in [val instanceof typ] translation, interpreted specially
+        /// by the backend.
+        /// </summary>
+        public static readonly ProcedureName BuiltIn__instanceof =
+            new ProcedureName("__instanceof",
+                              new List<string>(),
+                              BuiltInClassName,
+                              string.Empty,
+                              true);
+
+        /// <summary>
+        /// Standard procedure name used for setting the locked attribute, interpreted specially
+        /// by the backend.
+        /// </summary>
+        public static readonly ProcedureName BuiltIn__set_locked_attribute =
+            new ProcedureName("__set_locked_attribute",
+                              new List<string>(),
+                              BuiltInClassName,
+                              string.Empty,
+                              true);
+
+        /// <summary>
+        /// Standard procedure name used for deleting the locked attribute, interpreted specially
+        /// by the backend.
+        /// </summary>
+        public static readonly ProcedureName BuiltIn__delete_locked_attribute =
+            new ProcedureName("__delete_locked_attribute",
+                              new List<string>(),
+                              BuiltInClassName,
+                              string.Empty,
+                              true);
         #endregion
 
         /// <summary>
