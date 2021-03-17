@@ -81,7 +81,10 @@ namespace Cilsil.Utils
         /// </summary>
         public Dictionary<int, TypeReference> OffsetToExceptionType { get; }
 
-        public Boolean OffLeave { get; set; }
+        /// <summary>
+        /// True if there are instructions after Leave instruction, and false otherwise.
+        /// </summary>
+        public bool OffLeave { get; set; }
 
         /// <summary>
         /// Maps an instruction offset (a unique integer identifier for a CIL instruction which has

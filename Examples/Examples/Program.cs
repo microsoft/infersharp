@@ -60,20 +60,20 @@ namespace Examples
         /// Interprocedural resource usage example, leaks expected.
         /// </summary>
          public void ResourceLeakInterproceduralBad(){
-            SRGlobal = new StreamReader("whatever.txt");  
-            string data = SRGlobal.ReadToEnd();
+            StreamReader sr = new StreamReader("whatever.txt");  
+            string data = sr.ReadToEnd();
             Console.WriteLine(data);
-            // FIXME: should close the stream interprocedurally by calling Cleanup()
+            // FIXME: should close the stream interprocedurally by calling Cleanup(sr)
         }
 
         /// <summary>
         /// Interprocedural resource usage example, no leaks expected.
         /// </summary>
         public void ResourceLeakInterproceduralOK(){
-            SRGlobal = new StreamReader("whatever.txt");  
-            string data = SRGlobal.ReadToEnd();
+            StreamReader sr = new StreamReader("whatever.txt");  
+            string data = sr.ReadToEnd();
             Console.WriteLine(data);
-            CleanUp();
+            CleanUp(sr);
         }
 
         /// <summary>
@@ -186,7 +186,9 @@ namespace Examples
         /// <summary>
         /// Interprocedural close resource function.
         /// </summary>
-        public void CleanUp(){
+        public void CleanUp(StreamReader stream=null){
+            if (stream != null)
+                stream.Close();
             SRGlobal.Close();
             SWGlobal.Close();
             Console.WriteLine("Close is called");
