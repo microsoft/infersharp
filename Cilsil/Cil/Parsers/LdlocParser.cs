@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 using Cilsil.Sil;
 using Cilsil.Sil.Types;
+using Cilsil.Sil.Expressions;
 using Cilsil.Utils;
 using Mono.Cecil.Cil;
 
@@ -55,6 +56,20 @@ namespace Cilsil.Cil.Parsers
                 default:
                     return false;
             }
+            
+            if (state.GetProgramStackCopy().Count > 0)
+            {
+                (var value, var type) = state.Peek();
+
+                if (value is BinopExpression)
+                {
+                    state.PushInstruction(instruction.Next);
+                    
+                    return true; 
+                }
+
+            }
+            
 
             (var variableExpression, var variableType) = CreateLocal(index, state.Method);
 

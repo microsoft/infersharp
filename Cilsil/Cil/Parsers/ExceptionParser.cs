@@ -24,8 +24,8 @@ namespace Cilsil.Cil.Parsers
 
             // Create exception handler node.
             var exceptionHandlerNode = new StatementNode(state.CurrentLocation,
-                                                    StatementNode.StatementNodeKind.ExceptionHandler,
-                                                    state.ProcDesc);
+                                                         StatementNode.StatementNodeKind.ExceptionHandler,
+                                                         state.ProcDesc);
             // Load expression from stack. 
             (var expression, var expressionType) = state.Pop(); 
             var identifier = state.GetIdentifier(Identifier.IdentKind.Normal);
@@ -98,7 +98,16 @@ namespace Cilsil.Cil.Parsers
                 RegisterNode(state, exceptionTrueNode);
                 RegisterNode(state, exceptionFalseNode);
 
-                var targetFalse = state.Method.Body.Instructions.Where(p => p.Offset == endBlockOffset + 1).FirstOrDefault();
+                Instruction targetFalse = null;
+                
+                foreach(var single_instruction in state.Method.Body.Instructions)
+                {
+                    if (single_instruction.Offset >= endBlockOffset + 1)
+                    {
+                        targetFalse = single_instruction;
+                        break;
+                    }
+                }
                 state.PushExpr(new VarExpression(returnVariable), expressionType);
 
                 state.PushInstruction(targetFalse, exceptionFalseNode);

@@ -106,7 +106,7 @@ namespace Examples
             } 
             finally 
             {
-                // FIXME: should close the stream by calling stream.Close() if stream is not null.
+                // FIXME: should close the stream by calling stream.Close().
             }
         }
 
@@ -122,6 +122,10 @@ namespace Examples
             {
                 stream.WriteLine(12);
             } 
+            catch(Exception)
+            {
+                Console.WriteLine("Exception caught!");
+            }
             finally 
             {
                 stream.Close();
@@ -146,6 +150,28 @@ namespace Examples
                 if (sr != null) {
                     sr.Close();
                 }
+                // FIXME: should close sw by calling sw.Close() if sw is not null.
+            }
+        }
+
+        /// <summary>
+        /// Two resources usage example with exception handling, no leak expected.
+        /// </summary>
+        public void TwoResourceLeakExcepHandlingOK1() {
+            StreamReader sr = null;
+            StreamWriter sw = null;
+
+            try 
+            {
+                sr = new StreamReader("whatever.txt");
+                sw = new StreamWriter("everwhat.txt");
+                sw.WriteLine(sr.ReadToEnd());
+            } 
+            finally 
+            {
+                if (sr != null) {
+                    sr.Close();
+                }
                 if (sw != null) {
                     sw.Close();
                 }
@@ -155,7 +181,7 @@ namespace Examples
         /// <summary>
         /// Two resources usage example with exception handling, no leak expected.
         /// </summary>
-        public void TwoResourceLeakExcepHandlingOK() {
+        public void TwoResourceLeakExcepHandlingOK2() {
             StreamReader sr = null;
             StreamWriter sw = null;
 
