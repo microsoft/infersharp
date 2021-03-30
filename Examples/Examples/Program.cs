@@ -176,7 +176,9 @@ namespace Examples
                 if (sr != null) {
                     sr.Close();
                 }
-                sw.Close();
+                if (sw != null) {
+                    sw.Close();
+                }
             }
         }
 
@@ -213,6 +215,24 @@ namespace Examples
                 if (sr != null) {
                     sr.Close();
                 }
+            }
+        }
+
+        /// <summary>
+        /// An exception handling example with null dereference error expected.
+        /// </summary>
+        public void NullDefExcepHandlingBad() {
+            StreamWriter stream = AllocateStreamWriter();
+            stream.WriteLine(12);
+            stream.Close();
+        }
+
+        /// <summary>
+        /// Resources usage example with using, no leaks expected.
+        /// </summary>
+        public void ResourceLeakUsingOK() {
+            using(var sw = new StreamWriter("everwhat.txt")){
+                sw.WriteLine("Guru99 - ASP.Net");
             }
         }
 

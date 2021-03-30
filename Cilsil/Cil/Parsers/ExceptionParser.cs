@@ -118,6 +118,11 @@ namespace Cilsil.Cil.Parsers
             else
             {
                 state.ExceptionBlockStartToEndOffsets.Remove(state.CurrentInstruction.Offset);
+                if (instruction.Next.OpCode.Code == Code.Brfalse_S)
+                {
+                    ParseCilInstruction(instruction, state);
+                    state.PopInstruction();
+                }
                 state.PushInstruction(instruction.Next);
 
                 state.PushInstruction(instruction, exceptionHandlerNode);
