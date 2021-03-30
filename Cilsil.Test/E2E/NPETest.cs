@@ -178,6 +178,60 @@ namespace Cilsil.Test.E2E
                                GetString(expectedError));
         }
 
+                /// <summary>
+        /// Validates that a resource leak on a StreamReader initialized in exception handling block 
+        /// is identified.
+        /// </summary>
+        /// <param name="blockKind">The kind of exception handling block expected to wrap the resource.</param>
+        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
+        /// does not.</param>
+        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
+        [DataRow(BlockKind.Using, false, InferError.None)]
+        [DataRow(BlockKind.TryCatchFinally, true, InferError.None)]
+        [DataRow(BlockKind.TryCatchFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataTestMethod]
+        public void ResourceLeakExceptionHandling(BlockKind blockKind,
+                                                  bool closeStream,
+                                                  InferError expectedError)
+        {
+            TestRunManager.Run(InitBlock(resourceLocalVarType: VarType.StreamReader,
+                                resourceLocalVarValue: CallTestClassMethod(
+                                    TestClassMethod.ReturnInitializedStreamReader,
+                                    false),
+                                disposeResource: (closeStream ? CallMethod(
+                                                    VarName.FirstLocal,
+                                                    "Close")
+                                                : string.Empty),
+                                blockKind: blockKind),
+                               GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates that a null dereference on a variable in exception handling blocks 
+        /// is identified. 
+        /// </summary>
+        /// <param name="initVar">If <c>true</c>, instantiates the variable; otherwise,
+        /// does not.</param>
+        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
+        [DataRow(true, InferError.None)]
+        [DataRow(false, InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
+        public void NullDereferenceExceptionHandling(bool initVar,
+                                                     InferError expectedError)
+        {
+            TestRunManager.Run(InitBlock(resourceLocalVarType: VarType.StreamReader,
+                                resourceLocalVarValue: (
+                                    initVar ? CallTestClassMethod(
+                                                TestClassMethod.ReturnInitializedStreamReader,
+                                                false)
+                                            : null),
+                                disposeResource: CallMethod(
+                                                    VarName.FirstLocal,
+                                                    "Close"),
+                                blockKind: BlockKind.TryCatchFinally),
+                                GetString(expectedError));
+        }
+
         /// <summary>
         /// Validates that a dereference on a string variable initialized to null is identified.
         /// </summary>

@@ -17,12 +17,17 @@ namespace Cilsil.Test.Assets
         public enum TestClassState { None, Uninitialized, Null, Initialized };
 
         /// <summary>
+        /// The various kinds of exception handling blocks that appear in the tests.
+        /// </summary>
+        public enum BlockKind { None, Using, TryCatchFinally };
+
+        /// <summary>
         /// The various variable names used in the tests.
         /// </summary>
         public enum VarName
         {
             None, Tc, FirstLocal, SecondLocal, StaticObjectField,
-            InstanceObjectField
+            InstanceObjectField, StaticIntegerField
         };
 
         /// <summary>
@@ -42,7 +47,11 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various error types expected to be produced by Infer in the tests.
         /// </summary>
-        public enum InferError { None, NULL_DEREFERENCE, DANGLING_POINTER_DEREFERENCE, DOTNET_RESOURCE_LEAK }
+        public enum InferError
+        {
+            None, NULL_DEREFERENCE, DANGLING_POINTER_DEREFERENCE, DOTNET_RESOURCE_LEAK,
+            THREAD_SAFETY_VIOLATION
+        }
 
         /// <summary>
         /// The various class methods in TestClass which are called in the tests.
@@ -105,6 +114,9 @@ namespace Cilsil.Test.Assets
                 case VarName.StaticObjectField:
                     return GetString(VarType.TestClass) + "." +
                         nameof(TestClass.StaticObjectField);
+                case VarName.StaticIntegerField:
+                    return GetString(VarType.TestClass) + "." +
+                        nameof(TestClass.StaticIntegerField);
                 case VarName.InstanceObjectField:
                     return VarName.Tc.ToString() + "." +
                         nameof(TestClass.InstanceObjectField);
@@ -160,6 +172,7 @@ namespace Cilsil.Test.Assets
                 case InferError.DANGLING_POINTER_DEREFERENCE:
                 case InferError.NULL_DEREFERENCE:
                 case InferError.DOTNET_RESOURCE_LEAK:
+                case InferError.THREAD_SAFETY_VIOLATION:
                     return error.ToString();
                 case InferError.None:
                     return null;
@@ -201,6 +214,21 @@ namespace Cilsil.Test.Assets
         /// <returns>String representation of the value assignment statement.</returns>
         public static string Assign(VarName name, string value) =>
             $"{GetString(name)} = {value};\n";
+
+        /// <summary>
+        /// Generates a string representation of instantiating a new variable.
+        /// </summary>
+        /// <param name="type">The type of the variable being instantiated.</param>
+        /// <param name="name">The name of the variable being instantiated.</param>
+        /// <param name="value">The string representation of the value to be assigned.</param>
+        /// <param name="withLineEnding">True if that call should have a semicolon ending.</param>
+        /// <returns>String representation of the variable instantiation statement.</returns>
+        private static string Instantiate(VarType type,
+                                          VarName name,
+                                          string value,
+                                          bool withLineEnding) =>
+            $"{GetString(type)} {GetString(name)} = {value}" + (withLineEnding ? ";\n" 
+                                                                               : string.Empty);
 
         /// <summary>
         /// Generates a string representation of variable initialization code.
@@ -257,6 +285,88 @@ namespace Cilsil.Test.Assets
         }
 
         /// <summary>
+        /// Method for decorating a code block with a lock statement.
+        /// </summary>
+        /// <param name="codeBlock">The code block to be decorated.</param>
+        /// <returns>The code block enclosed in the lock statement.</returns>
+        public static string EncloseInLock(string codeBlock) 
+            => "lock(_object) { " + codeBlock + " }";
+
+        /// Generates a string representation of exception handling block code.
+        /// </summary>
+        /// <param name="resourceLocalVarType">The type of the local resource variable used in the 
+        /// test case.</param>
+        /// <param name="resourceLocalVarValue">The string representation of the value to be 
+        /// assigned to the local resource variable.</param>
+        /// <param name="disposeResource">The string representation of disposing the instantiated 
+        /// local resource.</param>
+        /// <param name="blockKind">The kind of the exception handling block used in the test case; 
+        /// for example, try-catch-finally or using.</param>
+        /// <returns>String representing the set of statements in the exception handling 
+        /// block.</returns>
+        public static string InitBlock(VarType resourceLocalVarType = VarType.None,
+                                       string resourceLocalVarValue = null,
+                                       string disposeResource = null,
+                                       BlockKind blockKind = BlockKind.None)
+        {
+            string output;
+            var resourceInit = Declare(resourceLocalVarType, VarName.FirstLocal);
+            switch (blockKind)
+            {
+                case BlockKind.None:
+                    output = string.Empty;
+                    break;
+                case BlockKind.Using:
+                    if (resourceLocalVarType != VarType.None && resourceLocalVarValue != null)
+                    {
+                        resourceInit = Instantiate(resourceLocalVarType,
+                                                   VarName.FirstLocal,
+                                                   resourceLocalVarValue,
+                                                   false);
+                    }
+                    output =
+                        $@"using({resourceInit})
+                        {{
+
+                        }}";
+                    break;
+                case BlockKind.TryCatchFinally:
+                    if (resourceLocalVarType != VarType.None)
+                    {
+                        resourceInit += Assign(VarName.FirstLocal, "null");
+                    }
+                    if (disposeResource == null)
+                    {
+                        disposeResource = "";
+                    }
+                    var tryBlockCode =
+                        resourceLocalVarValue == null ? string.Empty 
+                                                      : Assign(VarName.FirstLocal,
+                                                               resourceLocalVarValue);
+                    output =
+                        $@"{resourceInit}
+                        try
+                        {{
+                            {tryBlockCode}
+                        }}
+                        catch(System.IO.IOException e)
+                        {{
+                            Console.WriteLine(e.Message);
+                        }}
+                        finally
+                        {{
+                            {disposeResource}
+                        }}";
+                    break;
+                default:
+                    throw new NotImplementedException("Unhandled BlockState");
+
+            }
+
+            return output;
+        }
+
+        /// <summary>
         /// Method for generating a string representation of a call to a non-TestClass method.
         /// </summary>
         /// <param name="callingVar">The variable that calls this method.</param>
@@ -286,7 +396,8 @@ namespace Cilsil.Test.Assets
         /// Method for generating a string representation of a call to a method of TestClass.
         /// </summary>
         /// <param name="method">The method to be called.</param>
-        /// <param name="withLineEnding">True if that call should have a semicolon ending.</param>
+        /// <param name="withLineEnding"><c>true</c> if that call should have a semicolon ending,
+        /// <c>false</c> otherwise.</param>
         /// <param name="args">The list of arguments of the method.</param>
         /// <returns>A string representation of the method call.</returns>
         public static string CallTestClassMethod(TestClassMethod method,
