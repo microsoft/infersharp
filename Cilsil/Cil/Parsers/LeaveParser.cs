@@ -16,7 +16,8 @@ namespace Cilsil.Cil.Parsers
 
                     state.AppendToPreviousNode = false;
                     if (nextInstruction != null &&
-                        targetTrue.Offset != nextInstruction.Offset)
+                        targetTrue.Offset != nextInstruction.Offset &&
+                        !state.OffLeave)
                     {
                         state.PushInstruction(nextInstruction);
                     }

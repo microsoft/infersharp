@@ -87,6 +87,11 @@ namespace Cilsil.Utils
         public bool OffLeave { get; set; }
 
         /// <summary>
+        /// Count of number of instructions until we reach next leave
+        /// </summary>
+        private int InstructionCountBetweenLeave;
+
+        /// <summary>
         /// Maps an instruction offset (a unique integer identifier for a CIL instruction which has
         /// been translated) to the CFG node containing the translated SIL instruction as well as 
         /// the program stack immediately prior to the translation of that CIL instruction.
@@ -149,6 +154,7 @@ namespace Cilsil.Utils
             ExceptionBlockStartToEndOffsets = new Dictionary<int, int>();
             OffsetToExceptionType = new Dictionary<int, TypeReference>();
             OffLeave = false;
+            InstructionCountBetweenLeave = 0;
         }
 
         /// <summary>
@@ -195,7 +201,20 @@ namespace Cilsil.Utils
                             .Node, false);
                 }
             }
-            OffLeave = false;
+
+            // If instruction count between leave is 0, we make it a special case and don't count it as off leave.
+            if (!OffLeave ||
+                (OffLeave && 
+                InstructionCountBetweenLeave == 0 &&
+                CurrentInstruction.OpCode.Code == Code.Leave_S))
+            {
+                OffLeave = false;
+                return (null, false);
+            }
+            if (CurrentInstruction.OpCode.Code == Code.Leave_S)
+                InstructionCountBetweenLeave = 0;
+            else
+                InstructionCountBetweenLeave = InstructionCountBetweenLeave + 1;
             return (null, false);
         }
 

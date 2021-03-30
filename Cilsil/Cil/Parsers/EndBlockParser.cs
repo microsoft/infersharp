@@ -12,6 +12,7 @@ namespace Cilsil.Cil.Parsers
             {
                 case Code.Endfinally:                                                                                           
                     state.PushInstruction(instruction.Next);
+                    state.OffLeave = false;
                     return true;
                 default:
                     return false;

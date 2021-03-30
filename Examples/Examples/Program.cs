@@ -167,21 +167,23 @@ namespace Examples
                 sw = new StreamWriter("everwhat.txt");
                 sw.WriteLine(sr.ReadToEnd());
             } 
+            catch(Exception)
+            {
+
+            }
             finally 
             {
                 if (sr != null) {
                     sr.Close();
                 }
-                if (sw != null) {
-                    sw.Close();
-                }
+                sw.Close();
             }
         }
 
         /// <summary>
-        /// Two resources usage example with exception handling, no leak expected.
+        /// Two resources usage example with nested exception handling, no leaks expected.
         /// </summary>
-        public void TwoResourceLeakExcepHandlingOK2() {
+        public void TwoResourceLeakExcepHandlingNestedOK() {
             StreamReader sr = null;
             StreamWriter sw = null;
 
@@ -194,15 +196,20 @@ namespace Examples
                     sw = new StreamWriter("everwhat.txt");
                     sw.WriteLine(text);
                 }
-                finally
-                {   
-                    if (sw != null) {
-                        sw.Close();
-                    }
+                catch(Exception)
+                {
+                    
                 }
             } 
+            catch(Exception)
+            {
+                
+            }
             finally 
             {
+                if (sw != null) {
+                    sw.Close();
+                }
                 if (sr != null) {
                     sr.Close();
                 }
@@ -226,6 +233,7 @@ namespace Examples
         public static void Main(string[] args)
         {
             Program p = new Program("whatever.txt");
+            
             // FIXME: should close the global streams by calling p.Cleanup()
             // Null dereference error report expected.
             p.NullDeReferenceBad().GetHashCode();

@@ -117,6 +117,7 @@ namespace Cilsil.Cil.Parsers
             }
             else
             {
+                state.ExceptionBlockStartToEndOffsets.Remove(state.CurrentInstruction.Offset);
                 state.PushInstruction(instruction.Next);
 
                 state.PushInstruction(instruction, exceptionHandlerNode);
