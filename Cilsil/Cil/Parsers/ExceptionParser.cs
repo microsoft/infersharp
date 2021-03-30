@@ -57,6 +57,11 @@ namespace Cilsil.Cil.Parsers
             Expression catchVariable = null;
             if (exceptionType != state.Method.Module.TypeSystem.Object)
             {
+                if (!state.ExceptionBlockStartToEndOffsets.ContainsKey(endBlockOffset + 3)
+                    && !state.ExceptionBlockStartToEndOffsets.ContainsKey(endBlockOffset + 2))
+                {           
+                    state.PushInstruction(instruction.Next);
+                }
                 state.PushInstruction(instruction, exceptionHandlerNode);
                 instruction = state.PopInstruction();
 
@@ -117,7 +122,6 @@ namespace Cilsil.Cil.Parsers
             }
             else
             {
-                state.ExceptionBlockStartToEndOffsets.Remove(state.CurrentInstruction.Offset);
                 if (instruction.Next.OpCode.Code == Code.Brfalse_S)
                 {
                     ParseCilInstruction(instruction, state);
