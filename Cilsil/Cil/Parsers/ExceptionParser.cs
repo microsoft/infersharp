@@ -17,7 +17,7 @@ namespace Cilsil.Cil.Parsers
         {
             var endBlockOffset = state.ExceptionBlockStartToEndOffsets[state.CurrentInstruction.Offset];
             
-            /*node38 preds: succs:36 37 exn:3 Instructions
+            /*node1 preds: succs:2 3 exn: Instructions
             n$47=*&amp;return:void [line 55];   # load return
             *&amp;return:void=null [line 55];
             n$48=_fun___unwrap_exception(n$47:void) [line 55];*/
@@ -65,12 +65,12 @@ namespace Cilsil.Cil.Parsers
                 state.PushInstruction(instruction, exceptionHandlerNode);
                 instruction = state.PopInstruction();
 
-                /*node36 preds:38 succs:18 exn:3 Conditional exception handler
+                /*node2 preds:1 succs:4 exn: Conditional exception handler
                 n$49=_fun___instanceof(n$48:java.io.IOException*,sizeof(t=java.io.IOException):void) [line 55];
                 PRUNE(n$49, true); [line 55];
                 *&amp;CatchVar65:void=n$48 [line 55];*/
 
-                /*node37 preds:38 succs:35 exn:3 Conditional exception handler -- Connects to outter/finally block code directly
+                /*node3 preds:1 succs:5 exn: Conditional exception handler -- Connects to outter/finally block code directly
                 n$49=_fun___instanceof(n$48:java.io.IOException*,sizeof(t=java.io.IOException):void) [line 55];
                 PRUNE(!n$49, false); [line 55];*/ 
 
@@ -143,7 +143,7 @@ namespace Cilsil.Cil.Parsers
                                               state.CurrentLocation);
             }
 
-            /* node 18: Preds: [36] Succs: [19] EXN: [40] 
+            /* node 4: Preds:2 Succs:6 EXN: 
             n$25=*&CatchVar65:java.lang.Object* [line 55];
             *&e:java.lang.Object*=n$25 [line 55];*/
             var newNode = new StatementNode(location: state.CurrentLocation,
