@@ -57,19 +57,17 @@ namespace Cilsil.Cil.Parsers
                     return false;
             }
             
+            // For if/else/loop branching, we add the binop expression in condtion.
             if (state.GetProgramStackCopy().Count > 0)
             {
                 (var value, var type) = state.Peek();
 
                 if (value is BinopExpression)
                 {
-                    state.PushInstruction(instruction.Next);
-                    
+                    state.PushInstruction(instruction.Next);                   
                     return true; 
                 }
-
             }
-            
 
             (var variableExpression, var variableType) = CreateLocal(index, state.Method);
 
