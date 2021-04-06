@@ -25,13 +25,20 @@ namespace Cilsil.Cil.Parsers
                     {
                         state.PreviousNode.Successors.Add(state.ProcDesc.ExitNode);
                         var returnVariable = new LvarExpression(
-                                new LocalVariable(Identifier.ReturnIdentifier,
-                                                  state.Method));
+                                    new LocalVariable(Identifier.ReturnIdentifier,
+                                                    state.Method));
                         state.PushExpr(returnVariable, Typ.FromTypeReference(retType));
                     }
                     else
                     {
                         (var returnValue, _) = state.Pop();
+                        
+                        // For binop expression, return its assigned variable instead if it is stored. 
+                        if (state.GetProgramStackCopy().Count > 0 && returnValue is BinopExpression)
+                        {
+                            (returnValue, _) = state.Pop();
+                        }
+
                         var returnVariable = new LvarExpression(
                                 new LocalVariable(Identifier.ReturnIdentifier,
                                                   state.Method));

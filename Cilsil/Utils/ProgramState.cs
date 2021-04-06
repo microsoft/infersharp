@@ -82,9 +82,9 @@ namespace Cilsil.Utils
         public Dictionary<int, TypeReference> OffsetToExceptionType { get; }
 
         /// <summary>
-        /// True if there are instructions after Leave instruction, and false otherwise.
+        /// True if jumped to connected catch/finally block, and false otherwise.
         /// </summary>
-        public bool OffLeave { get; set; }
+        public bool JumpedToConnectedExceptionBlock { get; set; }
 
         /// <summary>
         /// Count of number of instructions until we reach next leave
@@ -153,7 +153,7 @@ namespace Cilsil.Utils
 
             ExceptionBlockStartToEndOffsets = new Dictionary<int, int>();
             OffsetToExceptionType = new Dictionary<int, TypeReference>();
-            OffLeave = false;
+            JumpedToConnectedExceptionBlock = false;
             InstructionCountBetweenLeave = 0;
         }
 
@@ -182,7 +182,7 @@ namespace Cilsil.Utils
         /// required at that state).</remarks>
         public (CfgNode, bool) GetOffsetNode(int offset)
         {
-            if (OffsetToNode.ContainsKey(offset) && !OffLeave)
+            if (OffsetToNode.ContainsKey(offset) && !JumpedToConnectedExceptionBlock)
             {
                 if (OffsetToNode[offset].Count > NodeVisitTimeoutThreshold)
                 {
@@ -202,13 +202,10 @@ namespace Cilsil.Utils
                 }
             }
 
-            // If instruction count between leave is 0, we make it a special case and don't count it as off leave.
-            if (!OffLeave ||
-                (OffLeave && 
-                InstructionCountBetweenLeave == 0 &&
-                CurrentInstruction.OpCode.Code == Code.Leave_S))
+            // If 
+            if (!JumpedToConnectedExceptionBlock || LeftExceptionHandlingBlock())
             {
-                OffLeave = false;
+                JumpedToConnectedExceptionBlock = false;
                 return (null, false);
             }
             if (CurrentInstruction.OpCode.Code == Code.Leave_S)
@@ -216,6 +213,13 @@ namespace Cilsil.Utils
             else
                 InstructionCountBetweenLeave = InstructionCountBetweenLeave + 1;
             return (null, false);
+        }
+
+        private bool LeftExceptionHandlingBlock()
+        {
+            return (JumpedToConnectedExceptionBlock && 
+                    InstructionCountBetweenLeave == 0 &&
+                    CurrentInstruction.OpCode.Code == Code.Leave_S);
         }
 
         /// <summary>

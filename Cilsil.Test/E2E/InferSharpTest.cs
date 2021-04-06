@@ -7,7 +7,7 @@ using static Cilsil.Test.Assets.Utils;
 namespace Cilsil.Test.E2E
 {
     [TestClass]
-    public class NPETest
+    public class InferSharpTest
     {
         public TestContext TestContext { get; set; }
 

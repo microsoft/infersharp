@@ -31,9 +31,9 @@ namespace Cilsil.Sil
         public const string CatchIdentifier = "CatchVar";
 
         ///<summary>
-        /// String for identifying bc variables.
+        /// String for identifying byte code variables. Used in try-with-resource.
         /// </summary>
-        public const string BCIdentifier = "bcvar";
+        public const string ByteCodeIdentifier = "bcvar";
 
         /// <summary>
         /// String used to denote the possessing object for an instance field or method.

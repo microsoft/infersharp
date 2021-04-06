@@ -112,7 +112,11 @@ namespace Cilsil.Services
                         break;
 
                     case ExceptionHandlerType.Filter:
+                        // uncommon case: exception...when.... 
+                        // Example: catch (ArgumentException e) when (e.ParamName == "…")        
                     case ExceptionHandlerType.Fault:
+                        // uncommon case: fault block
+                        // Example: fault {}
                     default:
                         break;
                 }

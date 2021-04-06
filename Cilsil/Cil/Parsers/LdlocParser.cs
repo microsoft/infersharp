@@ -57,19 +57,32 @@ namespace Cilsil.Cil.Parsers
                     return false;
             }
             
+            (var variableExpression, var variableType) = CreateLocal(index, state.Method);
+
             // For if/else/loop branching, we add the binop expression in condtion.
             if (state.GetProgramStackCopy().Count > 0)
             {
-                (var value, var type) = state.Peek();
+                (var value, var type) = state.Pop();
 
                 if (value is BinopExpression)
-                {
+                {   
+                    // Push the variable to stack for return statement only.
+                    if (instruction.OpCode.Code == Code.Ldloca || instruction.OpCode.Code == Code.Ldloca_S)
+                    {
+                        state.PushExpr(variableExpression, new Address(Tptr.PtrKind.Pk_pointer,
+                                                                       variableType,
+                                                                       variableExpression));
+                    }
+                    else
+                    {
+                        state.PushExpr(variableExpression, variableType);
+                    }
+                    state.PushExpr(value, new Tint(Tint.IntKind.IBool));
                     state.PushInstruction(instruction.Next);                   
                     return true; 
                 }
+                state.PushExpr(value, type);
             }
-
-            (var variableExpression, var variableType) = CreateLocal(index, state.Method);
 
             // Updates the type to the appropriate boxed one if the variable contains a boxed
             // value.
