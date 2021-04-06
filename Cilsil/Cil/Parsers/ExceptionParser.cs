@@ -119,11 +119,11 @@ namespace Cilsil.Cil.Parsers
 
                 Instruction nextInstructionIfNoException = null;
                 
-                foreach(var single_instruction in state.Method.Body.Instructions)
+                foreach(var singleInstruction in state.Method.Body.Instructions)
                 {
-                    if (single_instruction.Offset >= endBlockOffset + 1)
+                    if (singleInstruction.Offset >= endBlockOffset + 1)
                     {
-                        nextInstructionIfNoException = single_instruction;
+                        nextInstructionIfNoException = singleInstruction;
                         break;
                     }
                 }
