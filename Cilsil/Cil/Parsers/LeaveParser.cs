@@ -17,8 +17,8 @@ namespace Cilsil.Cil.Parsers
                     var targetTrue = instruction.Operand as Instruction;
 
                     state.AppendToPreviousNode = false;
-                    // If next instruction is not target operand and not jumped from connected catch/finally block, 
-                    // we push it to stack to be processed later
+                    // If next instruction is not target operand and not jumped from a previous
+                    // try/catch block, we connect to the next catch/finally block.
                     if (nextInstruction != null &&
                         targetTrue.Offset != nextInstruction.Offset &&
                         !state.JumpedToConnectedExceptionBlock)
