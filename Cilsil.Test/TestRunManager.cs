@@ -46,6 +46,16 @@ namespace Cilsil.Test
 
         private const string TestCodeFileName = "TestCode.cs";
 
+        
+        private const string SynchronizedFieldWriteMethod =
+            @"public void FieldWrite() 
+            {{
+                lock(_object)
+                {{
+                    TestClass.StaticIntegerField = 1;
+                }}
+            }}";
+
         // A counter which increments upon each test case execution. Used for producing a unique
         // folder path to store the corresponding test case output.
         private static int TestCaseCount = 0;
@@ -72,7 +82,8 @@ namespace Cilsil.Test
         {
             var testMethodBody = CreateTestMethod(code, returnType);
             var methodBodies = addSynchronizedFieldWriteMethod ? testMethodBody + 
-                                                                 "\n\n"
+                                                                 "\n\n" + 
+                                                                 SynchronizedFieldWriteMethod
                                                                : testMethodBody;
             var codeToBuild = Decorate(methodBodies);
 
