@@ -55,6 +55,7 @@ namespace Cilsil.Cil.Parsers
                                 out var callArgs,
                                 out var callInstr);
 
+                instrs.Add(callInstr);
 
                 // Deref on the object calling in the case of instance method, for null
                 // validation on it by Infer. Object "this" is the first argument in the argument list

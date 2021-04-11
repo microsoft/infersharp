@@ -209,7 +209,7 @@ namespace Cilsil.Test
             foreach (var bug in inferReport)
             {
                 var severity = bug.Value<string>("severity");
-                if (severity != "ERROR")
+                if (severity != "ERROR" && severity != "WARNING")
                 {
                     continue;
                 }
