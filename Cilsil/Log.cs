@@ -50,6 +50,14 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
+        public static void PrintProcessTime(long elapseTime)
+        {
+            WriteLine($"E2E Elapse Time: {elapseTime} ms");
+        }
+
+        /// <summary>
+        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// </summary>
         public static void PrintAllUnknownInstruction()
         {
             WriteLine("Unknown instructions:");

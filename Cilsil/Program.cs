@@ -115,6 +115,8 @@ namespace Cilsil
         public static (Cfg, TypeEnvironment) ExecuteTranslation(string[] paths,
                                                                 string printprocs = null)
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             var assemblies = GetAssemblies(paths);
 
             InstructionParser.RegisterAllKnownParsers();
@@ -136,9 +138,13 @@ namespace Cilsil
                 PrintCfg(cfg, printprocs);
             }
 
+            watch.Stop();
+
             Log.PrintAllUnknownInstruction();
             Log.WriteLine();
             Log.PrintCoverageStats(result.GetResult<CfgParserResult>().Methods);
+            Log.WriteLine();
+            Log.PrintProcessTime(watch.ElapsedMilliseconds);
 
             return (cfg, tenv);
         }
