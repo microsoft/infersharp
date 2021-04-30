@@ -82,16 +82,6 @@ namespace Cilsil.Utils
         public Dictionary<int, TypeReference> OffsetToExceptionType { get; }
 
         /// <summary>
-        /// True if jumped to connected catch/finally block, and false otherwise.
-        /// </summary>
-        public bool JumpedToConnectedExceptionBlock { get; set; }
-
-        /// <summary>
-        /// Count of number of instructions until we reach next leave
-        /// </summary>
-        private int InstructionCountBetweenLeave;
-
-        /// <summary>
         /// Maps an instruction offset (a unique integer identifier for a CIL instruction which has
         /// been translated) to the CFG node containing the translated SIL instruction as well as 
         /// the program stack immediately prior to the translation of that CIL instruction.
@@ -104,9 +94,25 @@ namespace Cilsil.Utils
         public Dictionary<int, BoxedValueType> VariableIndexToBoxedValueType { get; }
 
         /// <summary>
+        /// Previous expression registered by return node.
+        /// </summary>
+        private Expression PreviousReturnedExpression;
+
+        /// <summary>
+        /// Previous expression type registered by return node.
+        /// </summary>
+        private Typ PreviousReturnedType;
+
+        /// <summary>
         /// True if there are remaining instructions to translate, and false otherwise.
         /// </summary>
         public bool HasInstruction => InstructionsStack.Count > 0;
+
+        /// <summary>
+        /// True if the peek instruction in instruction stack is at the beginning of an exception handling block, and false otherwise.
+        /// </summary>
+        public bool NextInstructionInExceptionHandlingBlock 
+            => ExceptionBlockStartToEndOffsets.ContainsKey(InstructionsStack.Peek().Instruction.Offset);
 
         /// <summary>
         /// Program stack for the current method. Each entry is an expression and a type for the 
@@ -153,8 +159,8 @@ namespace Cilsil.Utils
 
             ExceptionBlockStartToEndOffsets = new Dictionary<int, int>();
             OffsetToExceptionType = new Dictionary<int, TypeReference>();
-            JumpedToConnectedExceptionBlock = false;
-            InstructionCountBetweenLeave = 0;
+            PreviousReturnedExpression = null;
+            PreviousReturnedType = null;
         }
 
         /// <summary>
@@ -182,7 +188,8 @@ namespace Cilsil.Utils
         /// required at that state).</remarks>
         public (CfgNode, bool) GetOffsetNode(int offset)
         {
-            if (OffsetToNode.ContainsKey(offset) && !JumpedToConnectedExceptionBlock)
+            if (OffsetToNode.ContainsKey(offset)
+                && (InstructionsStack.Count == 0 || !NextInstructionInExceptionHandlingBlock))
             {
                 if (OffsetToNode[offset].Count > NodeVisitTimeoutThreshold)
                 {
@@ -202,25 +209,9 @@ namespace Cilsil.Utils
                 }
             }
 
-            // If 
-            if (!JumpedToConnectedExceptionBlock || LeftExceptionHandlingBlock())
-            {
-                JumpedToConnectedExceptionBlock = false;
-                return (null, false);
-            }
-            if (CurrentInstruction.OpCode.Code == Code.Leave_S)
-                InstructionCountBetweenLeave = 0;
-            else
-                InstructionCountBetweenLeave = InstructionCountBetweenLeave + 1;
             return (null, false);
         }
 
-        private bool LeftExceptionHandlingBlock()
-        {
-            return (JumpedToConnectedExceptionBlock && 
-                    InstructionCountBetweenLeave == 0 &&
-                    CurrentInstruction.OpCode.Code == Code.Leave_S);
-        }
 
         /// <summary>
         /// Returns a shallow copy of the current program stack.
@@ -262,7 +253,32 @@ namespace Cilsil.Utils
         /// </summary>
         /// <param name="exp">The expression to push.</param>
         /// <param name="type">The type of the expression being pushed.</param>
-        public void PushExpr(Expression exp, Typ type) => ProgramStack.Push((exp, type));
+        /// <param name="setRetExpr">True if set the PreviousReturnedExpression and 
+        /// PreviousReturnedType, false otherwise.</param>
+        public void PushExpr(Expression exp, Typ type, bool setRetExpr = false)
+        {
+            if (setRetExpr)
+            {
+                PreviousReturnedExpression = exp;
+                PreviousReturnedType = type;
+            }
+            ProgramStack.Push((exp, type));
+        } 
+
+        /// <summary>
+        /// Pushes PreviousReturnedExpression and its type onto the stack.
+        /// </summary>
+        public void PushRetExpr()
+        {
+            if (PreviousReturnedExpression == null || PreviousReturnedType == null)
+            {
+                throw new ServiceExecutionException(
+                    $@"Pushing returned expression == null into stack at method: {
+                        Method.GetCompatibleFullName()} instruction: {
+                        CurrentInstruction} location: {CurrentLocation}", this);
+            }
+            ProgramStack.Push((PreviousReturnedExpression, PreviousReturnedType));
+        }
 
         /// <summary>
         /// Returns the top element of the stack, without removing it.
@@ -327,19 +343,21 @@ namespace Cilsil.Utils
                     Instruction = instruction,
                     PreviousNode = node ?? PreviousNode,
                     PreviousStack = ProgramStack.Clone(),
-                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId
+                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
+                    PreviousReturnedExpression = PreviousReturnedExpression,
+                    PreviousReturnedType = PreviousReturnedType,
                 });
 
         /// <summary>
         /// Pops an instruction to be parsed.
         /// </summary>
         /// <returns>The instruction to be parsed.</returns>
-        public Instruction PopInstruction()
+        public Instruction PopInstruction(bool popProgramStack = true)
         {
             var snapshot = InstructionsStack.Pop();
             PreviousNode = snapshot.PreviousNode;
             CurrentInstruction = snapshot.Instruction;
-            if (!ExceptionBlockStartToEndOffsets.ContainsKey(CurrentInstruction.Offset))
+            if (popProgramStack)
                 ProgramStack = snapshot.PreviousStack;
             NextAvailableTemporaryVariableId = snapshot.NextAvailableTemporaryVariableId;
 
@@ -393,6 +411,16 @@ namespace Cilsil.Utils
             /// The next available integer identifier for temporary variables at this state.
             /// </summary>
             public int NextAvailableTemporaryVariableId;
+
+            /// <summary>
+            /// The expression registered by return node at this state.
+            /// </summary>
+            public Expression PreviousReturnedExpression;
+
+            /// <summary>
+            /// The expression type registered by return node at this state.
+            /// </summary>
+            public Typ PreviousReturnedType;
 
         }
     }

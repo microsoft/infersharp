@@ -11,7 +11,8 @@ namespace Cilsil.Cil.Parsers
                                                             ProgramState state)
         {
             switch (instruction.OpCode.Code)
-            {
+            {   
+                case Code.Leave:
                 case Code.Leave_S:
                     var nextInstruction = instruction.Next;
                     var targetTrue = instruction.Operand as Instruction;
@@ -21,12 +22,11 @@ namespace Cilsil.Cil.Parsers
                     // try/catch block, we connect to the next catch/finally block.
                     if (nextInstruction != null &&
                         targetTrue.Offset != nextInstruction.Offset &&
-                        !state.JumpedToConnectedExceptionBlock)
+                        !state.ParsedInstructions.Contains(nextInstruction))
                     {
                         state.PushInstruction(nextInstruction);
                     }
                     state.PushInstruction(targetTrue);
-                    state.JumpedToConnectedExceptionBlock = true;
                     return true;
                 default:
                     return false;

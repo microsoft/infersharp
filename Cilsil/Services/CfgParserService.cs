@@ -194,7 +194,7 @@ namespace Cilsil.Services
             state.PushInstruction(instruction, createdNode);
             do
             {
-                (var nextInstruction, _) = state.PopInstruction();
+                var nextInstruction = state.PopInstruction();
 
                 var inExceptionHandler = state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset);
 

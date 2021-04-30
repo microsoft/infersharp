@@ -18,7 +18,7 @@ namespace Cilsil.Cil.Parsers
         {
             var endBlockOffset = state.ExceptionBlockStartToEndOffsets[state.CurrentInstruction.Offset];
             
-            /* Load returned variable for exception check:
+            /* Load returned variable for exception check. For example:
             
             node1 preds: succs:2 3 exn: Instructions
             n$47=*&amp;return:void;
@@ -46,7 +46,7 @@ namespace Cilsil.Cil.Parsers
                                                    state.CurrentLocation);
             exceptionHandlerNode.Instructions.Add(storeValueIntoVariable);
             
-            // Construct an instruction to unwrap exception from returned variable: 
+            // Construct an instruction to unwrap exception from returned variable. For example: 
             // n${i}=_fun___unwrap_exception(n${i-1}:last var type*)
             CreateExceptionCall(state,
                                 exceptionOwnerExpression,
@@ -67,18 +67,12 @@ namespace Cilsil.Cil.Parsers
             // Since catch block will always have instantiated exception type.
             if (exceptionType != state.Method.Module.TypeSystem.Object)
             {
-                // Try always needs to be connected to the finally block, if there is a finally block.
-                // If no finally, directly connect try to catch
-                if (!ContainsFinallyBlock(state, endBlockOffset))
-                {           
-                    state.PushInstruction(instruction.Next);
-                }
                 state.PushInstruction(instruction, exceptionHandlerNode);
                 instruction = state.PopInstruction();
 
                 /* Create exception allocation call and branch for handling exception. 
                 If exception allocation is True, store allocated exception expression as caught 
-                exception varaible:
+                exception varaible. For example:
 
                 node2 preds:1 succs:4 exn: Conditional exception handler
                 n$49=_fun___instanceof(n$48:java.io.IOException*,sizeof(t=java.io.IOException):void)
@@ -129,7 +123,10 @@ namespace Cilsil.Cil.Parsers
                 }
                 state.PushExpr(new VarExpression(returnVariable), expressionType);
 
-                state.PushInstruction(nextInstructionIfNoException, exceptionFalseNode);
+                if (nextInstructionIfNoException != null)
+                {
+                    state.PushInstruction(nextInstructionIfNoException, exceptionFalseNode);
+                }
 
                 state.PushInstruction(instruction, exceptionTrueNode);
                 instruction = state.PopInstruction();
@@ -137,13 +134,8 @@ namespace Cilsil.Cil.Parsers
             // Construct a finally block when unwrapped exception type is "System.Object".
             else
             {
-                // We see that for using block, the finally block starts with a "ldloc_0" followed by 
-                // a Brfalse_s -- parses the ldloc_0 first.
-                if (instruction.Next.OpCode.Code == Code.Brfalse_S)
-                {
-                    ParseCilInstruction(instruction, state);
-                    state.PopInstruction();
-                }
+                ParseCilInstruction(instruction, state);
+                state.PopInstruction();
                 state.PushInstruction(instruction.Next);
 
                 state.PushInstruction(instruction, exceptionHandlerNode);
@@ -156,7 +148,7 @@ namespace Cilsil.Cil.Parsers
                                               state.CurrentLocation);
             }
 
-            /* Load caught exception variable:
+            /* Load caught exception variable. For example:
             
             node 4: Preds:2 Succs:6 EXN: 
             n$25=*&CatchVar65:java.lang.Object*;
@@ -201,17 +193,6 @@ namespace Cilsil.Cil.Parsers
             ParseCilInstruction(instruction, state);
 
             return true; 
-        }        
-
-        /// <summary>
-        /// Check if there is a finally block following the current catch block.
-        /// </summary>
-        /// <param name="state">Current program state.</param>
-        /// <param name="catchEndOffset">The ending offset of catch block.</param>
-        private bool ContainsFinallyBlock(ProgramState state, int catchEndOffset)
-        {
-            return state.ExceptionBlockStartToEndOffsets.ContainsKey(catchEndOffset + 3)
-                   || state.ExceptionBlockStartToEndOffsets.ContainsKey(catchEndOffset + 2);
         }
 
         /// <summary>
