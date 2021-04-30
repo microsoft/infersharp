@@ -108,12 +108,19 @@ namespace Cilsil.Services
 
                     case ExceptionHandlerType.Finally:
                         exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
-                        exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerStart.Offset;
+                        exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
                         break;
 
                     case ExceptionHandlerType.Filter:
-                        // uncommon case: exception...when.... 
-                        // Example: catch (ArgumentException e) when (e.ParamName == "…")        
+                        // Example: catch (ArgumentException e) when (e.ParamName == "…")   
+                        // Adds associated try block node offsets to a hashset.
+                        var filterBlockStartOffset = exceptionHandlingBlock.FilterStart.Offset;
+                        catchType = programState.Method.Module.Import(typeof(System.Exception));
+                        exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
+                        exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
+                        programState.ExceptionBlockStartToEndOffsets.Add(filterBlockStartOffset, exceptionHandlingBlockEndOffset);
+                        break;
+
                     case ExceptionHandlerType.Fault:
                         // uncommon case: fault block
                         // Example: fault {}
@@ -187,7 +194,7 @@ namespace Cilsil.Services
             state.PushInstruction(instruction, createdNode);
             do
             {
-                var nextInstruction = state.PopInstruction();
+                (var nextInstruction, _) = state.PopInstruction();
 
                 var inExceptionHandler = state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset);
 
