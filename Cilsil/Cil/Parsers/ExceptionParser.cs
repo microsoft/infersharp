@@ -68,7 +68,7 @@ namespace Cilsil.Cil.Parsers
             if (exceptionType != state.Method.Module.TypeSystem.Object)
             {
                 state.PushInstruction(instruction, exceptionHandlerNode);
-                instruction = state.PopInstruction();
+                (instruction, _) = state.PopInstruction();
 
                 /* Create exception allocation call and branch for handling exception. 
                 If exception allocation is True, store allocated exception expression as caught 
@@ -129,7 +129,7 @@ namespace Cilsil.Cil.Parsers
                 }
 
                 state.PushInstruction(instruction, exceptionTrueNode);
-                instruction = state.PopInstruction();
+                (instruction, _) = state.PopInstruction();
             }
             // Construct a finally block when unwrapped exception type is "System.Object".
             else
@@ -139,7 +139,7 @@ namespace Cilsil.Cil.Parsers
                 state.PushInstruction(instruction.Next);
 
                 state.PushInstruction(instruction, exceptionHandlerNode);
-                instruction = state.PopInstruction();
+                (instruction, _) = state.PopInstruction();
                 
                 var catchVarIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
                 var catchVarStore = new Store(catchVariable,
@@ -189,7 +189,7 @@ namespace Cilsil.Cil.Parsers
 
             // Append the next instruction (which should be stloc, for representing
             // storage of the constructed object into a local variable) to this new node.
-            instruction = state.PopInstruction();
+            (instruction, _) = state.PopInstruction();
             ParseCilInstruction(instruction, state);
 
             return true; 

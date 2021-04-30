@@ -351,8 +351,8 @@ namespace Cilsil.Utils
         /// <summary>
         /// Pops an instruction to be parsed.
         /// </summary>
-        /// <returns>The instruction to be parsed.</returns>
-        public Instruction PopInstruction(bool popProgramStack = true)
+        /// <returns>The instruction to be parsed and its previous node.</returns>
+        public (Instruction, CfgNode) PopInstruction(bool popProgramStack = true)
         {
             var snapshot = InstructionsStack.Pop();
             PreviousNode = snapshot.PreviousNode;
@@ -369,7 +369,7 @@ namespace Cilsil.Utils
                 CurrentLocation = newLocation;
             }
             ParsedInstructions.Add(snapshot.Instruction);
-            return CurrentInstruction;
+            return (CurrentInstruction, PreviousNode);
         }
 
         /// <summary>
