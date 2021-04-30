@@ -202,7 +202,7 @@ namespace Examples
                 {
                     
                 }
-            } 
+            }
             catch(Exception)
             {
                 
@@ -234,6 +234,35 @@ namespace Examples
             using(var sw = new StreamWriter("everwhat.txt")){
                 sw.WriteLine("Guru99 - ASP.Net");
             }
+        }
+
+        // /// <summary>
+        // /// Resource usage example with exception filter handling, leaks expected.
+        // /// </summary>
+        public void ResourceLeakFilterBad() {
+            StreamWriter stream = AllocateStreamWriter();
+            if (stream == null)
+                return; 
+            try 
+            {
+                stream.WriteLine(12);
+            } 
+            catch (Exception e) when (ExpectedIOIssue(e))
+            {
+                Console.WriteLine("Error Message = {0}", e.Message);
+            }
+            finally 
+            {
+                if (stream != null)
+                {
+                    stream.Close();
+                }
+            }
+        }
+        private static bool ExpectedIOIssue(Exception ex)
+        {
+            // ignore expected exception
+            return ex is System.IO.IOException;
         }
 
         /// <summary>
