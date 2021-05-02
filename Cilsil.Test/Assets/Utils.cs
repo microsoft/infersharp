@@ -19,7 +19,7 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various kinds of exception handling blocks that appear in the tests.
         /// </summary>
-        public enum BlockKind { None, Using, TryCatchFinally };
+        public enum BlockKind { None, Using, TryCatchFinally, NestedTryCatchFinally, TryCatchWhenFinally };
 
         /// <summary>
         /// The various variable names used in the tests.
@@ -348,6 +348,76 @@ namespace Cilsil.Test.Assets
                         try
                         {{
                             {tryBlockCode}
+                        }}
+                        catch(System.IO.IOException e)
+                        {{
+                            Console.WriteLine(e.Message);
+                        }}
+                        finally
+                        {{
+                            {disposeResource}
+                        }}";
+                    break;
+                case BlockKind.NestedTryCatchFinally:
+                    if (resourceLocalVarType != VarType.None)
+                    {
+                        resourceInit += Assign(VarName.FirstLocal, "null");
+                    }
+                    if (disposeResource == null)
+                    {
+                        disposeResource = "";
+                    }
+                    tryBlockCode =
+                        resourceLocalVarValue == null ? string.Empty 
+                                                      : Assign(VarName.FirstLocal,
+                                                               resourceLocalVarValue);
+                    output =
+                        $@"{resourceInit}
+                        try
+                        {{
+                            try
+                            {{
+                                {tryBlockCode}
+                            }}
+                            catch(System.IO.IOException e)
+                            {{
+                                Console.WriteLine(e.Message);
+                            }}
+                        }}
+                        catch(System.IO.IOException e)
+                        {{
+                            Console.WriteLine(e.Message);
+                        }}
+                        finally
+                        {{
+                            {disposeResource}
+                        }}";
+                    break;
+                case BlockKind.TryCatchWhenFinally:
+                    if (resourceLocalVarType != VarType.None)
+                    {
+                        resourceInit += Assign(VarName.FirstLocal, "null");
+                    }
+                    if (disposeResource == null)
+                    {
+                        disposeResource = "";
+                    }
+                    tryBlockCode =
+                        resourceLocalVarValue == null ? string.Empty 
+                                                      : Assign(VarName.FirstLocal,
+                                                               resourceLocalVarValue);
+                    output =
+                        $@"{resourceInit}
+                        try
+                        {{
+                            try
+                            {{
+                                {tryBlockCode}
+                            }}
+                            catch(Exception e) when (e is System.IO.IOException)
+                            {{
+                                Console.WriteLine(e.Message);
+                            }}
                         }}
                         catch(System.IO.IOException e)
                         {{
