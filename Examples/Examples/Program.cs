@@ -236,10 +236,27 @@ namespace Examples
             }
         }
 
-        // /// <summary>
-        // /// Resource usage example with exception filter handling, leaks expected.
-        // /// </summary>
+        /// <summary>
+        /// Resource usage example with exception filter handling, leaks expected.
+        /// </summary>
         public void ResourceLeakFilterBad() {
+            StreamWriter stream = AllocateStreamWriter();
+            if (stream == null)
+                return; 
+            try 
+            {
+                stream.WriteLine(12);
+            } 
+            catch (Exception e) when (ExpectedIOIssue(e))
+            {
+                Console.WriteLine("Error Message = {0}", e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Resource usage example with exception filter handling, no leak expected.
+        /// </summary>
+        public void ResourceLeakFilterOK() {
             StreamWriter stream = AllocateStreamWriter();
             if (stream == null)
                 return; 

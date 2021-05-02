@@ -114,11 +114,9 @@ namespace Cilsil.Services
                     case ExceptionHandlerType.Filter:
                         // Example: catch (ArgumentException e) when (e.ParamName == "…")   
                         // Adds associated try block node offsets to a hashset.
-                        var filterBlockStartOffset = exceptionHandlingBlock.FilterStart.Offset;
                         catchType = programState.Method.Module.Import(typeof(System.Exception));
-                        exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
+                        exceptionHandlingBlockStartOffset = exceptionHandlingBlock.FilterStart.Offset;
                         exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
-                        programState.ExceptionBlockStartToEndOffsets.Add(filterBlockStartOffset, exceptionHandlingBlockEndOffset);
                         break;
 
                     case ExceptionHandlerType.Fault:

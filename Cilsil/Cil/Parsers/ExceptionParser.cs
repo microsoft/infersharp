@@ -67,6 +67,15 @@ namespace Cilsil.Cil.Parsers
             // Since catch block will always have instantiated exception type.
             if (exceptionType != state.Method.Module.TypeSystem.Object)
             {
+                // Try always needs to be connected to the finally block, if there is a finally or a filter block.
+                // If no finally, directly connect try to catch
+                if (!ContainsFinallyBlock(state, endBlockOffset))
+                { 
+                    state.PushRetExpr();
+                    state.PushInstruction(instruction.Next);
+                    state.Pop();
+                }
+
                 state.PushInstruction(instruction, exceptionHandlerNode);
                 (instruction, _) = state.PopInstruction();
 
@@ -193,6 +202,24 @@ namespace Cilsil.Cil.Parsers
             ParseCilInstruction(instruction, state);
 
             return true; 
+        }
+
+        /// <summary>
+        /// Check if there is a finally block following the current catch block.
+        /// </summary>
+        /// <param name="state">Current program state.</param>
+        /// <param name="catchEndOffset">The ending offset of catch block.</param>
+        private bool ContainsFinallyBlock(ProgramState state, int catchEndOffset)
+        {
+            return state.ExceptionBlockStartToEndOffsets.ContainsKey(catchEndOffset + 3)
+                   || state.ExceptionBlockStartToEndOffsets.ContainsKey(catchEndOffset + 2);
+        }
+
+        private bool PreviousFilterBlock(ProgramState state, Instruction instruction)
+        {
+            return state.OffsetToExceptionType.ContainsKey(instruction.Offset) 
+                   && state.OffsetToExceptionType[instruction.Offset].FullName.Equals("System.Exception")
+                   && state.OffsetToExceptionType[instruction.Offset].Scope.Name.Equals("System.Private.CoreLib");
         }
 
         /// <summary>
