@@ -121,6 +121,12 @@ namespace Cilsil.Utils
         private ProgramStack ProgramStack;
 
         /// <summary>
+        /// Dangling condition program stack for the current method. Each entry is an expression and a type for the 
+        /// expression.
+        /// </summary>
+        private ProgramStack DanglingConditionProgramStack;
+
+        /// <summary>
         /// Stack which stores instructions to be translated, along with extra information about 
         /// the translation state. This is pushed to and popped from over the course of the
         /// translation.
@@ -141,6 +147,7 @@ namespace Cilsil.Utils
         {
             Cfg = cfg;
             ProgramStack = new ProgramStack();
+            DanglingConditionProgramStack = new ProgramStack();
             Method = method;
             ProcName = new ProcedureName(method);
             ProcDesc = new ProcedureDescription(method, cfg);
@@ -219,6 +226,11 @@ namespace Cilsil.Utils
         public ProgramStack GetProgramStackCopy() => ProgramStack.Clone();
 
         /// <summary>
+        /// Returns a shallow copy of the current dangling condition program stack.
+        /// </summary>
+        public ProgramStack GetDanglingConditionProgramStackCopy() => DanglingConditionProgramStack.Clone();
+
+        /// <summary>
         /// Creates an instruction which loads the input expression into a fresh identifier. 
         /// Pushes the variable expression enclosing that identifier onto the program stack; 
         /// returns the load instruction.
@@ -266,6 +278,16 @@ namespace Cilsil.Utils
         } 
 
         /// <summary>
+        /// Pushes an expression and its type onto the dangling condition stack.
+        /// </summary>
+        /// <param name="exp">The expression to push.</param>
+        /// <param name="type">The type of the expression being pushed.</param>
+        public void PushConditionExpr(Expression exp, Typ type)
+        {
+            DanglingConditionProgramStack.Push((exp, type));
+        } 
+
+        /// <summary>
         /// Pushes PreviousReturnedExpression and its type onto the stack.
         /// </summary>
         public void PushRetExpr()
@@ -286,20 +308,46 @@ namespace Cilsil.Utils
         public (Expression, Typ) Peek() => ProgramStack.Peek();
 
         /// <summary>
+        /// Returns the top element of the dangling condition stack, without removing it.
+        /// </summary>
+        public (Expression, Typ) DanglingConditionProgramStackPeek() => DanglingConditionProgramStack.Peek();
+
+        /// <summary>
         /// Returns and removes the top element of the stack.
         /// </summary>
         /// <exception cref="ServiceExecutionException">Thrown when popping on empty
         /// stack.</exception>
         public (Expression, Typ) Pop()
         {
-            if (ProgramStack.Count == 0)
+            if (ProgramStack.Count == 0 && DanglingConditionProgramStack.Count == 0)
             {
                 throw new ServiceExecutionException(
                     $@"Popping on empty stack at method: {
                         Method.GetCompatibleFullName()} instruction: {
                         CurrentInstruction} location: {CurrentLocation}", this);
             }
-            return ProgramStack.Pop();
+            else if (ProgramStack.Count > 0)
+            {
+                return ProgramStack.Pop();
+            }
+            return PopConditionExpression();
+        }
+
+        /// <summary>
+        /// Returns and removes the top element of the dangling condition stack.
+        /// </summary>
+        /// <exception cref="ServiceExecutionException">Thrown when popping on empty
+        /// stack.</exception>
+        public (Expression, Typ) PopConditionExpression()
+        {
+            if (DanglingConditionProgramStack.Count == 0)
+            {
+                throw new ServiceExecutionException(
+                    $@"Popping on empty stack at method: {
+                        Method.GetCompatibleFullName()} instruction: {
+                        CurrentInstruction} location: {CurrentLocation}", this);
+            }
+            return DanglingConditionProgramStack.Pop();
         }
 
         /// <summary>

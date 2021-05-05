@@ -135,7 +135,7 @@ namespace Cilsil.Services
                 }
             }
 
-            if (methodBody.Instructions.Count > 0)
+            if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
                 (programState, translationUnfinished) = 
                     ParseInstructions(methodBody.Instructions.FirstOrDefault(), 
@@ -185,21 +185,14 @@ namespace Cilsil.Services
 
         private (ProgramState, bool) ParseInstructions(Instruction instruction,
                                                        ProgramState state,
-                                                       bool translationUnfinished,
-                                                       Instruction instructionEnd = null,
-                                                       CfgNode createdNode = null)
+                                                       bool translationUnfinished)
         {
-            state.PushInstruction(instruction, createdNode);
+            state.PushInstruction(instruction);
             do
             {
                 (var nextInstruction, _) = state.PopInstruction();
 
                 var inExceptionHandler = state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset);
-
-                if (instructionEnd != null && nextInstruction.Offset == instructionEnd.Offset)
-                {
-                    break;
-                }
 
                 (var nodeAtOffset, var excessiveVisits) =
                     state.GetOffsetNode(nextInstruction.Offset);
