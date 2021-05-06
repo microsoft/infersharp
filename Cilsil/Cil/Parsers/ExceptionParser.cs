@@ -18,11 +18,9 @@ namespace Cilsil.Cil.Parsers
         {
 
             var endBlockOffset = state.ExceptionBlockStartToEndOffsets[state.CurrentInstruction.Offset];
-            var startBlockOffset = endBlockOffset;
-            while (state.ExceptionBlockStartToEndOffsets.ContainsKey(startBlockOffset))
+            while (state.ExceptionBlockStartToEndOffsets.ContainsKey(endBlockOffset))
             {
-                endBlockOffset = state.ExceptionBlockStartToEndOffsets[startBlockOffset];
-                startBlockOffset = endBlockOffset;
+                endBlockOffset = state.ExceptionBlockStartToEndOffsets[endBlockOffset];
             }
             
             
