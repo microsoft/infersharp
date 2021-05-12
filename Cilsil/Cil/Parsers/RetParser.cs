@@ -15,6 +15,8 @@ namespace Cilsil.Cil.Parsers
         protected override bool ParseCilInstructionInternal(Instruction instruction,
                                                             ProgramState state)
         {
+            Expression returnedExpression = null;
+            Typ returnedType = null;
             switch (instruction.OpCode.Code)
             {
                 case Code.Ret:
@@ -27,7 +29,9 @@ namespace Cilsil.Cil.Parsers
                         var returnVariable = new LvarExpression(
                                     new LocalVariable(Identifier.ReturnIdentifier,
                                                     state.Method));
-                        state.PushExpr(returnVariable, Typ.FromTypeReference(retType));
+                        returnedExpression = returnVariable;
+                        returnedType = Typ.FromTypeReference(retType);
+                        
                     }
                     else
                     {
@@ -79,10 +83,19 @@ namespace Cilsil.Cil.Parsers
                                                  Typ.FromTypeReference(retType),
                                                  state.CurrentLocation);
                         }
-                        state.PushExpr(returnVariable, Typ.FromTypeReference(retType));
+                        returnedExpression = returnVariable;
+                        returnedType = Typ.FromTypeReference(retType);
                         retNode.Instructions.Add(retInstr);
                         retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
                         RegisterNode(state, retNode);
+                    }
+
+                    state.PushExpr(returnedExpression, returnedType, true);
+
+                    if (state.HasInstruction && state.NextInstructionInExceptionHandlingBlock)
+                    {
+                        (var nextInstruction, var previousNode) = state.PopInstruction(false);
+                        state.PushInstruction(nextInstruction, previousNode);
                     }
                     return true;
                 default:

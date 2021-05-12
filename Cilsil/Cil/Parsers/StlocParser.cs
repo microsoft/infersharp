@@ -58,31 +58,31 @@ namespace Cilsil.Cil.Parsers
 
             (var value, var type) = state.Pop();
 
-            if (value is BinopExpression)
+            // Records that the variable stores a boxed value.
+            if (type is BoxedValueType boxedValueType)
             {
-                state.PushExpr(value, type);
+                state.VariableIndexToBoxedValueType[index] = boxedValueType;
+            }
+            // A non-boxed value is being stored at the location, so the corresponding record is
+            // accordingly updated.
+            else if (!(type is BoxedValueType) &&
+                    state.VariableIndexToBoxedValueType.ContainsKey(index))
+            {
+                state.VariableIndexToBoxedValueType.Remove(index);
+            }
+
+            if (value is BinopExpression && type is Tptr)
+            {
+                state.PushConditionExpr(value, type);
                 state.PushInstruction(instruction.Next);
             }
             else
             {
-                // Records that the variable stores a boxed value.
-                if (type is BoxedValueType boxedValueType)
-                {
-                    state.VariableIndexToBoxedValueType[index] = boxedValueType;
-                }
-                // A non-boxed value is being stored at the location, so the corresponding record is
-                // accordingly updated.
-                else if (!(type is BoxedValueType) &&
-                        state.VariableIndexToBoxedValueType.ContainsKey(index))
-                {
-                    state.VariableIndexToBoxedValueType.Remove(index);
-                }
-
                 var variable = new LocalVariable(LocalName(index), state.Method);
                 var storeValueIntoVariable = new Store(new LvarExpression(variable),
-                                                    value,
-                                                    type,
-                                                    state.CurrentLocation);
+                                                       value,
+                                                       type,
+                                                       state.CurrentLocation);
                 node = AddMethodBodyInstructionsToCfg(state, storeValueIntoVariable);
                 RegisterLocalVariable(state, variable, type);
                 state.PushInstruction(instruction.Next, node);

@@ -108,12 +108,17 @@ namespace Cilsil.Services
 
                     case ExceptionHandlerType.Finally:
                         exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
-                        exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerStart.Offset;
+                        exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
                         break;
 
                     case ExceptionHandlerType.Filter:
-                        // uncommon case: exception...when.... 
-                        // Example: catch (ArgumentException e) when (e.ParamName == "…")        
+                        // Example: catch (ArgumentException e) when (e.ParamName == "…")   
+                        // Adds associated try block node offsets to a hashset.
+                        catchType = programState.Method.Module.Import(typeof(System.Exception));
+                        exceptionHandlingBlockStartOffset = exceptionHandlingBlock.FilterStart.Offset;
+                        exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
+                        break;
+
                     case ExceptionHandlerType.Fault:
                         // uncommon case: fault block
                         // Example: fault {}
@@ -130,7 +135,7 @@ namespace Cilsil.Services
                 }
             }
 
-            if (methodBody.Instructions.Count > 0)
+            if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
                 (programState, translationUnfinished) = 
                     ParseInstructions(methodBody.Instructions.FirstOrDefault(), 
@@ -180,21 +185,14 @@ namespace Cilsil.Services
 
         private (ProgramState, bool) ParseInstructions(Instruction instruction,
                                                        ProgramState state,
-                                                       bool translationUnfinished,
-                                                       Instruction instructionEnd = null,
-                                                       CfgNode createdNode = null)
+                                                       bool translationUnfinished)
         {
-            state.PushInstruction(instruction, createdNode);
+            state.PushInstruction(instruction);
             do
             {
-                var nextInstruction = state.PopInstruction();
+                (var nextInstruction, _) = state.PopInstruction();
 
                 var inExceptionHandler = state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset);
-
-                if (instructionEnd != null && nextInstruction.Offset == instructionEnd.Offset)
-                {
-                    break;
-                }
 
                 (var nodeAtOffset, var excessiveVisits) =
                     state.GetOffsetNode(nextInstruction.Offset);

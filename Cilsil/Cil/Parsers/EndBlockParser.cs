@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Utils;
+using Cilsil.Sil;
 using Mono.Cecil.Cil;
 
 namespace Cilsil.Cil.Parsers
@@ -12,9 +13,15 @@ namespace Cilsil.Cil.Parsers
         {
             switch (instruction.OpCode.Code)
             {
-                case Code.Endfinally:                                                                                           
+                case Code.Endfilter:
+                    state.PushInstruction(instruction.Next); 
+                    return true;
+                case Code.Endfinally:  
+                    if (state.ExceptionBlockStartToEndOffsets.ContainsKey(instruction.Next.Offset))
+                    {
+                        state.PushRetExpr();
+                    }
                     state.PushInstruction(instruction.Next);
-                    state.JumpedToConnectedExceptionBlock = false;
                     return true;
                 default:
                     return false;
