@@ -414,6 +414,18 @@ namespace Cilsil.Utils
             if (currentSequencePoint != null)
             {
                 var newLocation = Location.FromSequencePoint(currentSequencePoint);
+                var previousInstruction = CurrentInstruction.Previous;
+                while (newLocation.Line - CurrentLocation.Line >= 100 && previousInstruction != null)
+                {
+                    currentSequencePoint =
+                        Method.DebugInformation.GetSequencePoint(previousInstruction);
+                    previousInstruction = previousInstruction.Previous;
+                    if (currentSequencePoint == null)
+                    {
+                        continue;
+                    }
+                    newLocation = Location.FromSequencePoint(currentSequencePoint);
+                }
                 CurrentLocation = newLocation;
             }
             ParsedInstructions.Add(snapshot.Instruction);
