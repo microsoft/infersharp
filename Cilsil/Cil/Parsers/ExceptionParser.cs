@@ -221,13 +221,6 @@ namespace Cilsil.Cil.Parsers
                    || state.ExceptionBlockStartToEndOffsets.ContainsKey(catchEndOffset + 2);
         }
 
-        private bool PreviousFilterBlock(ProgramState state, Instruction instruction)
-        {
-            return state.OffsetToExceptionType.ContainsKey(instruction.Offset) 
-                   && state.OffsetToExceptionType[instruction.Offset].FullName.Equals("System.Exception")
-                   && state.OffsetToExceptionType[instruction.Offset].Scope.Name.Equals("System.Private.CoreLib");
-        }
-
         /// <summary>
         /// Creates a exception method call returned via out parameter.
         /// </summary>
