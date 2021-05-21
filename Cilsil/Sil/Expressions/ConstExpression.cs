@@ -4,7 +4,6 @@ using Cilsil.Sil.Types;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
-using System.Collections.Generic;
 
 namespace Cilsil.Sil.Expressions
 {
@@ -84,7 +83,7 @@ namespace Cilsil.Sil.Expressions
         /// </returns>
         public override bool Equals(object obj) =>
             obj is ConstExpression expression &&
-            EqualityComparer<object>.Default.Equals(ConstValue, expression.ConstValue) &&
+            CompareConstExpressionValue(ConstValue, expression.ConstValue) &&
             Kind == expression.Kind;
 
         /// <summary>
@@ -100,10 +99,10 @@ namespace Cilsil.Sil.Expressions
         /// Determines the type of the constant from its value.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <returns></returns>
+        /// <returns>The <see cref="ConstKind"/> corresponding to the value.</returns>
         /// <exception cref="ArgumentException">@"Cannot infer constant kind from value of type 
         ///                            {value.GetType().ToString()}")</exception>
-        private ConstKind GetKindFromValue(object value)
+        private static ConstKind GetKindFromValue(object value)
         {
             switch (value)
             {
@@ -121,8 +120,38 @@ namespace Cilsil.Sil.Expressions
                 default:
                     throw new ArgumentException(
                         $@"Cannot infer constant kind from value of type 
-                           {value.GetType().ToString()}");
+                           {value.GetType()}");
             }
+        }
+
+        /// <summary>
+        /// Helper method for comparing values of a pair of <see cref="ConstExpression"/>.
+        /// </summary>
+        /// <param name="firstValue">The first value.</param>
+        /// <param name="secondValue">The second value.</param>
+        /// <returns><c>true</c> if the the values are equal, and <c>false</c> otherwise</returns>
+        private static bool CompareConstExpressionValue(object firstValue, object secondValue)
+        {
+            if (GetKindFromValue(firstValue) == GetKindFromValue(secondValue))
+            {
+                switch (firstValue)
+                {
+                    case IntRepresentation intRepresentation:
+                        return intRepresentation.Equals(secondValue);
+                    case ProcedureName procedureName:
+                        return procedureName.Equals(secondValue);
+                    case string _:
+                        return (string)firstValue == (string)secondValue;
+                    case float _:
+                    case double _:
+                        return (float)firstValue == (float)secondValue;
+                    case TypeName typeName:
+                        return typeName.Equals(secondValue);
+                    default:
+                        return false;
+                }
+            }
+            return false;
         }
 
         /// <summary>
