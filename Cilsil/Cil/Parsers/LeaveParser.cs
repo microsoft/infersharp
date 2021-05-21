@@ -18,7 +18,7 @@ namespace Cilsil.Cil.Parsers
                     var targetTrue = instruction.Operand as Instruction;
 
                     state.AppendToPreviousNode = false;
-                    
+
                     if (targetTrue.Offset != nextInstruction.Offset)
                     {
                         state.PushRetExpr();
@@ -32,6 +32,7 @@ namespace Cilsil.Cil.Parsers
                     {
                         return true;
                     }
+                    state.PushInstruction(targetTrue);
                     return true;
                 default:
                     return false;
