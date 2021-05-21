@@ -149,6 +149,7 @@ namespace Cilsil.Cil.Parsers
             // Construct a finally block when unwrapped exception type is "System.Object".
             else
             {
+                state.PushRetExpr();
                 ParseCilInstruction(instruction, state);
                 state.PopInstruction();
                 state.PushInstruction(instruction.Next);

@@ -19,7 +19,7 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various kinds of exception handling blocks that appear in the tests.
         /// </summary>
-        public enum BlockKind { None, Using, TryCatchFinally, NestedTryCatchFinally, TryCatchWhenFinally };
+        public enum BlockKind { None, Using, MultiVariableUsing, TryCatchFinally, NestedTryCatchFinally, TryCatchWhenFinally };
 
         /// <summary>
         /// The various variable names used in the tests.
@@ -326,6 +326,25 @@ namespace Cilsil.Test.Assets
                     }
                     output =
                         $@"using({resourceInit})
+                        {{
+
+                        }}";
+                    break;
+                case BlockKind.MultiVariableUsing:
+                    if (resourceLocalVarType != VarType.None && resourceLocalVarValue != null)
+                    {
+                        resourceInit = Instantiate(resourceLocalVarType,
+                                                   VarName.FirstLocal,
+                                                   resourceLocalVarValue,
+                                                   false);
+                    }
+                    var secondResourceInit = Instantiate(resourceLocalVarType,
+                                                         VarName.SecondLocal,
+                                                         resourceLocalVarValue,
+                                                         false);
+                    output =
+                        $@"using({resourceInit})
+                        using({secondResourceInit})
                         {{
 
                         }}";

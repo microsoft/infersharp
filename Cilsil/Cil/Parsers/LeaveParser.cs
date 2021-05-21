@@ -18,15 +18,20 @@ namespace Cilsil.Cil.Parsers
                     var targetTrue = instruction.Operand as Instruction;
 
                     state.AppendToPreviousNode = false;
-                    // If next instruction is not target operand and not jumped from a previous
-                    // try/catch block, we connect to the next catch/finally block.
-                    if (nextInstruction != null &&
-                        targetTrue.Offset != nextInstruction.Offset &&
-                        !state.ParsedInstructions.Contains(nextInstruction))
+                    
+                    if (targetTrue.Offset != nextInstruction.Offset)
                     {
+                        state.PushRetExpr();
                         state.PushInstruction(nextInstruction);
                     }
-                    state.PushInstruction(targetTrue);
+                    // When the next instruction is in finally block, we ignore jumping to the 
+                    // target true instruction.
+                    if (state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset) &&
+                        !state.OffsetToExceptionType.ContainsKey(nextInstruction.Offset) &&
+                        targetTrue.Offset != nextInstruction.Offset)
+                    {
+                        return true;
+                    }
                     return true;
                 default:
                     return false;

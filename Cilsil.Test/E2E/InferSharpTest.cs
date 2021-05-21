@@ -178,7 +178,7 @@ namespace Cilsil.Test.E2E
                                GetString(expectedError));
         }
 
-                /// <summary>
+        /// <summary>
         /// Validates that a resource leak on a StreamReader initialized in exception handling block 
         /// is identified.
         /// </summary>
@@ -187,6 +187,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(BlockKind.Using, false, InferError.None)]
+        [DataRow(BlockKind.MultiVariableUsing, false, InferError.None)]
         [DataRow(BlockKind.TryCatchFinally, true, InferError.None)]
         [DataRow(BlockKind.TryCatchFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataRow(BlockKind.NestedTryCatchFinally, true, InferError.None)]
