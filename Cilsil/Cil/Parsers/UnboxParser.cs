@@ -40,8 +40,7 @@ namespace Cilsil.Cil.Parsers
                     }
                     else
                     {
-                        var type = instruction.Operand as TypeReference;
-                        if (type != null)
+                        if (instruction.Operand is TypeReference type)
                         {
                             var silType = Typ.FromTypeReferenceNoPointer(type);
                             var defaultBoxedValue = GetDefaultBoxedValue(silType);
