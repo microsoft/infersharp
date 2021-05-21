@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
+using System.Text.Json;
 
 namespace Cilsil
 {
@@ -47,10 +48,16 @@ namespace Cilsil
                 {
                     Argument = new Argument<string>(),
                     Description = "Output type environment JSON file path"
-                }
+                },
+                new Option("--outelapsetime")
+                {
+                    Argument = new Argument<string>(),
+                    Description =
+                        "Output type environment JSON file path for debugging purposes"
+                },
             };
             translateCommand.Handler =
-                CommandHandler.Create<string[], string, string, string, string, string>(Translate);
+                CommandHandler.Create<string[], string, string, string, string, string, string>(Translate);
             var printCommand = new Command("print")
             {
                 new Option("--procs", "A comma-separated procedure names to print")
@@ -85,18 +92,28 @@ namespace Cilsil
         /// <param name="outtenv">The type environment output path.</param>
         /// <param name="dot">The dot file (used for visualizing the computed CFG) output
         /// path.</param>
+        /// <param name="outelapsetime">The elapse time output path (used for visualizing the elapse 
+        /// time per method).</param>
         public static void Translate(string[] paths = null,
                                      string printprocs = null,
                                      string outcfg = null,
                                      string cfgtxt = null,
                                      string outtenv = null,
-                                     string dot = null)
+                                     string dot = null,
+                                     string outelapsetime = null)
         {
             (var cfg, var tenv) = ExecuteTranslation(paths, printprocs);
 
             File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString());
             cfg.WriteToFile(outcfg);
             tenv.WriteToFile(outtenv);
+
+            if (!string.IsNullOrWhiteSpace(outelapsetime))
+            {
+                var fullElapseTimePath = Path.GetFullPath(outelapsetime);
+                File.WriteAllText(fullElapseTimePath, JsonSerializer.Serialize(Log.ElapseTimePerMethod));
+
+            }
 
             if (!string.IsNullOrWhiteSpace(dot))
             {
