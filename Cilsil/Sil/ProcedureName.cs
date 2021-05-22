@@ -55,6 +55,17 @@ namespace Cilsil.Sil
                               BuiltInClassName,
                               string.Empty,
                               true);
+
+        /// <summary>
+        /// Standard procedure name used for translating type-checking bytecode.
+        /// </summary>
+        public static readonly ProcedureName BuiltIn__instanceof =
+            new ProcedureName("__instanceof",
+                              new List<string>(),
+                              BuiltInClassName,
+                              string.Empty,
+                              true);
+
         #endregion
 
         /// <summary>
