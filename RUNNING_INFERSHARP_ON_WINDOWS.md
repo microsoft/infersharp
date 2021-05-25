@@ -1,4 +1,4 @@
-# How to Run Infer# locally on Windows via WSL2 (Windows Subsystem for Linux)
+# How to Run Infer# Locally on Windows via WSL2 (Windows Subsystem for Linux)
 
 ## Prerequisite
 - [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
@@ -6,7 +6,7 @@
 ## Setup
 1. Download the Infer# binaries from [Infer# - v1.1](TBA).
 2. From Windows Command Prompt or PowerShell, enter: ```wsl.exe``` to open your default Linux distribution.
-3. Copy the _infersharp_ folder to _/home/_ and create a symlink for future use:
+3. Copy the _infersharp_ folder to _/home/_ and create a symlink for future use.
 ```
 cp -r <FOLDER_PATH_TO_INFERSHARP_BINARIES> ~
 cd /home/<YOUR_USERNAME>/infersharp/
@@ -32,7 +32,7 @@ The folder structure should look like this:
 ```
 cd /home/<YOUR_USERNAME>/infersharp/
 ```
-Your own code/binaries, however, can be anywhere on your system. For example, if your binaries are at ```C:\Code\MyApp\bin```:
+Your own code/binaries, however, can be anywhere on the system. For example, if your binaries are at ```C:\Code\MyApp\bin```:
 ```
 ./run_infersharp.sh /mnt/c/Code/MyApp/bin/
 ```
