@@ -143,8 +143,9 @@ namespace Cilsil.Sil.Expressions
                     case string _:
                         return (string)firstValue == (string)secondValue;
                     case float _:
-                    case double _:
                         return (float)firstValue == (float)secondValue;
+                    case double _:
+                        return (double)firstValue == (double)secondValue;
                     case TypeName typeName:
                         return typeName.Equals(secondValue);
                     default:
