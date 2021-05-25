@@ -4,9 +4,9 @@
 - [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
 ## Setup
-1. Download the binaries from [Infer# - v1.1](TBA).
-2. From Windows Command Prompt or PowerShell, open your default Linux distribution and enter: ```wsl.exe```.
-3. Copy the _infersharp_ folder to _/home/_ and create symlink for future use:
+1. Download the Infer# binaries from [Infer# - v1.1](TBA).
+2. From Windows Command Prompt or PowerShell, enter: ```wsl.exe``` to open your default Linux distribution.
+3. Copy the _infersharp_ folder to _/home/_ and create a symlink for future use:
 ```
 cp -r <FOLDER_PATH_TO_INFERSHARP_BINARIES> ~
 cd /home/<YOUR_USERNAME>/infersharp/
@@ -14,9 +14,9 @@ sudo ln -s /home/<YOUR_USERNAME>/infersharp/infer/lib/infer/infer/bin/infer /usr
 ```
 The folder structure should look like this:
 ```
-├── home
-    ├── <YOUR_USERNAME>
-        ├── infersharp
+└── home
+    └── <YOUR_USERNAME>
+        └── infersharp
             ├── Cilsil
             ├── Examples
             ├── infer
