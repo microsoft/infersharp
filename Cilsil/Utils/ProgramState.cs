@@ -197,8 +197,7 @@ namespace Cilsil.Utils
         /// required at that state).</remarks>
         public (CfgNode, bool) GetOffsetNode(int offset)
         {
-            if (OffsetToNode.ContainsKey(offset)
-                && (InstructionsStack.Count == 0 || !NextInstructionInExceptionHandlingBlock))
+            if (OffsetToNode.ContainsKey(offset))
             {
                 if (OffsetToNode[offset].Count > NodeVisitTimeoutThreshold)
                 {
