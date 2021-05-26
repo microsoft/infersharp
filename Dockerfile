@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS base
+FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS base
 
 FROM base AS backend
 # mkdir the man/man1 directory due to Debian bug #863199
@@ -81,7 +81,7 @@ RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
 RUN dotnet publish -c Release Cilsil/Cilsil.csproj -r ubuntu.16.10-x64
 RUN dotnet build Examples/Examples/Examples.csproj
 
-FROM debian:bullseye-slim AS release
+FROM debian:buster-slim AS release
 WORKDIR infersharp
 COPY --from=backend /infer-release/usr/local /infersharp/infer
 ENV PATH /infersharp/infer/bin:${PATH}
