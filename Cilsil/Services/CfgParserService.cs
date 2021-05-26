@@ -98,32 +98,39 @@ namespace Cilsil.Services
                 var exceptionHandlingBlockStartOffset = -1;
                 var exceptionHandlingBlockEndOffset = -1;
                 TypeReference catchType = null;
-                switch (exceptionHandlingBlock.HandlerType) 
+                try
                 {
-                    case ExceptionHandlerType.Catch:
-                        catchType = exceptionHandlingBlock.CatchType;
-                        exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
-                        exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
-                        break;
+                    switch (exceptionHandlingBlock.HandlerType) 
+                    {
+                        case ExceptionHandlerType.Catch:
+                            catchType = exceptionHandlingBlock.CatchType;
+                            exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
+                            exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
+                            break;
 
-                    case ExceptionHandlerType.Finally:
-                        exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
-                        exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
-                        break;
+                        case ExceptionHandlerType.Finally:
+                            exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
+                            exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
+                            break;
 
-                    case ExceptionHandlerType.Filter:
-                        // Example: catch (ArgumentException e) when (e.ParamName == "…")   
-                        // Adds associated try block node offsets to a hashset.
-                        catchType = programState.Method.Module.Import(typeof(System.Exception));
-                        exceptionHandlingBlockStartOffset = exceptionHandlingBlock.FilterStart.Offset;
-                        exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
-                        break;
+                        case ExceptionHandlerType.Filter:
+                            // Example: catch (ArgumentException e) when (e.ParamName == "…")   
+                            // Adds associated try block node offsets to a hashset.
+                            catchType = programState.Method.Module.Import(typeof(System.Exception));
+                            exceptionHandlingBlockStartOffset = exceptionHandlingBlock.FilterStart.Offset;
+                            exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
+                            break;
 
-                    case ExceptionHandlerType.Fault:
-                        // uncommon case: fault block
-                        // Example: fault {}
-                    default:
-                        break;
+                        case ExceptionHandlerType.Fault:
+                            // uncommon case: fault block
+                            // Example: fault {}
+                        default:
+                            break;
+                    }
+                }
+                catch(Exception)
+                {
+                    continue;
                 }
                 if (exceptionHandlingBlockStartOffset != -1)
                 {
