@@ -169,7 +169,7 @@ namespace Cilsil.Utils
             PreviousReturnedExpression = new LvarExpression(
                                          new LocalVariable(Identifier.ReturnIdentifier,
                                                            Method));
-            PreviousReturnedType = new Tstruct("System.Object");
+            PreviousReturnedType = Typ.FromTypeReference(Method.ReturnType);
         }
 
         /// <summary>
