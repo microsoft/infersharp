@@ -112,7 +112,6 @@ namespace Cilsil
             {
                 var fullElapseTimePath = Path.GetFullPath(outelapsetime);
                 File.WriteAllText(fullElapseTimePath, JsonSerializer.Serialize(Log.ElapseTimePerMethod));
-
             }
 
             if (!string.IsNullOrWhiteSpace(dot))
