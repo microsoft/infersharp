@@ -136,7 +136,7 @@ namespace Cilsil.Cil.Parsers
                         break;
                     }
                 }
-                state.PushExpr(new VarExpression(returnVariable), expressionType);
+                state.PushExpr(new ExnExpression(new VarExpression(returnVariable)), expressionType);
 
                 if (nextInstructionIfNoException != null)
                 {
