@@ -235,6 +235,26 @@ namespace Examples
                 sw.WriteLine("Guru99 - ASP.Net");
             }
         }
+        
+        /// <summary>
+        /// Resources usage example with multi-variable using, no leaks expected.
+        /// </summary>
+        public void ResourceLeakMutiVarUsingOK1() {
+            using(var sr = new StreamReader("everwhat.txt"))
+            using(var sw = new StreamWriter("whatever.txt")){
+                sw.WriteLine(sr.ReadToEnd());
+            }
+        }
+
+        /// <summary>
+        /// Another resources usage example with multi-variable using, no leaks expected.
+        /// </summary>
+        public Task ResourceLeakMutiVarUsingOK2() {
+            using(var sr = new StreamReader("everwhat.txt"))
+            using(var sw = new StreamWriter("everwhat.txt")){
+                return sw.WriteLineAsync(sr.ReadToEnd());
+            }
+        }
 
         /// <summary>
         /// Resource usage example with exception filter handling, leaks expected.
