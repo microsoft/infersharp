@@ -178,7 +178,7 @@ namespace Cilsil.Test.E2E
                                GetString(expectedError));
         }
 
-                /// <summary>
+        /// <summary>
         /// Validates that a resource leak on a StreamReader initialized in exception handling block 
         /// is identified.
         /// </summary>
@@ -187,6 +187,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(BlockKind.Using, false, InferError.None)]
+        [DataRow(BlockKind.MultiVariableUsing, false, InferError.None)]
         [DataRow(BlockKind.TryCatchFinally, true, InferError.None)]
         [DataRow(BlockKind.TryCatchFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataRow(BlockKind.NestedTryCatchFinally, true, InferError.None)]
@@ -774,6 +775,29 @@ namespace Cilsil.Test.E2E
                                                                       inputObjectString
                                                                   })) +
                     DerefObject(VarName.FirstLocal), GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates thread safety violation detection of a public method's read without
+        /// synchronization on an integer field which may race with a write on that integer field.
+        /// </summary>
+        /// <param name="encloseReadInLock"><c>true</c> if the read should be enclosed in a lock,
+        /// <c>false</c> otherwise.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(false, InferError.THREAD_SAFETY_VIOLATION)]
+        [DataRow(true, InferError.None)]
+        [DataTestMethod]
+        public void ThreadSafetyViolationSimple(bool encloseReadInLock, InferError expectedError)
+        {
+            TestRunManager.Run(
+                encloseReadInLock ?
+                    EncloseInLock(
+                        InitVars(firstLocalVarType: VarType.Integer,
+                                 firstLocalVarValue: GetString(VarName.StaticIntegerField)))
+                                  :
+                    InitVars(firstLocalVarType: VarType.Integer,
+                                 firstLocalVarValue: GetString(VarName.StaticIntegerField)),
+                GetString(expectedError));
         }
 
         /// <summary>
