@@ -164,7 +164,7 @@ namespace Cilsil.Cil.Parsers
                 
                 // The first copy of this stack item was popped in the invocation of the
                 // constructor, so we push another on.
-                state.PushExpr(new VarExpression(fieldIdentifier), fieldType);
+                state.PushExpr(new ExnExpression(new VarExpression(fieldIdentifier)), fieldType);
                 state.PushInstruction(instruction, newNode);
             }
             // Construct a finally block when unwrapped exception type is "System.Object".
