@@ -166,8 +166,10 @@ namespace Cilsil.Utils
 
             ExceptionBlockStartToEndOffsets = new Dictionary<int, int>();
             OffsetToExceptionType = new Dictionary<int, TypeReference>();
-            PreviousReturnedExpression = null;
-            PreviousReturnedType = null;
+            PreviousReturnedExpression = new LvarExpression(
+                                         new LocalVariable(Identifier.ReturnIdentifier,
+                                                           Method));
+            PreviousReturnedType = Typ.FromTypeReference(Method.ReturnType);
         }
 
         /// <summary>
@@ -195,8 +197,7 @@ namespace Cilsil.Utils
         /// required at that state).</remarks>
         public (CfgNode, bool) GetOffsetNode(int offset)
         {
-            if (OffsetToNode.ContainsKey(offset)
-                && (InstructionsStack.Count == 0 || !NextInstructionInExceptionHandlingBlock))
+            if (OffsetToNode.ContainsKey(offset))
             {
                 if (OffsetToNode[offset].Count > NodeVisitTimeoutThreshold)
                 {
@@ -265,15 +266,8 @@ namespace Cilsil.Utils
         /// </summary>
         /// <param name="exp">The expression to push.</param>
         /// <param name="type">The type of the expression being pushed.</param>
-        /// <param name="setRetExpr">True if set the PreviousReturnedExpression and 
-        /// PreviousReturnedType, false otherwise.</param>
-        public void PushExpr(Expression exp, Typ type, bool setRetExpr = false)
+        public void PushExpr(Expression exp, Typ type)
         {
-            if (setRetExpr)
-            {
-                PreviousReturnedExpression = exp;
-                PreviousReturnedType = type;
-            }
             ProgramStack.Push((exp, type));
         } 
 
@@ -292,14 +286,12 @@ namespace Cilsil.Utils
         /// </summary>
         public void PushRetExpr()
         {
-            if (PreviousReturnedExpression == null || PreviousReturnedType == null)
+            if (ProgramStack.Count == 0 ||
+                (ProgramStack.Count > 0 && 
+                !ProgramStack.Peek().Item1.Equals(PreviousReturnedExpression)))
             {
-                throw new ServiceExecutionException(
-                    $@"Pushing returned expression == null into stack at method: {
-                        Method.GetCompatibleFullName()} instruction: {
-                        CurrentInstruction} location: {CurrentLocation}", this);
+                ProgramStack.Push((PreviousReturnedExpression, PreviousReturnedType));
             }
-            ProgramStack.Push((PreviousReturnedExpression, PreviousReturnedType));
         }
 
         /// <summary>
@@ -392,7 +384,6 @@ namespace Cilsil.Utils
                     PreviousNode = node ?? PreviousNode,
                     PreviousStack = ProgramStack.Clone(),
                     NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
-                    PreviousReturnedExpression = PreviousReturnedExpression,
                     PreviousReturnedType = PreviousReturnedType,
                 });
 
@@ -400,13 +391,12 @@ namespace Cilsil.Utils
         /// Pops an instruction to be parsed.
         /// </summary>
         /// <returns>The instruction to be parsed and its previous node.</returns>
-        public (Instruction, CfgNode) PopInstruction(bool popProgramStack = true)
+        public (Instruction, CfgNode) PopInstruction()
         {
             var snapshot = InstructionsStack.Pop();
             PreviousNode = snapshot.PreviousNode;
             CurrentInstruction = snapshot.Instruction;
-            if (popProgramStack)
-                ProgramStack = snapshot.PreviousStack;
+            ProgramStack = snapshot.PreviousStack;
             NextAvailableTemporaryVariableId = snapshot.NextAvailableTemporaryVariableId;
 
             var currentSequencePoint =
@@ -471,11 +461,6 @@ namespace Cilsil.Utils
             /// The next available integer identifier for temporary variables at this state.
             /// </summary>
             public int NextAvailableTemporaryVariableId;
-
-            /// <summary>
-            /// The expression registered by return node at this state.
-            /// </summary>
-            public Expression PreviousReturnedExpression;
 
             /// <summary>
             /// The expression type registered by return node at this state.

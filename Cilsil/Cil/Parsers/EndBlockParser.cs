@@ -14,13 +14,7 @@ namespace Cilsil.Cil.Parsers
             switch (instruction.OpCode.Code)
             {
                 case Code.Endfilter:
-                    state.PushInstruction(instruction.Next); 
-                    return true;
                 case Code.Endfinally:  
-                    if (state.ExceptionBlockStartToEndOffsets.ContainsKey(instruction.Next.Offset))
-                    {
-                        state.PushRetExpr();
-                    }
                     state.PushInstruction(instruction.Next);
                     return true;
                 default:
