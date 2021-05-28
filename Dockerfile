@@ -38,7 +38,7 @@ RUN opam init --reinit --bare --disable-sandboxing
 
 # Download the latest Infer master
 RUN cd / && \
-    git clone https://github.com/xinshiMSFT/infer.git
+    git clone https://github.com/facebook/infer.git
 
 # build in non-optimized mode by default to speed up build times
 ENV BUILD_MODE=dev
@@ -81,7 +81,7 @@ RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
 RUN dotnet publish -c Release Cilsil/Cilsil.csproj -r ubuntu.16.10-x64
 RUN dotnet build Examples/Examples/Examples.csproj
 
-FROM debian:buster-slim AS release
+FROM debian:bullseye-slim AS release
 WORKDIR infersharp
 COPY --from=backend /infer-release/usr/local /infersharp/infer
 ENV PATH /infersharp/infer/bin:${PATH}
