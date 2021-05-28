@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Sil;
+using static Cilsil.Test.Assets.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using System;
@@ -209,23 +210,25 @@ namespace Cilsil.Test
             foreach (var bug in inferReport)
             {
                 var severity = bug.Value<string>("severity");
-                if (severity != "ERROR" && severity != "WARNING")
+                switch(severity)
                 {
-                    continue;
+                    case Severity.Error:
+                    case Severity.Warning:
+                        var bugType = bug.Value<string>("bug_type");
+                        if (bugType == expectedErrorType)
+                        {
+                            var pname = bug.Value<string>("procedure");
+                            if (pname == expectedProcName)
+                            {
+                                // Check could be more robust, there are more fields in the JSON that we 
+                                // can validate against.
+                                return;
+                            }
+                        }
+                        throw new AssertFailedException($"Unexpected issue found: {bugType}");
+                    default:
+                        break;
                 }
-
-                var bugType = bug.Value<string>("bug_type");
-                if (bugType == expectedErrorType)
-                {
-                    var pname = bug.Value<string>("procedure");
-                    if (pname == expectedProcName)
-                    {
-                        // Check could be more robust, there are more fields in the JSON that we 
-                        // can validate against.
-                        return;
-                    }
-                }
-                throw new AssertFailedException($"Unexpected issue found: {bugType}");
             }
             if (!string.IsNullOrEmpty(expectedErrorType))
             {
