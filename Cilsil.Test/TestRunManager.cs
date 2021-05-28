@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Sil;
+using static Cilsil.Test.Assets.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using System;
@@ -46,6 +47,16 @@ namespace Cilsil.Test
 
         private const string TestCodeFileName = "TestCode.cs";
 
+        
+        private const string SynchronizedFieldWriteMethod =
+            @"public void FieldWrite() 
+            {{
+                lock(_object)
+                {{
+                    TestClass.StaticIntegerField = 1;
+                }}
+            }}";
+
         // A counter which increments upon each test case execution. Used for producing a unique
         // folder path to store the corresponding test case output.
         private static int TestCaseCount = 0;
@@ -72,7 +83,8 @@ namespace Cilsil.Test
         {
             var testMethodBody = CreateTestMethod(code, returnType);
             var methodBodies = addSynchronizedFieldWriteMethod ? testMethodBody + 
-                                                                 "\n\n"
+                                                                 "\n\n" + 
+                                                                 SynchronizedFieldWriteMethod
                                                                : testMethodBody;
             var codeToBuild = Decorate(methodBodies);
 
@@ -198,23 +210,25 @@ namespace Cilsil.Test
             foreach (var bug in inferReport)
             {
                 var severity = bug.Value<string>("severity");
-                if (severity != "ERROR")
+                switch(severity)
                 {
-                    continue;
+                    case Severity.Error:
+                    case Severity.Warning:
+                        var bugType = bug.Value<string>("bug_type");
+                        if (bugType == expectedErrorType)
+                        {
+                            var pname = bug.Value<string>("procedure");
+                            if (pname == expectedProcName)
+                            {
+                                // Check could be more robust, there are more fields in the JSON that we 
+                                // can validate against.
+                                return;
+                            }
+                        }
+                        throw new AssertFailedException($"Unexpected issue found: {bugType}");
+                    default:
+                        break;
                 }
-
-                var bugType = bug.Value<string>("bug_type");
-                if (bugType == expectedErrorType)
-                {
-                    var pname = bug.Value<string>("procedure");
-                    if (pname == expectedProcName)
-                    {
-                        // Check could be more robust, there are more fields in the JSON that we 
-                        // can validate against.
-                        return;
-                    }
-                }
-                throw new AssertFailedException($"Unexpected issue found: {bugType}");
             }
             if (!string.IsNullOrEmpty(expectedErrorType))
             {

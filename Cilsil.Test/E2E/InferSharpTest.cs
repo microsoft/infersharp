@@ -778,6 +778,29 @@ namespace Cilsil.Test.E2E
         }
 
         /// <summary>
+        /// Validates thread safety violation detection of a public method's read without
+        /// synchronization on an integer field which may race with a write on that integer field.
+        /// </summary>
+        /// <param name="encloseReadInLock"><c>true</c> if the read should be enclosed in a lock,
+        /// <c>false</c> otherwise.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(false, InferError.THREAD_SAFETY_VIOLATION)]
+        [DataRow(true, InferError.None)]
+        [DataTestMethod]
+        public void ThreadSafetyViolationSimple(bool encloseReadInLock, InferError expectedError)
+        {
+            TestRunManager.Run(
+                encloseReadInLock ?
+                    EncloseInLock(
+                        InitVars(firstLocalVarType: VarType.Integer,
+                                 firstLocalVarValue: GetString(VarName.StaticIntegerField)))
+                                  :
+                    InitVars(firstLocalVarType: VarType.Integer,
+                                 firstLocalVarValue: GetString(VarName.StaticIntegerField)),
+                GetString(expectedError));
+        }
+
+        /// <summary>
         /// Validates the use of Infer models for pre-compiled code during analysis. The model 
         /// tested here is String.IsNullOrWhiteSpace, but the purpose of the test is to verify
         /// that any model can be used in analysis.

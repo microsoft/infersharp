@@ -23,4 +23,4 @@ echo -e "\e[1;33mYou may see 'Unable to parse instruction xxx' above. This is ex
 echo -e "Translation completed. Analyzing...\n"
 sudo infer capture 
 sudo mkdir infer-out/captured 
-sudo infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') --enable-issue-type NULL_DEREFERENCE --enable-issue-type DOTNET_RESOURCE_LEAK analyzejson --debug --cfg-json $1/cfg.json --tenv-json $1/tenv.json
+sudo infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') --enable-issue-type NULL_DEREFERENCE --enable-issue-type DOTNET_RESOURCE_LEAK --enable-issue-type THREAD_SAFETY_VIOLATION analyzejson --debug --cfg-json $1/cfg.json --tenv-json $1/tenv.json
