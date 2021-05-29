@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Cilsil.Sil.Expressions
 {
     /// <summary>
-    /// Exception expression.
+    /// An expression representing an exception variable.
     /// </summary>
     [JsonObject]
     public class ExnExpression : Expression
