@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+using Cilsil.Extensions;
 using Cilsil.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -35,6 +36,12 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
+        public static Dictionary<string, Dictionary<string, List<double>>> ElapseTimeAndCountPerOffset { get; } =
+            new Dictionary<string, Dictionary<string, List<double>>>();
+
+        /// <summary>
+        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// </summary>
         public static void RecordUnfinishedMethod(string methodName, int remainingInstructions) =>
             UnfinishedMethods[methodName] = remainingInstructions;
 
@@ -66,6 +73,20 @@ namespace Cilsil
             {
                 ElapseTimePerMethod.Add(method.FullName, elapseTime);
             }
+        }
+
+        /// <summary>
+        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// </summary>
+        public static void RecordInstructionCountAndElapseTime(MethodDefinition method, Instruction instruction, double elapseTime)
+        {
+            if (!ElapseTimeAndCountPerOffset.ContainsKey(method.FullName))
+            {
+                ElapseTimeAndCountPerOffset.Add(method.FullName, new Dictionary<string, List<double>>());
+            }
+            ElapseTimeAndCountPerOffset[method.FullName]
+                .GetOrCreateValue(instruction.ToString() + ":" + instruction.Offset.ToString(), new List<double>())
+                .Add(elapseTime);
         }
 
         /// <summary>

@@ -102,7 +102,7 @@ namespace Cilsil
                                      string dot = null,
                                      string outelapsetime = null)
         {
-            (var cfg, var tenv) = ExecuteTranslation(paths, printprocs);
+            (var cfg, var tenv) = ExecuteTranslation(paths, printprocs, outelapsetime);
 
             File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString());
             cfg.WriteToFile(outcfg);
@@ -112,6 +112,8 @@ namespace Cilsil
             {
                 var fullElapseTimePath = Path.GetFullPath(outelapsetime);
                 File.WriteAllText(fullElapseTimePath, JsonSerializer.Serialize(Log.ElapseTimePerMethod));
+                var fullInstrElapseTimePath = Path.GetFullPath(outelapsetime.Replace(".json", "_offset.json"));
+                File.WriteAllText(fullInstrElapseTimePath, JsonSerializer.Serialize(Log.ElapseTimeAndCountPerOffset));
             }
 
             if (!string.IsNullOrWhiteSpace(dot))
@@ -127,9 +129,12 @@ namespace Cilsil
         /// </summary>
         /// <param name="paths">The paths.</param>
         /// <param name="printprocs">The printprocs.</param>
+        /// <param name="outelapsetime">The elapse time output path (used for visualizing the elapse 
+        /// time per method).</param>
         /// <returns></returns>
         public static (Cfg, TypeEnvironment) ExecuteTranslation(string[] paths,
-                                                                string printprocs = null)
+                                                                string printprocs = null,
+                                                                string outelapsetime = null)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -139,7 +144,7 @@ namespace Cilsil
 
             var decompilationService = new DecompilationService(assemblies);
             var tenvParser = new TenvParserService();
-            var cfgParser = new CfgParserService();
+            var cfgParser = new CfgParserService(outelapsetime: outelapsetime);
 
             var result = decompilationService
                 .Execute()
@@ -154,13 +159,17 @@ namespace Cilsil
                 PrintCfg(cfg, printprocs);
             }
 
-            watch.Stop();
-
             Log.PrintAllUnknownInstruction();
             Log.WriteLine();
             Log.PrintCoverageStats(result.GetResult<CfgParserResult>().Methods);
-            Log.WriteLine();
-            Log.PrintProcessTime(watch.ElapsedMilliseconds);
+            
+            watch.Stop();
+
+            if (!string.IsNullOrWhiteSpace(outelapsetime))
+            {
+                Log.WriteLine();
+                Log.PrintProcessTime(watch.ElapsedMilliseconds);
+            }
 
             return (cfg, tenv);
         }

@@ -23,13 +23,17 @@ namespace Cilsil.Services
 
         public IEnumerable<TypeDefinition> Types { get; private set; }
 
+        public string OutElapseTime { get; private set; }
+
         private Cfg Cfg;
 
         public CfgParserService(IEnumerable<MethodDefinition> methods = null,
-                                IEnumerable<TypeDefinition> types = null)
+                                IEnumerable<TypeDefinition> types = null,
+                                string outelapsetime = null)
         {
             Methods = methods;
             Types = types;
+            OutElapseTime = outelapsetime;
         }
 
         public ServiceExecutionResult Execute()
@@ -57,7 +61,7 @@ namespace Cilsil.Services
                 bool success = ComputeMethodCfg(method);
 
                 watch.Stop();
-                if (success)
+                if (success && !string.IsNullOrWhiteSpace(OutElapseTime))
                 {
                     Log.RecordMethodElapseTime(method, watch.ElapsedMilliseconds); 
                 }      
@@ -207,6 +211,8 @@ namespace Cilsil.Services
             state.PushInstruction(instruction);
             do
             {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+
                 (var nextInstruction, _) = state.PopInstruction();
 
                 var inExceptionHandler = state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset);
@@ -245,6 +251,12 @@ namespace Cilsil.Services
                     break;
                 }
 
+                watch.Stop();
+
+                if (!string.IsNullOrWhiteSpace(OutElapseTime))
+                {
+                    Log.RecordInstructionCountAndElapseTime(state.Method, nextInstruction, watch.Elapsed.TotalMilliseconds * 1000000); 
+                }
             } while (state.HasInstruction);
 
             return (state, translationUnfinished);
