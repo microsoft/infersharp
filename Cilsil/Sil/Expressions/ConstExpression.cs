@@ -134,6 +134,7 @@ namespace Cilsil.Sil.Expressions
         {
             if (GetKindFromValue(firstValue) == GetKindFromValue(secondValue))
             {
+                var tolerance = 0.000000001;
                 switch (firstValue)
                 {
                     case IntRepresentation intRepresentation:
@@ -143,8 +144,9 @@ namespace Cilsil.Sil.Expressions
                     case string _:
                         return (string)firstValue == (string)secondValue;
                     case float _:
+                        return Math.Abs((float)firstValue - (float)secondValue) < tolerance;
                     case double _:
-                        return (float)firstValue == (float)secondValue;
+                        return Math.Abs((double)firstValue - (double)secondValue) < tolerance;
                     case TypeName typeName:
                         return typeName.Equals(secondValue);
                     default:
