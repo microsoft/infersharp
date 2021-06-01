@@ -96,7 +96,7 @@ namespace Cilsil.Cil.Parsers
         }
 
         /// <summary>
-        /// Registers a node in the CFG and set it as the successfor of the previous node.
+        /// Registers a node in the CFG and set it as the successor of the previous node.
         /// </summary>
         /// <param name="state">Current program state.</param>
         /// <param name="node">Node to register.</param>
