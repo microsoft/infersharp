@@ -49,15 +49,18 @@ namespace Cilsil
                     Argument = new Argument<string>(),
                     Description = "Output type environment JSON file path"
                 },
-                new Option("--outelapsetime")
+                new Option("--debug")
                 {
-                    Argument = new Argument<string>(),
+                    Argument = new Argument<bool>(),
                     Description =
-                        "Output type environment JSON file path for debugging purposes"
+                        "Output following logs for debugging purposes:\n" + 
+                        "1. Elapse time for translating each method\n" +
+                        "2. Elapse time for translating each instruction in each method\n" +
+                        "3. Print debugging information about instructions that unable to be translated"
                 },
             };
             translateCommand.Handler =
-                CommandHandler.Create<string[], string, string, string, string, string, string>(Translate);
+                CommandHandler.Create<string[], string, string, string, string, string, bool>(Translate);
             var printCommand = new Command("print")
             {
                 new Option("--procs", "A comma-separated procedure names to print")
@@ -92,27 +95,27 @@ namespace Cilsil
         /// <param name="outtenv">The type environment output path.</param>
         /// <param name="dot">The dot file (used for visualizing the computed CFG) output
         /// path.</param>
-        /// <param name="outelapsetime">The elapse time output path (used for visualizing the elapse 
-        /// time per method).</param>
+        /// <param name="debug"><c>true</c> if output logs, otherwise <c>false</c>.</param>
         public static void Translate(string[] paths = null,
                                      string printprocs = null,
                                      string outcfg = null,
                                      string cfgtxt = null,
                                      string outtenv = null,
                                      string dot = null,
-                                     string outelapsetime = null)
+                                     bool debug = false)
         {
-            (var cfg, var tenv) = ExecuteTranslation(paths, printprocs, outelapsetime);
+            Log.Debug = debug;
+            (var cfg, var tenv) = ExecuteTranslation(paths, printprocs);
 
             File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString());
             cfg.WriteToFile(outcfg);
             tenv.WriteToFile(outtenv);
 
-            if (!string.IsNullOrWhiteSpace(outelapsetime))
+            if (debug is true)
             {
-                var fullElapseTimePath = Path.GetFullPath(outelapsetime);
+                var fullElapseTimePath = Path.GetFullPath(Directory.GetParent(outcfg) + "/elapse_per_mtd.json");
                 File.WriteAllText(fullElapseTimePath, JsonSerializer.Serialize(Log.ElapseTimePerMethod));
-                var fullInstrElapseTimePath = Path.GetFullPath(outelapsetime.Replace(".json", "_offset.json"));
+                var fullInstrElapseTimePath = Path.GetFullPath(fullElapseTimePath.Replace(".json", "_offset.json"));
                 File.WriteAllText(fullInstrElapseTimePath, JsonSerializer.Serialize(Log.ElapseTimeAndCountPerOffset));
             }
 
@@ -129,14 +132,15 @@ namespace Cilsil
         /// </summary>
         /// <param name="paths">The paths.</param>
         /// <param name="printprocs">The printprocs.</param>
-        /// <param name="outelapsetime">The elapse time output path (used for visualizing the elapse 
-        /// time per method).</param>
         /// <returns></returns>
         public static (Cfg, TypeEnvironment) ExecuteTranslation(string[] paths,
-                                                                string printprocs = null,
-                                                                string outelapsetime = null)
+                                                                string printprocs = null)
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+            System.Diagnostics.Stopwatch watch = null;
+            if (Log.Debug is true)
+            {
+                watch = System.Diagnostics.Stopwatch.StartNew();
+            }
 
             var assemblies = GetAssemblies(paths);
 
@@ -144,7 +148,7 @@ namespace Cilsil
 
             var decompilationService = new DecompilationService(assemblies);
             var tenvParser = new TenvParserService();
-            var cfgParser = new CfgParserService(outelapsetime: outelapsetime);
+            var cfgParser = new CfgParserService();
 
             var result = decompilationService
                 .Execute()
@@ -163,10 +167,10 @@ namespace Cilsil
             Log.WriteLine();
             Log.PrintCoverageStats(result.GetResult<CfgParserResult>().Methods);
             
-            watch.Stop();
-
-            if (!string.IsNullOrWhiteSpace(outelapsetime))
+            if (Log.Debug is true)
             {
+                watch.Stop();
+
                 Log.WriteLine();
                 Log.PrintProcessTime(watch.ElapsedMilliseconds);
             }

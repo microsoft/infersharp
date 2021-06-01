@@ -18,6 +18,11 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
+        public static bool Debug { get; set; } = false;
+
+        /// <summary>
+        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// </summary>
         public static Dictionary<string, int> UnfinishedMethods { get; } =
             new Dictionary<string, int>();
 
