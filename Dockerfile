@@ -1,7 +1,6 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS base
+FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS base
 
-FROM base AS buildbackend
-WORKDIR /app
+FROM base AS backend
 # mkdir the man/man1 directory due to Debian bug #863199
 RUN apt-get update && \
     mkdir -p /usr/share/man/man1 && \
@@ -20,11 +19,11 @@ RUN apt-get update && \
       make \
       openjdk-11-jdk-headless \
       patch \
+      patchelf \
       pkg-config \
       python3.7 \
       python3-distutils \
       sqlite3 \
-      sudo \
       unzip \
       zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -39,9 +38,7 @@ RUN opam init --reinit --bare --disable-sandboxing
 
 # Download the latest Infer master
 RUN cd / && \
-    git clone https://github.com/facebook/infer.git && \
-    cd infer && \
-    git reset --hard 285ddb4a98f337a40d61e73b7a0867e44fa4f042
+    git clone https://github.com/facebook/infer.git
 
 # build in non-optimized mode by default to speed up build times
 ENV BUILD_MODE=dev
@@ -56,28 +53,40 @@ ENV OCAML_TOPLEVEL_PATH=/root/.opam/4.08.1/lib/toplevel
 ENV MANPATH=$MANPATH:/root/.opam/4.08.1/man
 ENV PATH=/root/.opam/4.08.1/bin:$PATH
 
-RUN cd / && \
-    cd infer && \
-    eval $(opam env) && \
+RUN cd /infer && \
     chmod +x ./build-infer.sh && \
-    ./build-infer.sh java && \
-    sudo make install && \
-    cd .. && \
-    rm -r infer
+    chmod +x ./autogen.sh
 
-FROM buildbackend AS buildfrontend
-WORKDIR /app
+RUN cd /infer && ./build-infer.sh --only-setup-opam
+RUN cd /infer && \
+    eval $(opam env) && \
+    ./autogen.sh && \
+    ./configure --disable-c-analyzers --disable-erlang-analyzers
+
+# Generate a release
+RUN cd /infer && \
+    make install-with-libs \
+    BUILD_MODE=opt \
+    PATCHELF=patchelf \
+    DESTDIR="/infer-release" \
+    libdir_relative_to_bindir="../lib"
+    
+ENV PATH /infer-release/usr/local/bin:${PATH}
+
 COPY . .
+RUN cd /
 RUN chmod +x build_csharp_models.sh && ./build_csharp_models.sh
+RUN cp /infer-out/models.sql /infer-release/usr/local/lib/infer/infer/lib/models.sql
 RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
 RUN dotnet publish -c Release Cilsil/Cilsil.csproj -r ubuntu.16.10-x64
 RUN dotnet build Examples/Examples/Examples.csproj
 
-FROM buildbackend AS release
-WORKDIR /app
-COPY --from=buildfrontend /app/Examples/Examples/bin/Debug/net5.0/ /app/Examples/
-COPY --from=buildfrontend /app/Cilsil/bin/Release/net5.0/ubuntu.16.10-x64/publish/ /app/Cilsil/
-COPY --from=buildfrontend /usr/local/lib/infer/infer/lib/models.sql /usr/local/lib/infer/infer/lib/models.sql
-COPY --from=buildfrontend /app/run_infersharp.sh /app/
-COPY --from=buildfrontend /app/.build/NOTICE.txt /app/
-COPY --from=buildfrontend /app/LICENSE /app/
+FROM debian:bullseye-slim AS release
+WORKDIR infersharp
+COPY --from=backend /infer-release/usr/local /infersharp/infer
+ENV PATH /infersharp/infer/bin:${PATH}
+COPY --from=backend /Examples/Examples/bin/Debug/net5.0/ /infersharp/Examples/
+COPY --from=backend /Cilsil/bin/Release/net5.0/ubuntu.16.10-x64/publish/ /infersharp/Cilsil/
+COPY --from=backend run_infersharp.sh /infersharp/
+COPY --from=backend /.build/NOTICE.txt /
+COPY --from=backend LICENSE /
