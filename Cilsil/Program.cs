@@ -111,7 +111,7 @@ namespace Cilsil
             cfg.WriteToFile(outcfg);
             tenv.WriteToFile(outtenv);
 
-            if (debug is true)
+            if (Log.Debug)
             {
                 var fullElapseTimePath = Path.GetFullPath(Directory.GetParent(outcfg) + "/elapse_per_mtd.json");
                 File.WriteAllText(fullElapseTimePath, JsonSerializer.Serialize(Log.ElapseTimePerMethod));
@@ -137,7 +137,7 @@ namespace Cilsil
                                                                 string printprocs = null)
         {
             System.Diagnostics.Stopwatch watch = null;
-            if (Log.Debug is true)
+            if (Log.Debug)
             {
                 watch = System.Diagnostics.Stopwatch.StartNew();
             }
@@ -167,7 +167,7 @@ namespace Cilsil
             Log.WriteLine();
             Log.PrintCoverageStats(result.GetResult<CfgParserResult>().Methods);
             
-            if (Log.Debug is true)
+            if (Log.Debug)
             {
                 watch.Stop();
 

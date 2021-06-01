@@ -418,7 +418,7 @@ namespace Cilsil.Utils
                 }
                 CurrentLocation = newLocation;
             }
-            if (Log.Debug is true)
+            if (Log.Debug)
             {   
                 ParsedInstructions.Add(snapshot.Instruction);
             }
@@ -433,7 +433,7 @@ namespace Cilsil.Utils
         /// <returns>String representing the debug information.</returns>
         public string GetStateDebugInformation(object invalidObject)
         {
-            if (Log.Debug is true)
+            if (Log.Debug)
             { 
                 return $"Invalid value {invalidObject?.ToString()}\n" +
                         "====State information====\n" +
@@ -443,7 +443,7 @@ namespace Cilsil.Utils
             }
             else
             {
-                return "";
+                return string.Empty;
             }
         }
 

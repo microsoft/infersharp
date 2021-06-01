@@ -23,17 +23,13 @@ namespace Cilsil.Services
 
         public IEnumerable<TypeDefinition> Types { get; private set; }
 
-        public string OutElapseTime { get; private set; }
-
         private Cfg Cfg;
 
         public CfgParserService(IEnumerable<MethodDefinition> methods = null,
-                                IEnumerable<TypeDefinition> types = null,
-                                string outelapsetime = null)
+                                IEnumerable<TypeDefinition> types = null)
         {
             Methods = methods;
             Types = types;
-            OutElapseTime = outelapsetime;
         }
 
         public ServiceExecutionResult Execute()
@@ -57,14 +53,14 @@ namespace Cilsil.Services
             foreach (var method in Methods)
             {
                 System.Diagnostics.Stopwatch watch = null;
-                if (Log.Debug is true)
+                if (Log.Debug)
                 {
                     watch = System.Diagnostics.Stopwatch.StartNew();
                 }
 
                 bool success = ComputeMethodCfg(method);
 
-                if (success && !string.IsNullOrWhiteSpace(OutElapseTime))
+                if (success && Log.Debug)
                 {
                     watch.Stop();
 
@@ -217,7 +213,7 @@ namespace Cilsil.Services
             do
             {
                 System.Diagnostics.Stopwatch watch = null;
-                if (Log.Debug is true)
+                if (Log.Debug)
                 {
                     watch = System.Diagnostics.Stopwatch.StartNew();
                 }
@@ -260,7 +256,7 @@ namespace Cilsil.Services
                     break;
                 }
 
-                if (Log.Debug is true)
+                if (Log.Debug)
                 {
                     watch.Stop();
                     
