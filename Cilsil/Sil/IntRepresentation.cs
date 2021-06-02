@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Newtonsoft.Json;
+using System;
 
 namespace Cilsil.Sil
 {
@@ -41,6 +42,31 @@ namespace Cilsil.Sil
             Unsigned = unsigned;
             IsPointer = isPointer;
         }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="object" />, is equal to this 
+        /// instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="object" /> to compare with this 
+        /// instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="object" /> is equal to this instance; 
+        ///   otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj) =>
+            obj is IntRepresentation intRepresentation &&
+            Unsigned == intRepresentation.Unsigned &&
+            IsPointer == intRepresentation.IsPointer &&
+            Value == intRepresentation.Value;
+
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data 
+        /// structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode() => HashCode.Combine(Unsigned, IsPointer, Value);
 
         /// <summary>
         /// Converts to string.

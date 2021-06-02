@@ -52,13 +52,18 @@ namespace Cilsil.Services
             Cfg = new Cfg();
             foreach (var method in Methods)
             {
-                var watch = System.Diagnostics.Stopwatch.StartNew();
+                System.Diagnostics.Stopwatch watch = null;
+                if (Log.Debug)
+                {
+                    watch = System.Diagnostics.Stopwatch.StartNew();
+                }
 
                 bool success = ComputeMethodCfg(method);
 
-                watch.Stop();
-                if (success)
+                if (success && Log.Debug)
                 {
+                    watch.Stop();
+
                     Log.RecordMethodElapseTime(method, watch.ElapsedMilliseconds); 
                 }      
             }
@@ -207,6 +212,12 @@ namespace Cilsil.Services
             state.PushInstruction(instruction);
             do
             {
+                System.Diagnostics.Stopwatch watch = null;
+                if (Log.Debug)
+                {
+                    watch = System.Diagnostics.Stopwatch.StartNew();
+                }
+
                 (var nextInstruction, _) = state.PopInstruction();
 
                 var inExceptionHandler = state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset);
@@ -245,6 +256,12 @@ namespace Cilsil.Services
                     break;
                 }
 
+                if (Log.Debug)
+                {
+                    watch.Stop();
+                    
+                    Log.RecordInstructionCountAndElapseTime(state.Method, nextInstruction, watch.Elapsed.TotalMilliseconds * 1000000); 
+                }
             } while (state.HasInstruction);
 
             return (state, translationUnfinished);

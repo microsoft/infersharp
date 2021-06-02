@@ -3,6 +3,7 @@
 using Cilsil.Extensions;
 using Mono.Cecil;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -158,6 +159,29 @@ namespace Cilsil.Sil
         }
 
         /// <summary>
+        /// Determines whether the specified <see cref="object" />, is equal to this 
+        /// instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="object" /> to compare with this 
+        /// instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="object" /> is equal to this instance; 
+        ///   otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
+        {
+            if (obj is ProcedureName other)
+            {
+                return MethodName == other.MethodName &&
+                    Parameters.SequenceEqual(other.Parameters) &&
+                    ClassName == other.ClassName &&
+                    ReturnType == other.ReturnType &&
+                    IsStatic == other.IsStatic;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Converts to string.
         /// </summary>
         /// <returns>
@@ -179,5 +203,15 @@ namespace Cilsil.Sil
 
             return s;
         }
+
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance, suitable for use in hashing algorithms and data 
+        /// structures like a hash table. 
+        /// </returns>
+        public override int GetHashCode() => HashCode.Combine(
+            MethodName, Parameters, ClassName, ReturnType, IsStatic);
     }
 }

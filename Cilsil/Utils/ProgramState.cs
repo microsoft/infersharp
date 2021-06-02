@@ -418,7 +418,10 @@ namespace Cilsil.Utils
                 }
                 CurrentLocation = newLocation;
             }
-            ParsedInstructions.Add(snapshot.Instruction);
+            if (Log.Debug)
+            {   
+                ParsedInstructions.Add(snapshot.Instruction);
+            }
             return (CurrentInstruction, PreviousNode);
         }
 
@@ -430,11 +433,18 @@ namespace Cilsil.Utils
         /// <returns>String representing the debug information.</returns>
         public string GetStateDebugInformation(object invalidObject)
         {
-            return $"Invalid value {invalidObject?.ToString()}\n" +
-                    "====State information====\n" +
-                    ProcDesc.ToString() + "\n" +
-                    "====Parsed Instructions====\n" +
-                    string.Join(",", ParsedInstructions);
+            if (Log.Debug)
+            { 
+                return $"Invalid value {invalidObject?.ToString()}\n" +
+                        "====State information====\n" +
+                        ProcDesc.ToString() + "\n" +
+                        "====Parsed Instructions====\n" +
+                        string.Join(",", ParsedInstructions);
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
 
         /// <summary>
