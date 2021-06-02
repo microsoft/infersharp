@@ -278,10 +278,10 @@ namespace Examples
         /// </summary>
         public void ResourceLeakFilterOK() {
             StreamWriter stream = AllocateStreamWriter();
-            if (stream == null)
-                return; 
             try 
             {
+                if (stream == null)
+                    return; 
                 stream.WriteLine(12);
             } 
             catch (Exception e) when (ExpectedIOIssue(e))
