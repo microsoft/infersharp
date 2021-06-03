@@ -5,7 +5,7 @@
 *We recommend using Ubuntu or Debian WSL distribution.*
 
 ## Setup
-1. Download the Infer# binaries from [Infer# - v1.1](TBA).
+1. Download the Infer# binaries from the [latest release](https://github.com/microsoft/infersharp/releases).
 2. From Windows Command Prompt or PowerShell, enter: ```wsl.exe``` to open your default Linux distribution.
 3. Copy the _infersharp_ folder to _/home/_ and create a symlink for future use.
 ```
