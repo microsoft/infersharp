@@ -11,7 +11,7 @@ namespace Cilsil.Cil.Parsers
                                                             ProgramState state)
         {
             switch (instruction.OpCode.Code)
-            {   
+            {
                 case Code.Leave:
                 case Code.Leave_S:
                     var nextInstruction = instruction.Next;

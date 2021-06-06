@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+using Cilsil.Sil;
+using Cilsil.Sil.Expressions;
+using Cilsil.Sil.Types;
+using Cilsil.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Cilsil.Utils;
-using Cilsil.Sil.Types;
-using Cilsil.Sil.Expressions;
-using Cilsil.Sil;
 
 namespace Cilsil.Cil.Parsers
 {
@@ -28,7 +28,7 @@ namespace Cilsil.Cil.Parsers
                     {
                         var newObjectIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
                         var catchExceptionType = instruction.Operand as TypeReference;
-                        state.PushExpr(new VarExpression(newObjectIdentifier), 
+                        state.PushExpr(new VarExpression(newObjectIdentifier),
                                        Typ.FromTypeReference(catchExceptionType));
                     }
                     state.PushInstruction(instruction.Next);

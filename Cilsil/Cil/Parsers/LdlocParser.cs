@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Sil;
-using Cilsil.Sil.Types;
 using Cilsil.Sil.Expressions;
+using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil.Cil;
 
@@ -56,9 +56,9 @@ namespace Cilsil.Cil.Parsers
                 default:
                     return false;
             }
-            
+
             (var variableExpression, var variableType) = CreateLocal(index, state.Method);
-            
+
             Expression value = null;
             Typ type = null;
             if (state.GetDanglingConditionProgramStackCopy().Count > 0)
@@ -80,13 +80,13 @@ namespace Cilsil.Cil.Parsers
                                                                variableType,
                                                                variableExpression));
             }
-            else if (value != null && value is BinopExpression && type is Tptr) 
-            {   
+            else if (value != null && value is BinopExpression && type is Tptr)
+            {
                 // For if/else/loop branching, we add the binop expression in condition.
                 state.PopConditionExpression();
                 state.PushConditionExpr(value, new Tint(Tint.IntKind.IBool));
-                state.PushInstruction(instruction.Next);                   
-                return true; 
+                state.PushInstruction(instruction.Next);
+                return true;
             }
             else
             {
