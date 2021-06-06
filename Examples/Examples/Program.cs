@@ -218,9 +218,34 @@ namespace Examples
         /// An exception handling example with null dereference error expected.
         /// </summary>
         public void NullDefExcepHandlingBad() {
-            StreamWriter stream = AllocateStreamWriter();
-            stream.WriteLine(12);
-            stream.Close();
+            StreamWriter stream = null;
+            try
+            {
+                stream.WriteLine(12);
+            }
+            finally
+            {
+                stream.Close();
+            }
+        }
+
+        /// <summary>
+        /// An exception handling example with null dereference error, no error expected.
+        /// </summary>
+        public void NullDefExcepHandlingOK() {
+            StreamWriter stream = null;
+            try
+            {
+                if (stream == null)
+                {
+                    return;
+                }
+                stream.WriteLine(12);
+            }
+            finally
+            {
+                stream.Close();
+            }
         }
 
         /// <summary>
@@ -274,10 +299,10 @@ namespace Examples
         /// </summary>
         public void ResourceLeakFilterOK() {
             StreamWriter stream = AllocateStreamWriter();
+            if (stream == null)
+                    return; 
             try 
             {
-                if (stream == null)
-                    return; 
                 stream.WriteLine(12);
             } 
             catch (Exception e) when (ExpectedIOIssue(e))
