@@ -15,7 +15,12 @@ namespace Cilsil.Cil.Parsers
             {
                 case Code.Endfilter:
                 case Code.Endfinally:  
-                    state.PushInstruction(instruction.Next);
+                    var nextInstruction = instruction.Next;
+                    if (state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset))
+                    {
+                        state.PushRetExpr();
+                    }
+                    state.PushInstruction(nextInstruction);
                     return true;
                 default:
                     return false;
