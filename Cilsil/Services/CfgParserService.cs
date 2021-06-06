@@ -4,14 +4,12 @@ using Cilsil.Cil.Parsers;
 using Cilsil.Extensions;
 using Cilsil.Services.Results;
 using Cilsil.Sil;
-using Cilsil.Sil.Expressions;
-using Cilsil.Sil.Instructions;
 using Cilsil.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 
 namespace Cilsil.Services
 {
@@ -64,8 +62,8 @@ namespace Cilsil.Services
                 {
                     watch.Stop();
 
-                    Log.RecordMethodElapseTime(method, watch.ElapsedMilliseconds); 
-                }      
+                    Log.RecordMethodElapseTime(method, watch.ElapsedMilliseconds);
+                }
             }
             Log.WriteError("Timed out methods: " + TimeoutMethodCount);
             return new CfgParserResult(Cfg, Methods);
@@ -113,7 +111,7 @@ namespace Cilsil.Services
                 TypeReference catchType = null;
                 try
                 {
-                    switch (exceptionHandlingBlock.HandlerType) 
+                    switch (exceptionHandlingBlock.HandlerType)
                     {
                         case ExceptionHandlerType.Catch:
                             catchType = exceptionHandlingBlock.CatchType;
@@ -135,13 +133,13 @@ namespace Cilsil.Services
                             break;
 
                         case ExceptionHandlerType.Fault:
-                            // uncommon case: fault block
-                            // Example: fault {}
+                        // uncommon case: fault block
+                        // Example: fault {}
                         default:
                             break;
                     }
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     continue;
                 }
@@ -157,9 +155,9 @@ namespace Cilsil.Services
 
             if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
-                (programState, translationUnfinished) = 
-                    ParseInstructions(methodBody.Instructions.FirstOrDefault(), 
-                                      programState, 
+                (programState, translationUnfinished) =
+                    ParseInstructions(methodBody.Instructions.FirstOrDefault(),
+                                      programState,
                                       translationUnfinished);
             }
             // We add method to cfg only if its translation is finished. Otherwise, we skip that method.
@@ -174,7 +172,7 @@ namespace Cilsil.Services
                 // Sets exception sink node as default exception node for all nodes in the graph.
                 foreach (var node in programState.ProcDesc.Nodes)
                 {
-       
+
                     if (node.ExceptionNodes.Count == 0)
                     {
                         node.ExceptionNodes.Add(programState.ProcDesc.ExceptionSinkNode);
@@ -183,7 +181,7 @@ namespace Cilsil.Services
                     {
                         node.Successors.Add(programState.ProcDesc.ExitNode);
                     }
-                    else if (node.Successors.Count > 1 &&  node.Successors.Contains(programState.ProcDesc.ExitNode))
+                    else if (node.Successors.Count > 1 && node.Successors.Contains(programState.ProcDesc.ExitNode))
                     {
                         node.Successors.Remove(programState.ProcDesc.ExitNode);
                     }
@@ -259,8 +257,8 @@ namespace Cilsil.Services
                 if (Log.Debug)
                 {
                     watch.Stop();
-                    
-                    Log.RecordInstructionCountAndElapseTime(state.Method, nextInstruction, watch.Elapsed.TotalMilliseconds * 1000000); 
+
+                    Log.RecordInstructionCountAndElapseTime(state.Method, nextInstruction, watch.Elapsed.TotalMilliseconds * 1000000);
                 }
             } while (state.HasInstruction);
 

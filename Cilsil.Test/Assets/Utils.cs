@@ -24,7 +24,8 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various kinds of Severity that appear in the tests.
         /// </summary>
-        public struct Severity { 
+        public struct Severity
+        {
             public const string Error = "ERROR";
             public const string Warning = "WARNING";
         };
@@ -235,7 +236,7 @@ namespace Cilsil.Test.Assets
                                           VarName name,
                                           string value,
                                           bool withLineEnding) =>
-            $"{GetString(type)} {GetString(name)} = {value}" + (withLineEnding ? ";\n" 
+            $"{GetString(type)} {GetString(name)} = {value}" + (withLineEnding ? ";\n"
                                                                                : string.Empty);
 
         /// <summary>
@@ -297,7 +298,7 @@ namespace Cilsil.Test.Assets
         /// </summary>
         /// <param name="codeBlock">The code block to be decorated.</param>
         /// <returns>The code block enclosed in the lock statement.</returns>
-        public static string EncloseInLock(string codeBlock) 
+        public static string EncloseInLock(string codeBlock)
             => "lock(_object) { " + codeBlock + " }";
 
         /// Generates a string representation of exception handling block code.
@@ -367,7 +368,7 @@ namespace Cilsil.Test.Assets
                         disposeResource = "";
                     }
                     var tryBlockCode =
-                        resourceLocalVarValue == null ? string.Empty 
+                        resourceLocalVarValue == null ? string.Empty
                                                       : Assign(VarName.FirstLocal,
                                                                resourceLocalVarValue);
                     output =
@@ -395,7 +396,7 @@ namespace Cilsil.Test.Assets
                         disposeResource = "";
                     }
                     tryBlockCode =
-                        resourceLocalVarValue == null ? string.Empty 
+                        resourceLocalVarValue == null ? string.Empty
                                                       : Assign(VarName.FirstLocal,
                                                                resourceLocalVarValue);
                     output =
@@ -430,7 +431,7 @@ namespace Cilsil.Test.Assets
                         disposeResource = "";
                     }
                     tryBlockCode =
-                        resourceLocalVarValue == null ? string.Empty 
+                        resourceLocalVarValue == null ? string.Empty
                                                       : Assign(VarName.FirstLocal,
                                                                resourceLocalVarValue);
                     output =

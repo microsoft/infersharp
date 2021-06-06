@@ -111,7 +111,7 @@ namespace Cilsil.Utils
         /// <summary>
         /// True if the peek instruction in instruction stack is at the beginning of an exception handling block, and false otherwise.
         /// </summary>
-        public bool NextInstructionInExceptionHandlingBlock 
+        public bool NextInstructionInExceptionHandlingBlock
             => ExceptionBlockStartToEndOffsets.ContainsKey(InstructionsStack.Peek().Instruction.Offset);
 
         /// <summary>
@@ -269,7 +269,7 @@ namespace Cilsil.Utils
         public void PushExpr(Expression exp, Typ type)
         {
             ProgramStack.Push((exp, type));
-        } 
+        }
 
         /// <summary>
         /// Pushes an expression and its type onto the dangling condition stack.
@@ -279,7 +279,7 @@ namespace Cilsil.Utils
         public void PushConditionExpr(Expression exp, Typ type)
         {
             DanglingConditionProgramStack.Push((exp, type));
-        } 
+        }
 
         /// <summary>
         /// Pushes PreviousReturnedExpression and its type onto the stack.
@@ -287,7 +287,7 @@ namespace Cilsil.Utils
         public void PushRetExpr()
         {
             if (ProgramStack.Count == 0 ||
-                (ProgramStack.Count > 0 && 
+                (ProgramStack.Count > 0 &&
                 !ProgramStack.Peek().Item1.Equals(PreviousReturnedExpression)))
             {
                 ProgramStack.Push((PreviousReturnedExpression, PreviousReturnedType));
@@ -419,7 +419,7 @@ namespace Cilsil.Utils
                 CurrentLocation = newLocation;
             }
             if (Log.Debug)
-            {   
+            {
                 ParsedInstructions.Add(snapshot.Instruction);
             }
             return (CurrentInstruction, PreviousNode);
@@ -434,7 +434,7 @@ namespace Cilsil.Utils
         public string GetStateDebugInformation(object invalidObject)
         {
             if (Log.Debug)
-            { 
+            {
                 return $"Invalid value {invalidObject?.ToString()}\n" +
                         "====State information====\n" +
                         ProcDesc.ToString() + "\n" +

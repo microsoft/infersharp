@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-using Cilsil.Utils;
 using Cilsil.Sil;
-using Cilsil.Sil.Types;
-using Mono.Cecil.Cil;
-using Mono.Cecil;
-using Cilsil.Sil.Instructions;
 using Cilsil.Sil.Expressions;
+using Cilsil.Sil.Instructions;
+using Cilsil.Sil.Types;
+using Cilsil.Utils;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System.Collections.Generic;
 
 namespace Cilsil.Cil.Parsers
@@ -21,7 +21,7 @@ namespace Cilsil.Cil.Parsers
             {
                 endBlockOffset = state.ExceptionBlockStartToEndOffsets[endBlockOffset];
             }
-               
+
             /* Load returned variable for exception check. For example:
             
             node1 preds: succs:2 3 exn: Instructions
@@ -34,7 +34,7 @@ namespace Cilsil.Cil.Parsers
                                                          StatementNode.StatementNodeKind.ExceptionHandler,
                                                          state.ProcDesc);
             // Load returned excepted expression from stack for exception handling. 
-            (var expression, var expressionType) = state.Pop(); 
+            (var expression, var expressionType) = state.Pop();
             var identifier = state.GetIdentifier(Identifier.IdentKind.Normal);
             exceptionHandlerNode.Instructions.Add(
                     new Load(identifier,
@@ -49,7 +49,7 @@ namespace Cilsil.Cil.Parsers
                                                    expressionType,
                                                    state.CurrentLocation);
             exceptionHandlerNode.Instructions.Add(storeValueIntoVariable);
-            
+
             // Construct an instruction to unwrap exception from returned variable. For example: 
             // n${i}=_fun___unwrap_exception(n${i-1}:last var type*)
             CreateExceptionCall(state,
@@ -86,17 +86,17 @@ namespace Cilsil.Cil.Parsers
 
                 node3 preds:1 succs:5 exn: Conditional exception handler -- Connects to outter/finally block code directly
                 n$49=_fun___instanceof(n$48:java.io.IOException*,sizeof(t=java.io.IOException):void)
-                PRUNE(!n$49, false);*/ 
+                PRUNE(!n$49, false);*/
 
                 // Create exception allocation call:
                 // n${i+1}=_fun___instanceof(n${i}:{Exception_Type}*,sizeof(t={Exception_Type}:void)
-                (var exceptionAllocationCall, var exceptionObject) = 
-                        CreateExceptionAllocationCall(state, Typ.FromTypeReference(exceptionType));   
+                (var exceptionAllocationCall, var exceptionObject) =
+                        CreateExceptionAllocationCall(state, Typ.FromTypeReference(exceptionType));
 
                 var trueNodeCondition = exceptionObject;
                 var falseNodeCondition = new UnopExpression(
                     UnopExpression.UnopKind.LNot, trueNodeCondition, null);
-                
+
                 // Create exception handling branch. True if exception is caught. False otherwise.
                 (var exceptionTrueNode, var exceptionFalseNode) =
                     CreateExceptionBranchConditionNodes(state,
@@ -105,7 +105,7 @@ namespace Cilsil.Cil.Parsers
 
                 exceptionTrueNode.Instructions.Insert(0, exceptionAllocationCall);
                 exceptionFalseNode.Instructions.Insert(0, exceptionAllocationCall);
-                
+
                 var catchVarIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
                 var catchVarStore = new Store(catchVariable,
                                               new VarExpression(returnVariable),
@@ -117,8 +117,8 @@ namespace Cilsil.Cil.Parsers
                 RegisterNode(state, exceptionFalseNode);
 
                 Instruction nextInstructionIfNoException = null;
-                
-                foreach(var singleInstruction in state.Method.Body.Instructions)
+
+                foreach (var singleInstruction in state.Method.Body.Instructions)
                 {
                     if (singleInstruction.Offset >= endBlockOffset + 1)
                     {
@@ -162,7 +162,7 @@ namespace Cilsil.Cil.Parsers
                                               catchVariable,
                                               fieldType,
                                               state.CurrentLocation));
-            
+
             // Handles loaded exception expression in finally block.
             if (exceptionType == state.Method.Module.TypeSystem.Object)
             {
@@ -181,7 +181,7 @@ namespace Cilsil.Cil.Parsers
             }
 
             RegisterNode(state, newNode);
-             
+
             // The first copy of this stack item was popped in the invocation of the
             // constructor, so we push another on.
             state.PushExpr(new VarExpression(fieldIdentifier), fieldType);
@@ -192,7 +192,7 @@ namespace Cilsil.Cil.Parsers
             (instruction, _) = state.PopInstruction();
             ParseCilInstruction(instruction, state);
 
-            return true; 
+            return true;
         }
 
 
@@ -218,7 +218,7 @@ namespace Cilsil.Cil.Parsers
             if (state.OffsetToExceptionType.ContainsKey(state.CurrentInstruction.Offset))
             {
                 returnType = state.OffsetToExceptionType[state.CurrentInstruction.Offset];
-            }   
+            }
             else
             {
                 returnType = state.Method.Module.TypeSystem.Object;
