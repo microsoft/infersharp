@@ -215,15 +215,15 @@ namespace Cilsil.Cil.Parsers
                                          out Call exceptionCall)
         {
             callArgs = new List<Call.CallArg>();
-            try
+            if (state.OffsetToExceptionType.ContainsKey(state.CurrentInstruction.Offset))
             {
                 returnType = state.OffsetToExceptionType[state.CurrentInstruction.Offset];
             }   
-            catch(KeyNotFoundException)
+            else
             {
                 returnType = state.Method.Module.TypeSystem.Object;
             }
-            
+
             var funcExp = new ConstExpression(ProcedureName.BuiltIn__unwrap_exception);
             callArgs.Add(new Call.CallArg(exceptedExpression, exceptedExpressionType));
             var callFlags = new Call.CallFlags(false, false, false);
