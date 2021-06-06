@@ -300,7 +300,7 @@ namespace Examples
         public void ResourceLeakFilterOK() {
             StreamWriter stream = AllocateStreamWriter();
             if (stream == null)
-                    return; 
+                return; 
             try 
             {
                 stream.WriteLine(12);
