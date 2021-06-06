@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Sil;
-using static Cilsil.Test.Assets.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using static Cilsil.Test.Assets.Utils;
 
 namespace Cilsil.Test
 {
@@ -47,7 +47,7 @@ namespace Cilsil.Test
 
         private const string TestCodeFileName = "TestCode.cs";
 
-        
+
         private const string SynchronizedFieldWriteMethod =
             @"public void FieldWrite() 
             {{
@@ -77,38 +77,38 @@ namespace Cilsil.Test
         /// <param name="returnType">The return type of TestMethod.</param>
         /// <returns>The path to the testcode binaries produced by the build command, as well as 
         /// the path to the binaries for the test's core libraries.</returns>
-        public string [] BuildCode(string code, 
+        public string[] BuildCode(string code,
                                    string returnType,
                                    bool addSynchronizedFieldWriteMethod = false)
         {
             var testMethodBody = CreateTestMethod(code, returnType);
-            var methodBodies = addSynchronizedFieldWriteMethod ? testMethodBody + 
-                                                                 "\n\n" + 
+            var methodBodies = addSynchronizedFieldWriteMethod ? testMethodBody +
+                                                                 "\n\n" +
                                                                  SynchronizedFieldWriteMethod
                                                                : testMethodBody;
             var codeToBuild = Decorate(methodBodies);
 
             // C# core library DLL file path.
             var coreLibraryFilePath = Path.Combine(TestBinaryFolder,
-                                                   "publish", 
+                                                   "publish",
                                                    "System.Private.CoreLib.dll");
 
             File.WriteAllText(TestCodeFilePath, codeToBuild);
-            if (RunCommand("dotnet", 
-                           $"publish {ProjectFilePath} -c Debug -r ubuntu.16.10-x64", 
-                           out var stdout, 
+            if (RunCommand("dotnet",
+                           $"publish {ProjectFilePath} -c Debug -r ubuntu.16.10-x64",
+                           out var stdout,
                            out _) != 0)
             {
                 throw new ApplicationException(
                     $"Test code failed to build with error: \n{stdout}");
             }
 
-            return new string[] { 
-                                    Path.Combine(TestBinaryFolder, "TestProject.dll"), 
-                                    coreLibraryFilePath 
+            return new string[] {
+                                    Path.Combine(TestBinaryFolder, "TestProject.dll"),
+                                    coreLibraryFilePath
                                 };
 
-            string CreateTestMethod(string testMethodCode, string testMethodReturnType) 
+            string CreateTestMethod(string testMethodCode, string testMethodReturnType)
             {
                 return $@"public {testMethodReturnType} TestMethod()
                           {{
@@ -210,7 +210,7 @@ namespace Cilsil.Test
             foreach (var bug in inferReport)
             {
                 var severity = bug.Value<string>("severity");
-                switch(severity)
+                switch (severity)
                 {
                     case Severity.Error:
                     case Severity.Warning:

@@ -55,7 +55,7 @@ namespace Cilsil.Sil
                               BuiltInClassName,
                               string.Empty,
                               true);
-        
+
         /// <summary>
         /// Standard procedure name used in [val instanceof typ] translation, interpreted specially
         /// by the backend.

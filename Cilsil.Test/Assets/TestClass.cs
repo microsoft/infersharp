@@ -17,9 +17,9 @@ namespace Cilsil.Test.Assets
         /// Initializes a static readonly field resource. This kind of resource should not be disposed 
         /// as it will be reserved for singleton design pattern.
         /// </summary>
-        public static readonly StreamReader StaticStreamReaderField = new StreamReader("whatever.txt"); 
-        
-        public StreamReader InstanceStreamReaderField; 
+        public static readonly StreamReader StaticStreamReaderField = new StreamReader("whatever.txt");
+
+        public StreamReader InstanceStreamReaderField;
 
         public struct InternalStruct
         {
@@ -50,7 +50,7 @@ namespace Cilsil.Test.Assets
         /// </summary>
         /// param name="initializeToNull">if set to <c>true</c>, set the field to null. If set to
         /// <c>false</c>, initialize the field.</param>
-        public void InitializeInstanceObjectField(bool initializeToNull) 
+        public void InitializeInstanceObjectField(bool initializeToNull)
             => InstanceObjectField = initializeToNull ? null : new TestClass();
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Cilsil.Test.Assets
         /// </summary>
         /// param name="initializeToNull">if set to <c>true</c>, set the field to null. If set to
         /// <c>false</c>, initialize the field.</param>
-        public static void InitializeStaticObjectField(bool initializeToNull) 
+        public static void InitializeStaticObjectField(bool initializeToNull)
             => StaticObjectField = initializeToNull ? null : new TestClass();
 
         /// <summary>

@@ -53,7 +53,7 @@ namespace Cilsil
                 {
                     Argument = new Argument<bool>(),
                     Description =
-                        "Output following logs for debugging purposes:\n" + 
+                        "Output following logs for debugging purposes:\n" +
                         "1. Elapse time for translating each method\n" +
                         "2. Elapse time for translating each instruction in each method\n" +
                         "3. Print debugging information about instructions that unable to be translated"
@@ -166,7 +166,7 @@ namespace Cilsil
             Log.PrintAllUnknownInstruction();
             Log.WriteLine();
             Log.PrintCoverageStats(result.GetResult<CfgParserResult>().Methods);
-            
+
             if (Log.Debug)
             {
                 watch.Stop();

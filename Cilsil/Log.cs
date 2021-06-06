@@ -31,7 +31,7 @@ namespace Cilsil
         /// </summary>
         public static Dictionary<string, int> UnknownInstructions { get; } =
             new Dictionary<string, int>();
-        
+
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>

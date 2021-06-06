@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-using Cilsil.Utils;
 using Cilsil.Sil;
-using Cilsil.Sil.Types;
-using Mono.Cecil.Cil;
-using Mono.Cecil;
-using Cilsil.Sil.Instructions;
 using Cilsil.Sil.Expressions;
+using Cilsil.Sil.Instructions;
+using Cilsil.Sil.Types;
+using Cilsil.Utils;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System.Collections.Generic;
 
 namespace Cilsil.Cil.Parsers
@@ -21,64 +21,56 @@ namespace Cilsil.Cil.Parsers
             {
                 endBlockOffset = state.ExceptionBlockStartToEndOffsets[endBlockOffset];
             }
-            
-            // Construct a exception catch block since catch block will always have instantiated exception type.
-            if (state.OffsetToExceptionType.ContainsKey(state.CurrentInstruction.Offset))
-            {
-                 /* Load returned variable for exception check. For example:
-            
-                node1 preds: succs:2 3 exn: Instructions
-                n$47=*&amp;return:void;
-                *&amp;return:void=null;
-                n$48=_fun___unwrap_exception(n$47:void);*/
 
-                // Create exception handler node.
-                var exceptionHandlerNode = new StatementNode(state.CurrentLocation,
-                                                            StatementNode.StatementNodeKind.ExceptionHandler,
-                                                            state.ProcDesc);
-                // Load returned excepted expression from stack for exception handling. 
-                (var expression, var expressionType) = state.Pop(); 
-                var identifier = state.GetIdentifier(Identifier.IdentKind.Normal);
-                exceptionHandlerNode.Instructions.Add(
-                        new Load(identifier,
-                                expression,
+            /* Load returned variable for exception check. For example:
+            
+            node1 preds: succs:2 3 exn: Instructions
+            n$47=*&amp;return:void;
+            *&amp;return:void=null;
+            n$48=_fun___unwrap_exception(n$47:void);*/
+
+            // Create exception handler node.
+            var exceptionHandlerNode = new StatementNode(state.CurrentLocation,
+                                                         StatementNode.StatementNodeKind.ExceptionHandler,
+                                                         state.ProcDesc);
+            // Load returned excepted expression from stack for exception handling. 
+            (var expression, var expressionType) = state.Pop();
+            var identifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            exceptionHandlerNode.Instructions.Add(
+                    new Load(identifier,
+                             expression,
+                             expressionType,
+                             state.CurrentLocation));
+
+            // When exception is encountered, we translate the return output to being a null/none type.
+            var exceptionOwnerExpression = new VarExpression(identifier);
+            var storeValueIntoVariable = new Store(expression,
+                                                   new ConstExpression(new IntRepresentation(0, false, true)),
+                                                   expressionType,
+                                                   state.CurrentLocation);
+            exceptionHandlerNode.Instructions.Add(storeValueIntoVariable);
+
+            // Construct an instruction to unwrap exception from returned variable. For example: 
+            // n${i}=_fun___unwrap_exception(n${i-1}:last var type*)
+            CreateExceptionCall(state,
+                                exceptionOwnerExpression,
                                 expressionType,
-                                state.CurrentLocation));
+                                out var exceptionType,
+                                out var returnVariable,
+                                out _,
+                                out var exceptionCall);
+            exceptionHandlerNode.Instructions.Add(exceptionCall);
+            RegisterNode(state, exceptionHandlerNode, true);
 
-                // When exception is encountered, we translate the return output to being a null/none type.
-                var exceptionOwnerExpression = new VarExpression(identifier);
-                var storeValueIntoVariable = new Store(expression,
-                                                    new ConstExpression(new IntRepresentation(0, false, true)),
-                                                    expressionType,
-                                                    state.CurrentLocation);
-                exceptionHandlerNode.Instructions.Add(storeValueIntoVariable);
-                
-                // Construct an instruction to unwrap exception from returned variable. For example: 
-                // n${i}=_fun___unwrap_exception(n${i-1}:last var type*)
-                CreateExceptionCall(state,
-                                    exceptionOwnerExpression,
-                                    expressionType,
-                                    out var exceptionType,
-                                    out var returnVariable,
-                                    out _,
-                                    out var exceptionCall);
-                exceptionHandlerNode.Instructions.Add(exceptionCall);
-                RegisterNode(state, exceptionHandlerNode, true);
-
-                // The variable e allocated when an exception is encountered, 
-                // i.e. "try { ... } catch(IOException e") { ... }
-                var catchVariable = new LvarExpression(
-                                    new LocalVariable(Identifier.CatchIdentifier,
-                                                        state.Method));
-
-                // Try always needs to be connected to the finally block, if there is a finally or a filter block.
-                // If no finally, directly connect try to catch
-                if (!ContainsFinallyBlock(state, endBlockOffset))
-                { 
-                    state.PushRetExpr();
-                    state.PushInstruction(instruction.Next);
-                    state.Pop();
-                }
+            // The variable e allocated when an exception is encountered, 
+            // i.e. "try { ... } catch(IOException e") { ... }
+            var catchVariable = new LvarExpression(
+                                new LocalVariable(Identifier.CatchIdentifier,
+                                                    state.Method));
+            // Construct a exception catch block when unwrapped exception type is not "System.Object".
+            // Since catch block will always have instantiated exception type.
+            if (exceptionType != state.Method.Module.TypeSystem.Object)
+            {
 
                 state.PushInstruction(instruction, exceptionHandlerNode);
                 (instruction, _) = state.PopInstruction();
@@ -94,17 +86,17 @@ namespace Cilsil.Cil.Parsers
 
                 node3 preds:1 succs:5 exn: Conditional exception handler -- Connects to outter/finally block code directly
                 n$49=_fun___instanceof(n$48:java.io.IOException*,sizeof(t=java.io.IOException):void)
-                PRUNE(!n$49, false);*/ 
+                PRUNE(!n$49, false);*/
 
                 // Create exception allocation call:
                 // n${i+1}=_fun___instanceof(n${i}:{Exception_Type}*,sizeof(t={Exception_Type}:void)
-                (var exceptionAllocationCall, var exceptionObject) = 
-                        CreateExceptionAllocationCall(state, Typ.FromTypeReference(exceptionType));   
+                (var exceptionAllocationCall, var exceptionObject) =
+                        CreateExceptionAllocationCall(state, Typ.FromTypeReference(exceptionType));
 
                 var trueNodeCondition = exceptionObject;
                 var falseNodeCondition = new UnopExpression(
                     UnopExpression.UnopKind.LNot, trueNodeCondition, null);
-                
+
                 // Create exception handling branch. True if exception is caught. False otherwise.
                 (var exceptionTrueNode, var exceptionFalseNode) =
                     CreateExceptionBranchConditionNodes(state,
@@ -113,7 +105,7 @@ namespace Cilsil.Cil.Parsers
 
                 exceptionTrueNode.Instructions.Insert(0, exceptionAllocationCall);
                 exceptionFalseNode.Instructions.Insert(0, exceptionAllocationCall);
-                
+
                 var catchVarIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
                 var catchVarStore = new Store(catchVariable,
                                               new VarExpression(returnVariable),
@@ -125,8 +117,8 @@ namespace Cilsil.Cil.Parsers
                 RegisterNode(state, exceptionFalseNode);
 
                 Instruction nextInstructionIfNoException = null;
-                
-                foreach(var singleInstruction in state.Method.Body.Instructions)
+
+                foreach (var singleInstruction in state.Method.Body.Instructions)
                 {
                     if (singleInstruction.Offset >= endBlockOffset + 1)
                     {
@@ -134,7 +126,7 @@ namespace Cilsil.Cil.Parsers
                         break;
                     }
                 }
-                state.PushExpr(new VarExpression(returnVariable), expressionType);
+                state.PushExpr(new ExnExpression(new VarExpression(returnVariable)), expressionType);
 
                 if (nextInstructionIfNoException != null)
                 {
@@ -143,29 +135,6 @@ namespace Cilsil.Cil.Parsers
 
                 state.PushInstruction(instruction, exceptionTrueNode);
                 (instruction, _) = state.PopInstruction();
-                /* Load caught exception variable. For example:
-            
-                node 4: Preds:2 Succs:6 EXN: 
-                n$25=*&CatchVar65:java.lang.Object*;
-                *&e:java.lang.Object*=n$25;*/
-                var newNode = new StatementNode(location: state.CurrentLocation,
-                                                kind: StatementNode.StatementNodeKind.ExceptionHandler,
-                                                proc: state.ProcDesc);
-                var fieldType = new Tstruct("System.Object");
-                var fieldIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
-                newNode.Instructions.Add(new Load(fieldIdentifier,
-                                                catchVariable,
-                                                fieldType,
-                                                state.CurrentLocation));
-                
-                state.AppendToPreviousNode = true;
-
-                RegisterNode(state, newNode);
-                
-                // The first copy of this stack item was popped in the invocation of the
-                // constructor, so we push another on.
-                state.PushExpr(new VarExpression(fieldIdentifier), fieldType);
-                state.PushInstruction(instruction, newNode);
             }
             // Construct a finally block when unwrapped exception type is "System.Object".
             else
@@ -175,33 +144,57 @@ namespace Cilsil.Cil.Parsers
                 state.PopInstruction();
                 state.PushInstruction(instruction.Next);
 
-                // Handles loaded exception expression in finally block.
-                var exceptionVariable = new LvarExpression(
-                                            new LocalVariable(Identifier.ByteCodeIdentifier,
-                                                            state.Method));
-                state.PushExpr(exceptionVariable, new Tstruct("System.Object"));
-
-                state.PushInstruction(instruction);
+                state.PushInstruction(instruction, exceptionHandlerNode);
+                (instruction, _) = state.PopInstruction();
             }
+
+            /* Load caught exception variable. For example:
+            
+            node 4: Preds:2 Succs:6 EXN: 
+            n$25=*&CatchVar65:java.lang.Object*;
+            *&e:java.lang.Object*=n$25;*/
+            var newNode = new StatementNode(location: state.CurrentLocation,
+                                            kind: StatementNode.StatementNodeKind.ExceptionHandler,
+                                            proc: state.ProcDesc);
+            var fieldType = new Tstruct("System.Object");
+            var fieldIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            newNode.Instructions.Add(new Load(fieldIdentifier,
+                                              catchVariable,
+                                              fieldType,
+                                              state.CurrentLocation));
+
+            // Handles loaded exception expression in finally block.
+            if (exceptionType == state.Method.Module.TypeSystem.Object)
+            {
+                var exceptionVariable = new LvarExpression(
+                                        new LocalVariable(Identifier.ByteCodeIdentifier,
+                                                          state.Method));
+                newNode.Instructions.Add(new Store(exceptionVariable,
+                                                   new VarExpression(fieldIdentifier),
+                                                   fieldType,
+                                                   state.CurrentLocation));
+                state.PushExpr(exceptionVariable, fieldType);
+            }
+            else
+            {
+                state.AppendToPreviousNode = true;
+            }
+
+            RegisterNode(state, newNode);
+
+            // The first copy of this stack item was popped in the invocation of the
+            // constructor, so we push another on.
+            state.PushExpr(new VarExpression(fieldIdentifier), fieldType);
+            state.PushInstruction(instruction, newNode);
 
             // Append the next instruction (which should be stloc, for representing
             // storage of the constructed object into a local variable) to this new node.
             (instruction, _) = state.PopInstruction();
             ParseCilInstruction(instruction, state);
 
-            return true; 
+            return true;
         }
 
-        /// <summary>
-        /// Check if there is a finally block following the current catch block.
-        /// </summary>
-        /// <param name="state">Current program state.</param>
-        /// <param name="catchEndOffset">The ending offset of catch block.</param>
-        private bool ContainsFinallyBlock(ProgramState state, int catchEndOffset)
-        {
-            return state.ExceptionBlockStartToEndOffsets.ContainsKey(catchEndOffset + 3)
-                   || state.ExceptionBlockStartToEndOffsets.ContainsKey(catchEndOffset + 2);
-        }
 
         /// <summary>
         /// Creates a exception method call returned via out parameter.
@@ -222,15 +215,15 @@ namespace Cilsil.Cil.Parsers
                                          out Call exceptionCall)
         {
             callArgs = new List<Call.CallArg>();
-            try
+            if (state.OffsetToExceptionType.ContainsKey(state.CurrentInstruction.Offset))
             {
                 returnType = state.OffsetToExceptionType[state.CurrentInstruction.Offset];
-            }   
-            catch(KeyNotFoundException)
+            }
+            else
             {
                 returnType = state.Method.Module.TypeSystem.Object;
             }
-            
+
             var funcExp = new ConstExpression(ProcedureName.BuiltIn__unwrap_exception);
             callArgs.Add(new Call.CallArg(exceptedExpression, exceptedExpressionType));
             var callFlags = new Call.CallFlags(false, false, false);

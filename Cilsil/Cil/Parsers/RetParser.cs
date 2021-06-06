@@ -20,9 +20,6 @@ namespace Cilsil.Cil.Parsers
                 case Code.Ret:
                     Store retInstr;
                     var retType = state.Method.ReturnType.GetElementType();
-                    var retNode = new StatementNode(state.CurrentLocation,
-                                                    StatementNode.StatementNodeKind.ReturnStmt,
-                                                    state.ProcDesc);
                     if (retType == state.Method.Module.TypeSystem.Void)
                     {
                         state.PreviousNode.Successors.Add(state.ProcDesc.ExitNode);
@@ -68,6 +65,9 @@ namespace Cilsil.Cil.Parsers
                                                  Typ.FromTypeReference(retType),
                                                  state.CurrentLocation);
                         }
+                        var retNode = new StatementNode(state.CurrentLocation,
+                                                        StatementNode.StatementNodeKind.ReturnStmt,
+                                                        state.ProcDesc);
                         retNode.Instructions.Add(retInstr);
                         retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
                         RegisterNode(state, retNode);

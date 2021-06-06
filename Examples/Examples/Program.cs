@@ -167,10 +167,6 @@ namespace Examples
                 sw = new StreamWriter("everwhat.txt");
                 sw.WriteLine(sr.ReadToEnd());
             } 
-            catch(Exception)
-            {
-
-            }
             finally 
             {
                 if (sr != null) {

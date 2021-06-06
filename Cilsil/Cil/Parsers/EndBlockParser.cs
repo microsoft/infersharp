@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Utils;
-using Cilsil.Sil;
 using Mono.Cecil.Cil;
 
 namespace Cilsil.Cil.Parsers
@@ -14,7 +13,7 @@ namespace Cilsil.Cil.Parsers
             switch (instruction.OpCode.Code)
             {
                 case Code.Endfilter:
-                case Code.Endfinally:  
+                case Code.Endfinally:
                     state.PushInstruction(instruction.Next);
                     return true;
                 default:
