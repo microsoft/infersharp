@@ -11,9 +11,11 @@ fi
 
 echo "Processing {$1}"
 # Preparation
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$parent_path"
 if [ -d infer-out ]; then rm -Rf infer-out; fi
 if [ -d infer-staging ]; then rm -Rf infer-staging; fi
-coreLibraryPath=${BASH_SOURCE%/*}/Cilsil/System.Private.CoreLib.dll
+coreLibraryPath=Cilsil/System.Private.CoreLib.dll
 echo "Copy binaries to a staging folder..."
 mkdir infer-staging
 cp -r $coreLibraryPath $1 infer-staging
@@ -24,4 +26,4 @@ echo -e "\e[1;33mYou may see 'Unable to parse instruction xxx' above. This is ex
 echo -e "Translation completed. Analyzing...\n"
 infer capture 
 mkdir infer-out/captured 
-infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') --enable-issue-type NULL_DEREFERENCE --enable-issue-type DOTNET_RESOURCE_LEAK analyzejson --debug --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
+infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') --enable-issue-type NULL_DEREFERENCE --enable-issue-type DOTNET_RESOURCE_LEAK --enable-issue-type THREAD_SAFETY_VIOLATION analyzejson --debug --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
