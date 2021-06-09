@@ -7,7 +7,8 @@
 ## Setup
 1. Download the Infer# binaries from the [latest release page](https://github.com/microsoft/infersharp/releases).
 2. From Windows Command Prompt or PowerShell, enter: ```wsl.exe``` to open your default Linux distribution.
-3. Copy the _infersharp_ folder to _/home/_ and create a symlink for future use.
+3. Copy the _infersharp_ folder to _/home/<YOUR_USERNAME>_ and create a symlink for future use.
+**Important** - Because of a known performance issue on slow I/O between Windows and Linux file systems, please make sure you copy the binaries to only Linux file system.
 ```
 cp -r <FOLDER_PATH_TO_INFERSHARP_BINARIES> ~
 cd /home/<YOUR_USERNAME>/infersharp/
@@ -29,7 +30,7 @@ The folder structure should look like this:
 ```
 
 ## Use Infer# on your own code
-**Important** - Because of a known performance issue on slow I/O between Windows and Linux file systems, please make sure you are always at _/home/<YOUR_USERNAME>/infersharp/_ before running the analysis.
+Navigate to the Infer# binaries:
 ```
 cd /home/<YOUR_USERNAME>/infersharp/
 ```
