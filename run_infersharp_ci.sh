@@ -13,7 +13,6 @@ echo "Processing {$1}"
 # Preparation
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$parent_path"
-ls
 if [ -d infer-out ]; then rm -Rf infer-out; fi
 if [ -d infer-staging ]; then rm -Rf infer-staging; fi
 coreLibraryPath=/infersharp/Cilsil/System.Private.CoreLib.dll
