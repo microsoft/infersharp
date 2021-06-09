@@ -93,9 +93,8 @@ namespace Cilsil.Cil.Parsers
                     return false;
             }
 
-            (_, var binopType) = state.Peek();
-            (var exp, _) = state.PopTwoAndApplyBinop(kind);
-            state.PushExpr(exp, binopType);
+            (var exp, var expType) = state.PopTwoAndApplyBinop(kind);
+            state.PushExpr(exp, expType);
             state.PushInstruction(instruction.Next);
 
             return true;

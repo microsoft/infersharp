@@ -22,11 +22,11 @@ namespace Cilsil.Cil.Parsers
                     (var objectExpression, var objectType) = state.Pop();
                     var typeToCheck = instruction.Operand as TypeReference;
                     var returnIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
-                    var returnType = new Tint(Tint.IntKind.IBool);
+                    var returnType = new Tint(Tint.IntKind.IBool, true);
                     var builtinFunctionExpression = new ConstExpression(
                         ProcedureName.BuiltIn__instanceof);
                     var sizeofExpression = new SizeofExpression(
-                        Typ.FromTypeReference(typeToCheck), 
+                        Typ.FromTypeReferenceNoPointer(typeToCheck), 
                         SizeofExpression.SizeofExpressionKind.instof);
                     var args = new List<Call.CallArg> 
                     { 
