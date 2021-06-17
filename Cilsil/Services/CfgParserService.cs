@@ -117,6 +117,9 @@ namespace Cilsil.Services
                             catchType = exceptionHandlingBlock.CatchType;
                             exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
                             exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
+                            programState.RegisterTryBlockExceptionHandling(exceptionHandlingBlock.TryStart.Offset, 
+                                                                           exceptionHandlingBlock.TryEnd.Offset,
+                                                                           exceptionHandlingBlockStartOffset);
                             break;
 
                         case ExceptionHandlerType.Finally:
@@ -173,7 +176,12 @@ namespace Cilsil.Services
                 foreach (var node in programState.ProcDesc.Nodes)
                 {
 
-                    if (node.ExceptionNodes.Count == 0)
+                    if (programState.NodeToExceptionNodeOffset.ContainsKey(node))
+                    {
+                        var exceptionNode = programState.OffsetToExceptionNode[programState.NodeToExceptionNodeOffset[node]];
+                        node.ExceptionNodes.Add(exceptionNode);
+                    }
+                    else if (node.ExceptionNodes.Count == 0)
                     {
                         node.ExceptionNodes.Add(programState.ProcDesc.ExceptionSinkNode);
                     }
@@ -193,8 +201,7 @@ namespace Cilsil.Services
                 programState.ProcDesc.ExitNode.ExceptionNodes.Clear();
                 programState.ProcDesc.ExceptionSinkNode.ExceptionNodes.Clear();
                 programState.ProcDesc.StartNode.ExceptionNodes.Add(programState.ProcDesc.ExitNode);
-                programState.ProcDesc.ExceptionSinkNode.ExceptionNodes.Add(
-                    programState.ProcDesc.ExitNode);
+                programState.ProcDesc.ExceptionSinkNode.ExceptionNodes.Add(programState.ProcDesc.ExitNode);
 
                 SetNodePredecessors(programState);
 

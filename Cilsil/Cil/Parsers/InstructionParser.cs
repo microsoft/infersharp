@@ -139,9 +139,14 @@ namespace Cilsil.Cil.Parsers
         {
             state.Cfg.RegisterNode(node);
             if (inExceptionNodes)
-                state.PreviousNode.ExceptionNodes.Add(node);
+            {
+                state.AddOffsetToExceptionNodeMapping(node);
+            }
             else
+            {
+                state.AddNodeToExceptionNodeOffsetMapping(node);
                 state.PreviousNode.Successors.Add(node);
+            }
             if (RememberNodeOffset)
             {
                 state.SaveNodeOffset(node, PreviousProgramStack);
