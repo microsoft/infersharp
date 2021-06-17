@@ -79,12 +79,20 @@ namespace Cilsil.Cil.Parsers
             else
             {
                 var variable = new LocalVariable(LocalName(index), state.Method);
+                var variableType = FindTypeOfLocalVariable(state, variable);
+                if (variableType != null)
+                {
+                    type = variableType;
+                }
+                else
+                {
+                    RegisterLocalVariable(state, variable, type);
+                }
                 var storeValueIntoVariable = new Store(new LvarExpression(variable),
                                                        value,
                                                        type,
                                                        state.CurrentLocation);
                 node = AddMethodBodyInstructionsToCfg(state, storeValueIntoVariable);
-                RegisterLocalVariable(state, variable, type);
                 state.PushInstruction(instruction.Next, node);
             }
 

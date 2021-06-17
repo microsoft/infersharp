@@ -450,5 +450,14 @@ namespace Cilsil.Cil.Parsers
                                                   isConstExpr: false));
             }
         }
+
+        protected Typ FindTypeOfLocalVariable(ProgramState state, LocalVariable lvar)
+        {
+            if (state.ProcDesc.PdAttributes.Locals.Any(l => l.Name == lvar.PvName))
+            {
+                return state.ProcDesc.PdAttributes.Locals.First(l => l.Name == lvar.PvName).Type;;
+            }
+            return null;
+        }
     }
 }
