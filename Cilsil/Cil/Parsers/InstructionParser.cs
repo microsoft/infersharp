@@ -451,6 +451,13 @@ namespace Cilsil.Cil.Parsers
             }
         }
 
+        /// <summary>
+        /// Returns the registered type if the local variable is already registered to the proc 
+        /// attributes.
+        /// </summary>
+        /// <param name="state">Current program state.</param>
+        /// <param name="lvar">Variable to check.</param>
+        /// <returns>The type of the registered local variable; otherwise, returns null</returns>
         protected Typ FindTypeOfLocalVariable(ProgramState state, LocalVariable lvar)
         {
             if (state.ProcDesc.PdAttributes.Locals.Any(l => l.Name == lvar.PvName))
