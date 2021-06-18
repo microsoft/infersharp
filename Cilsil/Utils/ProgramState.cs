@@ -311,18 +311,14 @@ namespace Cilsil.Utils
         /// stack.</exception>
         public (Expression, Typ) Pop()
         {
-            if (ProgramStack.Count == 0 && DanglingConditionProgramStack.Count == 0)
+            if (ProgramStack.Count == 0)
             {
                 throw new ServiceExecutionException(
                     $@"Popping on empty stack at method: {
                         Method.GetCompatibleFullName()} instruction: {
                         CurrentInstruction} location: {CurrentLocation}", this);
             }
-            else if (ProgramStack.Count > 0)
-            {
-                return ProgramStack.Pop();
-            }
-            return PopConditionExpression();
+            return ProgramStack.Pop();
         }
 
         /// <summary>

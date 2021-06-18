@@ -29,26 +29,12 @@ namespace Cilsil.Cil.Parsers
 
                 case Code.Brtrue:
                 case Code.Brtrue_S:
-                    if (state.GetDanglingConditionProgramStackCopy().Count > 0)
-                    {
-                        (conditionTrueExpression, conditionTrueExpressionType) = state.PopConditionExpression();
-                    }
-                    else
-                    {
-                        (conditionTrueExpression, conditionTrueExpressionType) = state.Pop();
-                    }
+                    (conditionTrueExpression, conditionTrueExpressionType) = state.Pop();
                     break;
 
                 case Code.Brfalse:
                 case Code.Brfalse_S:
-                    if (state.GetDanglingConditionProgramStackCopy().Count > 0)
-                    {
-                        (conditionTrueExpression, conditionTrueExpressionType) = state.PopConditionExpression();
-                    }
-                    else
-                    {
-                        (conditionTrueExpression, conditionTrueExpressionType) = state.Pop();
-                    }
+                    (conditionTrueExpression, conditionTrueExpressionType) = state.Pop();
                     targetTrue = instruction.Next;
                     targetFalse = instruction.Operand as Instruction;
                     break;
