@@ -34,15 +34,7 @@ namespace Cilsil.Cil.Parsers
                     break;
                 case Code.Cgt:
                 case Code.Cgt_Un:
-                    if (instruction.Previous.OpCode.Code == Code.Ldnull)
-                    {
-                        // Object-null checks are represented in CIL using Cg.
-                        kind = BinopExpression.BinopKind.Ne;
-                    }
-                    else
-                    {
-                        kind = BinopExpression.BinopKind.Gt;
-                    }
+                    kind = BinopExpression.BinopKind.Gt;
                     break;
                 case Code.Clt:
                 case Code.Clt_Un:
