@@ -85,12 +85,7 @@ namespace Cilsil.Test.Assets
             ReturnTwoDimArray,
             TestBox,
             TestIsInst,
-            TestMultiVariableUsing,
-            TestNestedTryCatchFinally,
             TestStarg,
-            TestTryCatchFinally,
-            TestTryFilter,
-            TestUsing,
         }
 
         /// <summary>
@@ -230,6 +225,21 @@ namespace Cilsil.Test.Assets
             $"{GetString(name)} = {value};\n";
 
         /// <summary>
+        /// Generates a string representation of instantiating a new variable.
+        /// </summary>
+        /// <param name="type">The type of the variable being instantiated.</param>
+        /// <param name="name">The name of the variable being instantiated.</param>
+        /// <param name="value">The string representation of the value to be assigned.</param>
+        /// <param name="withLineEnding">True if that call should have a semicolon ending.</param>
+        /// <returns>String representation of the variable instantiation statement.</returns>
+        private static string Instantiate(VarType type,
+                                          VarName name,
+                                          string value,
+                                          bool withLineEnding) =>
+            $"{GetString(type)} {GetString(name)} = {value}" + (withLineEnding ? ";\n"
+                                                                               : string.Empty);
+
+        /// <summary>
         /// Generates a string representation of variable initialization code.
         /// </summary>
         /// <param name="state">The  state of the TestClass used in the test case; for example,
@@ -291,6 +301,169 @@ namespace Cilsil.Test.Assets
         public static string EncloseInLock(string codeBlock)
             => "lock(_object) { " + codeBlock + " }";
 
+        /// Generates a string representation of exception handling block code.
+        /// </summary>
+        /// <param name="resourceLocalVarType">The type of the local resource variable used in the 
+        /// test case.</param>
+        /// <param name="resourceLocalVarValue">The string representation of the value to be 
+        /// assigned to the local resource variable.</param>
+        /// <param name="disposeResource">The string representation of disposing the instantiated 
+        /// local resource.</param>
+        /// <param name="blockKind">The kind of the exception handling block used in the test case; 
+        /// for example, try-catch-finally or using.</param>
+        /// <returns>String representing the set of statements in the exception handling 
+        /// block.</returns>
+        public static string InitBlock(VarType resourceLocalVarType = VarType.None,
+                                       string resourceLocalVarValue = null,
+                                       string disposeResource = null,
+                                       BlockKind blockKind = BlockKind.None)
+        {
+            string output;
+            var resourceInit = Declare(resourceLocalVarType, VarName.FirstLocal);
+            switch (blockKind)
+            {
+                case BlockKind.None:
+                    output = string.Empty;
+                    break;
+                case BlockKind.Using:
+                    if (resourceLocalVarType != VarType.None && resourceLocalVarValue != null)
+                    {
+                        resourceInit = Instantiate(resourceLocalVarType,
+                                                   VarName.FirstLocal,
+                                                   resourceLocalVarValue,
+                                                   false);
+                    }
+                    output =
+                        $@"using({resourceInit})
+                        {{
+
+                        }}";
+                    break;
+                case BlockKind.MultiVariableUsing:
+                    if (resourceLocalVarType != VarType.None && resourceLocalVarValue != null)
+                    {
+                        resourceInit = Instantiate(resourceLocalVarType,
+                                                   VarName.FirstLocal,
+                                                   resourceLocalVarValue,
+                                                   false);
+                    }
+                    var secondResourceInit = Instantiate(resourceLocalVarType,
+                                                         VarName.SecondLocal,
+                                                         resourceLocalVarValue,
+                                                         false);
+                    output =
+                        $@"using({resourceInit})
+                        using({secondResourceInit})
+                        {{
+
+                        }}";
+                    break;
+                case BlockKind.TryCatchFinally:
+                    if (resourceLocalVarType != VarType.None)
+                    {
+                        resourceInit += Assign(VarName.FirstLocal, "null");
+                    }
+                    if (disposeResource == null)
+                    {
+                        disposeResource = "";
+                    }
+                    var tryBlockCode =
+                        resourceLocalVarValue == null ? string.Empty
+                                                      : Assign(VarName.FirstLocal,
+                                                               resourceLocalVarValue);
+                    output =
+                        $@"{resourceInit}
+                        try
+                        {{
+                            {tryBlockCode}
+                        }}
+                        catch(System.IO.IOException e)
+                        {{
+                            Console.WriteLine(e.Message);
+                        }}
+                        finally
+                        {{
+                            {disposeResource}
+                        }}";
+                    break;
+                case BlockKind.NestedTryCatchFinally:
+                    if (resourceLocalVarType != VarType.None)
+                    {
+                        resourceInit += Assign(VarName.FirstLocal, "null");
+                    }
+                    if (disposeResource == null)
+                    {
+                        disposeResource = "";
+                    }
+                    tryBlockCode =
+                        resourceLocalVarValue == null ? string.Empty
+                                                      : Assign(VarName.FirstLocal,
+                                                               resourceLocalVarValue);
+                    output =
+                        $@"{resourceInit}
+                        try
+                        {{
+                            try
+                            {{
+                                {tryBlockCode}
+                            }}
+                            catch(System.IO.IOException e)
+                            {{
+                                Console.WriteLine(e.Message);
+                            }}
+                        }}
+                        catch(System.IO.IOException e)
+                        {{
+                            Console.WriteLine(e.Message);
+                        }}
+                        finally
+                        {{
+                            {disposeResource}
+                        }}";
+                    break;
+                case BlockKind.TryFilter:
+                    if (resourceLocalVarType != VarType.None)
+                    {
+                        resourceInit += Assign(VarName.FirstLocal, "null");
+                    }
+                    if (disposeResource == null)
+                    {
+                        disposeResource = "";
+                    }
+                    tryBlockCode =
+                        resourceLocalVarValue == null ? string.Empty
+                                                      : Assign(VarName.FirstLocal,
+                                                               resourceLocalVarValue);
+                    output =
+                        $@"{resourceInit}
+                        try
+                        {{
+                            try
+                            {{
+                                {tryBlockCode}
+                            }}
+                            catch(Exception e) when (e is System.IO.IOException)
+                            {{
+                                Console.WriteLine(e.Message);
+                            }}
+                        }}
+                        catch(System.IO.IOException e)
+                        {{
+                            Console.WriteLine(e.Message);
+                        }}
+                        finally
+                        {{
+                            {disposeResource}
+                        }}";
+                    break;
+                default:
+                    throw new NotImplementedException("Unhandled BlockState");
+
+            }
+
+            return output;
+        }
+
         /// <summary>
         /// Method for generating a string representation of a call to a non-TestClass method.
         /// </summary>
@@ -305,79 +478,6 @@ namespace Cilsil.Test.Assets
             var concatArgs = args == null ? string.Empty : string.Join(",", args);
             return GetString(callingVar) + "." + methodName +
                         "(" + concatArgs + ");\n";
-        }
-
-        /// <summary>
-        /// Method for validating exception handling block code.
-        /// </summary>
-        /// <param name="blockKind">The kind of the exception handling block used in the test case; 
-        /// for example, try-catch-finally or using.</param>
-        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
-        /// does not.</param>
-        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
-        /// does not.</param>
-        public static string InitBlock(BlockKind blockKind = BlockKind.None,
-                                     bool instantiateVariable = false,
-                                     bool closeStream = false)
-        {
-            string output;
-            switch (blockKind)
-            {
-                case BlockKind.None:
-                    output = String.Empty;
-                    break;
-
-                case BlockKind.Using:
-                    output = CallTestClassMethod(TestClassMethod.TestUsing, true);
-                    break;
-
-                case BlockKind.MultiVariableUsing:
-                    output = CallTestClassMethod(TestClassMethod.TestMultiVariableUsing, true);
-                    break;
-                
-                case BlockKind.TryCatchFinally:
-                    output = CallTestClassMethod(
-                        TestClassMethod.TestTryCatchFinally, 
-                        true,
-                        new string[]
-                        {
-                            instantiateVariable.ToString().ToLower(),
-                            closeStream.ToString().ToLower()
-                        }
-                    );
-                    break;
-
-                case BlockKind.NestedTryCatchFinally:
-                    output = CallTestClassMethod(
-                        TestClassMethod.TestNestedTryCatchFinally, 
-                        true,
-                        new string[]
-                        {
-                            instantiateVariable.ToString().ToLower(),
-                            closeStream.ToString().ToLower()
-                        }
-                    );
-                    break;
-
-                case BlockKind.TryFilter:
-                    output = CallTestClassMethod(
-                        TestClassMethod.TestTryFilter, 
-                        true,
-                        new string[]
-                        {
-                            instantiateVariable.ToString().ToLower(),
-                            closeStream.ToString().ToLower()
-                        }
-                    );
-                    break;
-
-                default:
-                    throw new NotImplementedException("Unhandled BlockState");
-
-            }
-
-            return output;
-
         }
 
         /// <summary>
@@ -515,30 +615,6 @@ namespace Cilsil.Test.Assets
                         throw new ArgumentException("TestBox requires 1 argument.");
                     }
                     return GetMethodCall(true);
-                case TestClassMethod.TestTryCatchFinally:
-                    if (args == null || args.Length != 2)
-                    {
-                        throw new ArgumentException("TestTryCatchFinally requires 2 arguments.");
-                    }
-                    return GetMethodCall(true);
-                case TestClassMethod.TestTryFilter:
-                    if (args == null || args.Length != 2)
-                    {
-                        throw new ArgumentException("TestTryCatchFinally requires 2 arguments.");
-                    }
-                    return GetMethodCall(true);
-                case TestClassMethod.TestMultiVariableUsing:
-                    if (args != null)
-                    {
-                        throw new ArgumentException("TestMultiVariableUsing requires no argument.");
-                    }
-                    return GetMethodCall(true);
-                case TestClassMethod.TestNestedTryCatchFinally:
-                    if (args == null || args.Length != 2)
-                    {
-                        throw new ArgumentException("TestNestedTryCatchFinally requires 2 arguments.");
-                    }
-                    return GetMethodCall(true);
                 case TestClassMethod.TestIsInst:
                     if (args == null || args.Length != 1)
                     {
@@ -549,12 +625,6 @@ namespace Cilsil.Test.Assets
                     if (args == null || args.Length != 2)
                     {
                         throw new ArgumentException("TestStarg requires 2 arguments");
-                    }
-                    return GetMethodCall(true);
-                case TestClassMethod.TestUsing:
-                    if (args != null)
-                    {
-                        throw new ArgumentException("TestUsing requires no argument.");
                     }
                     return GetMethodCall(true);
                 default:

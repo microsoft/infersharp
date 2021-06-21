@@ -199,7 +199,15 @@ namespace Cilsil.Test.E2E
                                                   bool closeStream,
                                                   InferError expectedError)
         {
-            TestRunManager.Run(InitBlock(blockKind, true, closeStream),
+            TestRunManager.Run(InitBlock(resourceLocalVarType: VarType.StreamReader,
+                                resourceLocalVarValue: CallTestClassMethod(
+                                    TestClassMethod.ReturnInitializedStreamReader,
+                                    false),
+                                disposeResource: (closeStream ? CallMethod(
+                                                    VarName.FirstLocal,
+                                                    "Close")
+                                                : string.Empty),
+                                blockKind: blockKind),
                                GetString(expectedError));
         }
 
@@ -207,17 +215,26 @@ namespace Cilsil.Test.E2E
         /// Validates that a null dereference on a variable in exception handling blocks 
         /// is identified. 
         /// </summary>
-        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
+        /// <param name="initVar">If <c>true</c>, instantiates the variable; otherwise,
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
         [DataRow(false, InferError.NULL_DEREFERENCE)]
         [DataTestMethod]
-        public void NullDereferenceExceptionHandling(bool instantiateVariable,
+        public void NullDereferenceExceptionHandling(bool initVar,
                                                      InferError expectedError)
         {
-            TestRunManager.Run(InitBlock(BlockKind.TryCatchFinally, instantiateVariable, true),
-                               GetString(expectedError));
+            TestRunManager.Run(InitBlock(resourceLocalVarType: VarType.StreamReader,
+                                resourceLocalVarValue: (
+                                    initVar ? CallTestClassMethod(
+                                                TestClassMethod.ReturnInitializedStreamReader,
+                                                false)
+                                            : null),
+                                disposeResource: CallMethod(
+                                                    VarName.FirstLocal,
+                                                    "Close"),
+                                blockKind: BlockKind.TryCatchFinally),
+                                GetString(expectedError));
         }
 
         /// <summary>

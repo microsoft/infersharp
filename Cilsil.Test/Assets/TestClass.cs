@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-using System;
 using System.IO;
 
 namespace Cilsil.Test.Assets
@@ -107,22 +106,12 @@ namespace Cilsil.Test.Assets
         /// This method closes the given StreamReader.
         /// </summary>
         /// <param name="stream">StreamReader to be closed.</param>
-        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
-        /// does not.</param>
-        public static void CloseStream(StreamReader stream, bool closeStream = true)
-        {
-            if (closeStream)
-            {
-                stream.Close();
-            }
-        }
+        public static void CloseStream(StreamReader stream) => stream.Close();
 
         /// <summary>
         /// This method returns an initialized StreamReader.
         /// </summary>
-        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
-        /// does not.</param>
-        public static StreamReader ReturnInitializedStreamReader(bool instantiateVariable = true) => instantiateVariable ? new StreamReader(string.Empty) : null;
+        public static StreamReader ReturnInitializedStreamReader() => new StreamReader(string.Empty);
 
         /// <summary>
         /// This method returns an initialized MemoryStream.
@@ -264,117 +253,6 @@ namespace Cilsil.Test.Assets
             else
             {
                 return new TestClass();
-            }
-        }
-
-        /// <summary>
-        /// This method is used for the validation of multi-variable Using block support. 
-        /// </summary>
-        public static void TestMultiVariableUsing()
-        {
-            using(var streamReader1 = TestClass.ReturnInitializedStreamReader())
-            using(var streamReader2 = TestClass.ReturnInitializedStreamReader())
-            {
-
-            }
-        }
-
-        /// <summary>
-        /// This method is used for the validation of nested try-catch-finally block support. 
-        /// </summary>
-        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
-        /// does not.</param>
-        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
-        /// does not.</param>
-        public static void TestNestedTryCatchFinally(bool instantiateVariable = true, 
-                                                     bool closeStream = true)
-        {
-            StreamReader streamReader = null;
-            try
-            {
-                try
-                {
-                    streamReader = TestClass.ReturnInitializedStreamReader(instantiateVariable);
-                }
-                catch(IOException e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-            catch(IOException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            finally
-            {
-                TestClass.CloseStream(streamReader, closeStream);
-            }
-        }
-
-        /// <summary>
-        /// This method is used for the validation of try-catch-finally block support. 
-        /// </summary>
-        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
-        /// does not.</param>
-        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
-        /// does not.</param>
-        public static void TestTryCatchFinally(bool instantiateVariable = true, 
-                                               bool closeStream = true)
-        {
-            StreamReader streamReader = null;
-            try
-            {
-                streamReader = TestClass.ReturnInitializedStreamReader(instantiateVariable);
-            }
-            catch(IOException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            finally
-            {
-                TestClass.CloseStream(streamReader, closeStream);
-            }
-        }
-
-        /// <summary>
-        /// This method is used for the validation of try-filter block support. 
-        /// </summary>
-        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
-        /// does not.</param>
-        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
-        /// does not.</param>
-        public static void TestTryFilter(bool instantiateVariable = true, bool closeStream = true)
-        {
-            StreamReader streamReader = null;
-            try
-            {
-                try
-                {
-                    streamReader = TestClass.ReturnInitializedStreamReader(instantiateVariable);
-                }
-                catch(Exception e) when (e is IOException)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-            catch(IOException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            finally
-            {
-                TestClass.CloseStream(streamReader, closeStream);
-            }
-        }
-
-        /// <summary>
-        /// This method is used for the validation of Using block support. 
-        /// </summary>
-        public static void TestUsing()
-        {
-            using(var streamReader = TestClass.ReturnInitializedStreamReader())
-            {
-
             }
         }
     }
