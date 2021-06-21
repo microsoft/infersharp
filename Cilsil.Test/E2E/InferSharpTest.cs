@@ -199,15 +199,7 @@ namespace Cilsil.Test.E2E
                                                   bool closeStream,
                                                   InferError expectedError)
         {
-            TestRunManager.Run(CallTestClassMethod(
-                                TestClassMethod.TestExceptionHandlingBlocks,
-                                true,
-                                new string[]
-                                {
-                                    "Utils.BlockKind." + blockKind.ToString(),
-                                    true.ToString().ToLower(),
-                                    closeStream.ToString().ToLower()
-                                }),
+            TestRunManager.Run(InitBlock(blockKind, true, closeStream),
                                GetString(expectedError));
         }
 
@@ -215,24 +207,16 @@ namespace Cilsil.Test.E2E
         /// Validates that a null dereference on a variable in exception handling blocks 
         /// is identified. 
         /// </summary>
-        /// <param name="instantVar">If <c>true</c>, instantiates the variable; otherwise,
+        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
         [DataRow(false, InferError.NULL_DEREFERENCE)]
         [DataTestMethod]
-        public void NullDereferenceExceptionHandling(bool instantVar,
+        public void NullDereferenceExceptionHandling(bool instantiateVariable,
                                                      InferError expectedError)
         {
-            TestRunManager.Run(CallTestClassMethod(
-                                TestClassMethod.TestExceptionHandlingBlocks,
-                                true,
-                                new string[]
-                                {
-                                    "Utils.BlockKind." + BlockKind.TryCatchFinally.ToString(),
-                                    instantVar.ToString().ToLower(),
-                                    true.ToString().ToLower()
-                                }),
+            TestRunManager.Run(InitBlock(BlockKind.TryCatchFinally, instantiateVariable, true),
                                GetString(expectedError));
         }
 

@@ -258,110 +258,130 @@ namespace Cilsil.Test.Assets
         }
 
         /// <summary>
-        /// This method is used for the validation of exception handling support. 
+        /// This method is used for the validation of multi-variable Using block support. 
         /// </summary>
-        /// <param name="blockKind">The kind of the exception handling block used in the test case; 
-        /// for example, try-catch-finally or using.</param>
-        /// <param name="instantVar">If <c>true</c>, instantiates the variable; otherwise,
+        public static void TestMultiVariableUsing()
+        {
+            using(var streamReader1 = TestClass.ReturnInitializedStreamReader())
+            using(var streamReader2 = TestClass.ReturnInitializedStreamReader())
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// This method is used for the validation of nested try-catch-finally block support. 
+        /// </summary>
+        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
         /// does not.</param>
         /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
         /// does not.</param>
-        public static void TestExceptionHandlingBlocks(Utils.BlockKind blockKind, bool instantVar, bool closeStream)
+        public static void TestNestedTryCatchFinally(bool instantiateVariable = true, 
+                                                     bool closeStream = true)
         {
             StreamReader streamReader = null;
-            switch (blockKind)
+            try
             {
-                case Utils.BlockKind.MultiVariableUsing:
-                    using(streamReader = TestClass.ReturnInitializedStreamReader())
-                    using(var streamReader2 = TestClass.ReturnInitializedStreamReader())
+                try
+                {
+                    if (instantiateVariable)
                     {
+                        streamReader = TestClass.ReturnInitializedStreamReader();
+                    }
+                }
+                catch(IOException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+            catch(IOException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                if (closeStream)
+                {
+                    TestClass.CloseStream(streamReader);
+                }
+            }
+        }
 
-                    }
-                    break;
-                case Utils.BlockKind.NestedTryCatchFinally:
-                    try
-                    {
-                        try
-                        {
-                            if (instantVar)
-                            {
-                                streamReader = TestClass.ReturnInitializedStreamReader();
-                            }
-                        }
-                        catch(System.IO.IOException e)
-                        {
-                            Console.WriteLine(e.Message);
-                        }
-                    }
-                    catch(System.IO.IOException e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                    finally
-                    {
-                        if (closeStream)
-                        {
-                            TestClass.CloseStream(streamReader);
-                        }
-                    }
-                    break;
-                case Utils.BlockKind.None:
-                    break;
-                case Utils.BlockKind.TryCatchFinally:
-                    try
-                    {
-                        if (instantVar)
-                        {
-                            streamReader = TestClass.ReturnInitializedStreamReader();
-                        }
-                    }
-                    catch(System.IO.IOException e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                    finally
-                    {
-                        if (closeStream)
-                        {
-                            TestClass.CloseStream(streamReader);
-                        }
-                    }
-                    break;
-                case Utils.BlockKind.TryFilter:
-                    try
-                    {
-                        try
-                        {
-                            if (instantVar)
-                            {
-                                streamReader = TestClass.ReturnInitializedStreamReader();
-                            }
-                        }
-                        catch(Exception e) when (e is System.IO.IOException)
-                        {
-                            Console.WriteLine(e.Message);
-                        }
-                    }
-                    catch(System.IO.IOException e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                    finally
-                    {
-                        if (closeStream)
-                        {
-                            TestClass.CloseStream(streamReader);
-                        }
-                    };
-                    break;
-                case Utils.BlockKind.Using:
-                    using(streamReader = TestClass.ReturnInitializedStreamReader())
-                    {
+        /// <summary>
+        /// This method is used for the validation of try-catch-finally block support. 
+        /// </summary>
+        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
+        /// does not.</param>
+        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
+        /// does not.</param>
+        public static void TestTryCatchFinally(bool instantiateVariable = true, 
+                                               bool closeStream = true)
+        {
+            StreamReader streamReader = null;
+            try
+            {
+                if (instantiateVariable)
+                {
+                    streamReader = TestClass.ReturnInitializedStreamReader();
+                }
+            }
+            catch(IOException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                if (closeStream)
+                {
+                    TestClass.CloseStream(streamReader);
+                }
+            }
+        }
 
+        /// <summary>
+        /// This method is used for the validation of try-filter block support. 
+        /// </summary>
+        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
+        /// does not.</param>
+        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
+        /// does not.</param>
+        public static void TestTryFilter(bool instantiateVariable = true, bool closeStream = true)
+        {
+            StreamReader streamReader = null;
+            try
+            {
+                try
+                {
+                    if (instantiateVariable)
+                    {
+                        streamReader = TestClass.ReturnInitializedStreamReader();
                     }
-                    break;
-                default:
-                    throw new NotImplementedException("Unhandled BlockState");
+                }
+                catch(Exception e) when (e is IOException)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+            catch(IOException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                if (closeStream)
+                {
+                    TestClass.CloseStream(streamReader);
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method is used for the validation of Using block support. 
+        /// </summary>
+        public static void TestUsing()
+        {
+            using(var streamReader = TestClass.ReturnInitializedStreamReader())
+            {
 
             }
         }

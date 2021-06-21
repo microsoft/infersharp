@@ -84,9 +84,13 @@ namespace Cilsil.Test.Assets
             ReturnOneDimArray,
             ReturnTwoDimArray,
             TestBox,
-            TestExceptionHandlingBlocks,
             TestIsInst,
+            TestMultiVariableUsing,
+            TestNestedTryCatchFinally,
             TestStarg,
+            TestTryCatchFinally,
+            TestTryFilter,
+            TestUsing,
         }
 
         /// <summary>
@@ -304,6 +308,79 @@ namespace Cilsil.Test.Assets
         }
 
         /// <summary>
+        /// Method for validating exception handling block code.
+        /// </summary>
+        /// <param name="blockKind">The kind of the exception handling block used in the test case; 
+        /// for example, try-catch-finally or using.</param>
+        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
+        /// does not.</param>
+        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
+        /// does not.</param>
+        public static string InitBlock(BlockKind blockKind = BlockKind.None,
+                                     bool instantiateVariable = false,
+                                     bool closeStream = false)
+        {
+            string output;
+            switch (blockKind)
+            {
+                case BlockKind.None:
+                    output = String.Empty;
+                    break;
+
+                case BlockKind.Using:
+                    output = CallTestClassMethod(TestClassMethod.TestUsing, true);
+                    break;
+
+                case BlockKind.MultiVariableUsing:
+                    output = CallTestClassMethod(TestClassMethod.TestMultiVariableUsing, true);
+                    break;
+                
+                case BlockKind.TryCatchFinally:
+                    output = CallTestClassMethod(
+                        TestClassMethod.TestTryCatchFinally, 
+                        true,
+                        new string[]
+                        {
+                            instantiateVariable.ToString().ToLower(),
+                            closeStream.ToString().ToLower()
+                        }
+                    );
+                    break;
+
+                case BlockKind.NestedTryCatchFinally:
+                    output = CallTestClassMethod(
+                        TestClassMethod.TestNestedTryCatchFinally, 
+                        true,
+                        new string[]
+                        {
+                            instantiateVariable.ToString().ToLower(),
+                            closeStream.ToString().ToLower()
+                        }
+                    );
+                    break;
+
+                case BlockKind.TryFilter:
+                    output = CallTestClassMethod(
+                        TestClassMethod.TestTryFilter, 
+                        true,
+                        new string[]
+                        {
+                            instantiateVariable.ToString().ToLower(),
+                            closeStream.ToString().ToLower()
+                        }
+                    );
+                    break;
+
+                default:
+                    throw new NotImplementedException("Unhandled BlockState");
+
+            }
+
+            return output;
+
+        }
+
+        /// <summary>
         /// Method for generating a string representation of a returned variable.
         /// </summary>
         /// <param name="returnedVar">The variable that is returned in this statement.</param>
@@ -438,10 +515,28 @@ namespace Cilsil.Test.Assets
                         throw new ArgumentException("TestBox requires 1 argument.");
                     }
                     return GetMethodCall(true);
-                case TestClassMethod.TestExceptionHandlingBlocks:
-                    if (args == null || args.Length != 3)
+                case TestClassMethod.TestTryCatchFinally:
+                    if (args == null || args.Length != 2)
                     {
-                        throw new ArgumentException("TestExceptionHandlingBlocks requires 3 arguments.");
+                        throw new ArgumentException("TestTryCatchFinally requires 2 arguments.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.TestTryFilter:
+                    if (args == null || args.Length != 2)
+                    {
+                        throw new ArgumentException("TestTryCatchFinally requires 2 arguments.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.TestMultiVariableUsing:
+                    if (args != null)
+                    {
+                        throw new ArgumentException("TestMultiVariableUsing requires no argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.TestNestedTryCatchFinally:
+                    if (args == null || args.Length != 2)
+                    {
+                        throw new ArgumentException("TestNestedTryCatchFinally requires 2 arguments.");
                     }
                     return GetMethodCall(true);
                 case TestClassMethod.TestIsInst:
@@ -454,6 +549,12 @@ namespace Cilsil.Test.Assets
                     if (args == null || args.Length != 2)
                     {
                         throw new ArgumentException("TestStarg requires 2 arguments");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.TestUsing:
+                    if (args != null)
+                    {
+                        throw new ArgumentException("TestUsing requires no argument.");
                     }
                     return GetMethodCall(true);
                 default:
