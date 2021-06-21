@@ -192,22 +192,22 @@ namespace Cilsil.Test.E2E
         [DataRow(BlockKind.TryCatchFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataRow(BlockKind.NestedTryCatchFinally, true, InferError.None)]
         [DataRow(BlockKind.NestedTryCatchFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
-        [DataRow(BlockKind.TryCatchWhenFinally, true, InferError.None)]
-        [DataRow(BlockKind.TryCatchWhenFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataRow(BlockKind.TryFilter, true, InferError.None)]
+        [DataRow(BlockKind.TryFilter, false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakExceptionHandling(BlockKind blockKind,
                                                   bool closeStream,
                                                   InferError expectedError)
         {
-            TestRunManager.Run(InitBlock(resourceLocalVarType: VarType.StreamReader,
-                                resourceLocalVarValue: CallTestClassMethod(
-                                    TestClassMethod.ReturnInitializedStreamReader,
-                                    false),
-                                disposeResource: (closeStream ? CallMethod(
-                                                    VarName.FirstLocal,
-                                                    "Close")
-                                                : string.Empty),
-                                blockKind: blockKind),
+            TestRunManager.Run(CallTestClassMethod(
+                                TestClassMethod.TestExceptionHandlingBlocks,
+                                true,
+                                new string[]
+                                {
+                                    "Utils.BlockKind." + blockKind.ToString(),
+                                    true.ToString().ToLower(),
+                                    closeStream.ToString().ToLower()
+                                }),
                                GetString(expectedError));
         }
 
@@ -215,26 +215,25 @@ namespace Cilsil.Test.E2E
         /// Validates that a null dereference on a variable in exception handling blocks 
         /// is identified. 
         /// </summary>
-        /// <param name="initVar">If <c>true</c>, instantiates the variable; otherwise,
+        /// <param name="instantVar">If <c>true</c>, instantiates the variable; otherwise,
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
         [DataRow(false, InferError.NULL_DEREFERENCE)]
         [DataTestMethod]
-        public void NullDereferenceExceptionHandling(bool initVar,
+        public void NullDereferenceExceptionHandling(bool instantVar,
                                                      InferError expectedError)
         {
-            TestRunManager.Run(InitBlock(resourceLocalVarType: VarType.StreamReader,
-                                resourceLocalVarValue: (
-                                    initVar ? CallTestClassMethod(
-                                                TestClassMethod.ReturnInitializedStreamReader,
-                                                false)
-                                            : null),
-                                disposeResource: CallMethod(
-                                                    VarName.FirstLocal,
-                                                    "Close"),
-                                blockKind: BlockKind.TryCatchFinally),
-                                GetString(expectedError));
+            TestRunManager.Run(CallTestClassMethod(
+                                TestClassMethod.TestExceptionHandlingBlocks,
+                                true,
+                                new string[]
+                                {
+                                    "Utils.BlockKind." + BlockKind.TryCatchFinally.ToString(),
+                                    instantVar.ToString().ToLower(),
+                                    true.ToString().ToLower()
+                                }),
+                               GetString(expectedError));
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+using System;
 using System.IO;
 
 namespace Cilsil.Test.Assets
@@ -253,6 +254,115 @@ namespace Cilsil.Test.Assets
             else
             {
                 return new TestClass();
+            }
+        }
+
+        /// <summary>
+        /// This method is used for the validation of exception handling support. 
+        /// </summary>
+        /// <param name="blockKind">The kind of the exception handling block used in the test case; 
+        /// for example, try-catch-finally or using.</param>
+        /// <param name="instantVar">If <c>true</c>, instantiates the variable; otherwise,
+        /// does not.</param>
+        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
+        /// does not.</param>
+        public static void TestExceptionHandlingBlocks(Utils.BlockKind blockKind, bool instantVar, bool closeStream)
+        {
+            StreamReader streamReader = null;
+            switch (blockKind)
+            {
+                case Utils.BlockKind.MultiVariableUsing:
+                    using(streamReader = TestClass.ReturnInitializedStreamReader())
+                    using(var streamReader2 = TestClass.ReturnInitializedStreamReader())
+                    {
+
+                    }
+                    break;
+                case Utils.BlockKind.NestedTryCatchFinally:
+                    try
+                    {
+                        try
+                        {
+                            if (instantVar)
+                            {
+                                streamReader = TestClass.ReturnInitializedStreamReader();
+                            }
+                        }
+                        catch(System.IO.IOException e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
+                    }
+                    catch(System.IO.IOException e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                    finally
+                    {
+                        if (closeStream)
+                        {
+                            TestClass.CloseStream(streamReader);
+                        }
+                    }
+                    break;
+                case Utils.BlockKind.None:
+                    break;
+                case Utils.BlockKind.TryCatchFinally:
+                    try
+                    {
+                        if (instantVar)
+                        {
+                            streamReader = TestClass.ReturnInitializedStreamReader();
+                        }
+                    }
+                    catch(System.IO.IOException e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                    finally
+                    {
+                        if (closeStream)
+                        {
+                            TestClass.CloseStream(streamReader);
+                        }
+                    }
+                    break;
+                case Utils.BlockKind.TryFilter:
+                    try
+                    {
+                        try
+                        {
+                            if (instantVar)
+                            {
+                                streamReader = TestClass.ReturnInitializedStreamReader();
+                            }
+                        }
+                        catch(Exception e) when (e is System.IO.IOException)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
+                    }
+                    catch(System.IO.IOException e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                    finally
+                    {
+                        if (closeStream)
+                        {
+                            TestClass.CloseStream(streamReader);
+                        }
+                    };
+                    break;
+                case Utils.BlockKind.Using:
+                    using(streamReader = TestClass.ReturnInitializedStreamReader())
+                    {
+
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException("Unhandled BlockState");
+
             }
         }
     }
