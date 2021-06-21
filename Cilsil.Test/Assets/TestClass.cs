@@ -107,12 +107,22 @@ namespace Cilsil.Test.Assets
         /// This method closes the given StreamReader.
         /// </summary>
         /// <param name="stream">StreamReader to be closed.</param>
-        public static void CloseStream(StreamReader stream) => stream.Close();
+        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
+        /// does not.</param>
+        public static void CloseStream(StreamReader stream, bool closeStream = true)
+        {
+            if (closeStream)
+            {
+                stream.Close();
+            }
+        }
 
         /// <summary>
         /// This method returns an initialized StreamReader.
         /// </summary>
-        public static StreamReader ReturnInitializedStreamReader() => new StreamReader(string.Empty);
+        /// <param name="instantiateVariable">If <c>true</c>, instantiates the variable; otherwise,
+        /// does not.</param>
+        public static StreamReader ReturnInitializedStreamReader(bool instantiateVariable = true) => instantiateVariable ? new StreamReader(string.Empty) : null;
 
         /// <summary>
         /// This method returns an initialized MemoryStream.
@@ -284,10 +294,7 @@ namespace Cilsil.Test.Assets
             {
                 try
                 {
-                    if (instantiateVariable)
-                    {
-                        streamReader = TestClass.ReturnInitializedStreamReader();
-                    }
+                    streamReader = TestClass.ReturnInitializedStreamReader(instantiateVariable);
                 }
                 catch(IOException e)
                 {
@@ -300,10 +307,7 @@ namespace Cilsil.Test.Assets
             }
             finally
             {
-                if (closeStream)
-                {
-                    TestClass.CloseStream(streamReader);
-                }
+                TestClass.CloseStream(streamReader, closeStream);
             }
         }
 
@@ -320,10 +324,7 @@ namespace Cilsil.Test.Assets
             StreamReader streamReader = null;
             try
             {
-                if (instantiateVariable)
-                {
-                    streamReader = TestClass.ReturnInitializedStreamReader();
-                }
+                streamReader = TestClass.ReturnInitializedStreamReader(instantiateVariable);
             }
             catch(IOException e)
             {
@@ -331,10 +332,7 @@ namespace Cilsil.Test.Assets
             }
             finally
             {
-                if (closeStream)
-                {
-                    TestClass.CloseStream(streamReader);
-                }
+                TestClass.CloseStream(streamReader, closeStream);
             }
         }
 
@@ -352,10 +350,7 @@ namespace Cilsil.Test.Assets
             {
                 try
                 {
-                    if (instantiateVariable)
-                    {
-                        streamReader = TestClass.ReturnInitializedStreamReader();
-                    }
+                    streamReader = TestClass.ReturnInitializedStreamReader(instantiateVariable);
                 }
                 catch(Exception e) when (e is IOException)
                 {
@@ -368,10 +363,7 @@ namespace Cilsil.Test.Assets
             }
             finally
             {
-                if (closeStream)
-                {
-                    TestClass.CloseStream(streamReader);
-                }
+                TestClass.CloseStream(streamReader, closeStream);
             }
         }
 
