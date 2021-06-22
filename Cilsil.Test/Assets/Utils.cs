@@ -19,7 +19,7 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various kinds of exception handling blocks that appear in the tests.
         /// </summary>
-        public enum BlockKind { None, Using, MultiVariableUsing, TryCatchFinally, NestedTryCatchFinally, TryCatchWhenFinally };
+        public enum BlockKind { None, Using, MultiVariableUsing, TryCatchFinally, NestedTryCatchFinally, TryFilter };
 
         /// <summary>
         /// The various kinds of Severity that appear in the tests.
@@ -68,6 +68,7 @@ namespace Cilsil.Test.Assets
         public enum TestClassMethod
         {
             None,
+            CloseStream,
             ExpectNonNullParam,
             ReturnNullOnFalse,
             IncrementRefParameter,
@@ -78,14 +79,13 @@ namespace Cilsil.Test.Assets
             InitializeStreamReaderObjectField,
             InitializeInstanceObjectFieldViaReference,
             ReturnElementFromInstanceArrayField,
+            ReturnInitializedStreamReader,
+            ReturnInitializedMemoryStream,
             ReturnOneDimArray,
             ReturnTwoDimArray,
             TestBox,
             TestIsInst,
             TestStarg,
-            CloseStream,
-            ReturnInitializedStreamReader,
-            ReturnInitializedMemoryStream
         }
 
         /// <summary>
@@ -421,7 +421,7 @@ namespace Cilsil.Test.Assets
                             {disposeResource}
                         }}";
                     break;
-                case BlockKind.TryCatchWhenFinally:
+                case BlockKind.TryFilter:
                     if (resourceLocalVarType != VarType.None)
                     {
                         resourceInit += Assign(VarName.FirstLocal, "null");

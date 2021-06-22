@@ -192,8 +192,8 @@ namespace Cilsil.Test.E2E
         [DataRow(BlockKind.TryCatchFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataRow(BlockKind.NestedTryCatchFinally, true, InferError.None)]
         [DataRow(BlockKind.NestedTryCatchFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
-        [DataRow(BlockKind.TryCatchWhenFinally, true, InferError.None)]
-        [DataRow(BlockKind.TryCatchWhenFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataRow(BlockKind.TryFilter, true, InferError.None)]
+        [DataRow(BlockKind.TryFilter, false, InferError.DOTNET_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakExceptionHandling(BlockKind blockKind,
                                                   bool closeStream,

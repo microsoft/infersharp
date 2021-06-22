@@ -141,7 +141,7 @@ namespace Cilsil.Services
                 }
                 catch (Exception e)
                 {
-                    Log.WriteError($"Exception on processing exception handling blocks: {e.Message}.");
+                    Log.WriteWarning($"Exception on processing exception handling blocks: {e.Message}.");
                     continue;
                 }
                 if (exceptionHandlingBlockStartOffset != -1)
