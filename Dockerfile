@@ -82,6 +82,7 @@ RUN dotnet publish -c Release Cilsil/Cilsil.csproj -r ubuntu.16.10-x64
 RUN dotnet build Examples/Examples/Examples.csproj
 
 FROM debian:bullseye-slim AS release
+RUN apt-get update && apt-get install --yes --no-install-recommends curl ca-certificates
 WORKDIR infersharp
 COPY --from=backend /infer-release/usr/local /infersharp/infer
 ENV PATH /infersharp/infer/bin:${PATH}
