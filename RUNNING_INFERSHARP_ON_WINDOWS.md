@@ -3,7 +3,7 @@
 ## Prerequisite
 - [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
-*We recommend using either Ubuntu or Debian WSL distribution.*
+*We recommend using either the Ubuntu WSL distribution or the Debian WSL distribution.*
 
 ## Setup
 1. Download the Infer# binaries from the [latest release page](https://github.com/microsoft/infersharp/releases).
