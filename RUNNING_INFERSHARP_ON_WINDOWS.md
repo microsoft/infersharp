@@ -10,7 +10,7 @@
 2. From Windows Command Prompt or PowerShell, enter ```wsl.exe``` to open your default Linux distribution.
 3. Copy the _infersharp_ folder to _/home/<YOUR_USERNAME>_ and create a symlink for future use.
 
-**Important** - Because of a known performance issue on slow I/O between Windows and Linux file systems, copy the binaries only to Linux file system.
+**Important** - Because of a known performance issue on slow I/O between Windows and Linux file systems, copy the binaries only to the Linux file system.
 
 ```
 cp -r <FOLDER_PATH_TO_INFERSHARP_BINARIES> ~
