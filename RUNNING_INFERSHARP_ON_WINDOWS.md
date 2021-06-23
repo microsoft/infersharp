@@ -2,13 +2,16 @@
 
 ## Prerequisite
 - [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
-*We recommend using Ubuntu or Debian WSL distribution.*
+
+*We recommend using either Ubuntu or Debian WSL distribution.*
 
 ## Setup
 1. Download the Infer# binaries from the [latest release page](https://github.com/microsoft/infersharp/releases).
-2. From Windows Command Prompt or PowerShell, enter: ```wsl.exe``` to open your default Linux distribution.
+2. From Windows Command Prompt or PowerShell, enter ```wsl.exe``` to open your default Linux distribution.
 3. Copy the _infersharp_ folder to _/home/<YOUR_USERNAME>_ and create a symlink for future use.
-**Important** - Because of a known performance issue on slow I/O between Windows and Linux file systems, please make sure you copy the binaries to only Linux file system.
+
+**Important** - Because of a known performance issue on slow I/O between Windows and Linux file systems, copy the binaries only to Linux file system.
+
 ```
 cp -r <FOLDER_PATH_TO_INFERSHARP_BINARIES> ~
 cd /home/<YOUR_USERNAME>/infersharp/
@@ -29,7 +32,7 @@ The folder structure should look like this:
 ./run_infersharp.sh Examples/
 ```
 
-## Use Infer# on your own code
+## Using Infer# on Your Own Code
 Navigate to the Infer# binaries:
 ```
 cd /home/<YOUR_USERNAME>/infersharp/
