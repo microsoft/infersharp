@@ -19,7 +19,8 @@ namespace Cilsil.Cil.Parsers
 
                     state.AppendToPreviousNode = false;
 
-                    if (targetTrue.Offset != nextInstruction.Offset)
+                    if (targetTrue.Offset != nextInstruction.Offset &&
+                        state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset))
                     {
                         state.PushRetExpr();
                         state.PushInstruction(nextInstruction);
