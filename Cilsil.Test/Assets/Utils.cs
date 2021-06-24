@@ -225,14 +225,6 @@ namespace Cilsil.Test.Assets
             $"{GetString(name)} = {value};\n";
 
         /// <summary>
-        /// Generates a string representation of a variable null check.
-        /// </summary>
-        /// <param name="name">The name of the variable that has null check.</param>
-        /// <returns>String representation of the null check statement.</returns>
-        public static string NullCheck(VarName name) =>
-            $"if ({GetString(name)} == null) {{ return; }}\n";
-
-        /// <summary>
         /// Generates a string representation of instantiating a new variable.
         /// </summary>
         /// <param name="type">The type of the variable being instantiated.</param>
@@ -319,15 +311,12 @@ namespace Cilsil.Test.Assets
         /// local resource.</param>
         /// <param name="blockKind">The kind of the exception handling block used in the test case; 
         /// for example, try-catch-finally or using.</param>
-        /// <param name="doNullCheck">If <c>true</c>, add the string representation of null check;
-        /// otherwise, does not.</param>
         /// <returns>String representing the set of statements in the exception handling 
         /// block.</returns>
         public static string InitBlock(VarType resourceLocalVarType = VarType.None,
                                        string resourceLocalVarValue = null,
                                        string disposeResource = null,
-                                       BlockKind blockKind = BlockKind.None,
-                                       bool doNullCheck = false)
+                                       BlockKind blockKind = BlockKind.None)
         {
             string output;
             var resourceInit = Declare(resourceLocalVarType, VarName.FirstLocal);
@@ -382,9 +371,6 @@ namespace Cilsil.Test.Assets
                         resourceLocalVarValue == null ? string.Empty
                                                       : Assign(VarName.FirstLocal,
                                                                resourceLocalVarValue);
-                    tryBlockCode += 
-                        doNullCheck ? NullCheck(VarName.FirstLocal)
-                                    : string.Empty;
                     output =
                         $@"{resourceInit}
                         try

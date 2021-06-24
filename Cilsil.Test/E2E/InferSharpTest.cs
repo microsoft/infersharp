@@ -238,26 +238,6 @@ namespace Cilsil.Test.E2E
         }
 
         /// <summary>
-        /// Validates that a null dereference on a variable in exception handling blocks
-        /// without null check is identified. 
-        /// </summary>
-        /// <param name="doNullCheck">If <c>true</c>, add null check block in try block; otherwise,
-        /// does not.</param>
-        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
-        [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.NULL_DEREFERENCE)]
-        [DataTestMethod]
-        public void NullDereferenceExceptionHandlingNullCheck(bool doNullCheck, InferError expectedError)
-        {
-            TestRunManager.Run(InitBlock(
-                                    resourceLocalVarType: VarType.StreamReader,
-                                    disposeResource: CallMethod(VarName.FirstLocal, "Close"),
-                                    blockKind: BlockKind.TryCatchFinally,
-                                    doNullCheck: doNullCheck),
-                               GetString(expectedError));
-        }
-
-        /// <summary>
         /// Validates that a dereference on a string variable initialized to null is identified.
         /// </summary>
         /// <param name="input">The string representing the value to assign.</param>
