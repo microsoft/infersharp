@@ -84,8 +84,8 @@ namespace Cilsil.Cil.Parsers
             {
                 // For if/else/loop branching, we add the binop expression in condition.
                 state.Pop();
-                state.PushExpr(value, new Tint(Tint.IntKind.IBool));
                 state.PushAndLoad(variableExpression, variableType);
+                state.PushExpr(value, new Tint(Tint.IntKind.IBool));
                 state.PushInstruction(instruction.Next);
                 return true;
             }
