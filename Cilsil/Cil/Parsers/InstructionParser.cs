@@ -139,9 +139,14 @@ namespace Cilsil.Cil.Parsers
         {
             state.Cfg.RegisterNode(node);
             if (inExceptionNodes)
-                state.PreviousNode.ExceptionNodes.Add(node);
+            {
+                state.AddOffsetToExceptionNodeMapping(node);
+            }
             else
+            {
+                state.AddNodeToExceptionNodeOffsetMapping(node);
                 state.PreviousNode.Successors.Add(node);
+            }
             if (RememberNodeOffset)
             {
                 state.SaveNodeOffset(node, PreviousProgramStack);
@@ -449,6 +454,22 @@ namespace Cilsil.Cil.Parsers
                                                   modifyInBlock: false,
                                                   isConstExpr: false));
             }
+        }
+
+        /// <summary>
+        /// Returns the registered type if the local variable is already registered to the proc 
+        /// attributes.
+        /// </summary>
+        /// <param name="state">Current program state.</param>
+        /// <param name="lvar">Variable to check.</param>
+        /// <returns>The type of the registered local variable; otherwise, returns null</returns>
+        protected Typ FindTypeOfLocalVariable(ProgramState state, LocalVariable lvar)
+        {
+            if (state.ProcDesc.PdAttributes.Locals.Any(l => l.Name == lvar.PvName))
+            {
+                return state.ProcDesc.PdAttributes.Locals.First(l => l.Name == lvar.PvName).Type;;
+            }
+            return null;
         }
     }
 }

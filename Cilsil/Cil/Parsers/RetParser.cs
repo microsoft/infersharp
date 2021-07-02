@@ -69,7 +69,14 @@ namespace Cilsil.Cil.Parsers
                                                         StatementNode.StatementNodeKind.ReturnStmt,
                                                         state.ProcDesc);
                         retNode.Instructions.Add(retInstr);
-                        retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
+                        if (returnValue is ExnExpression)
+                        {
+                            retNode.Successors = new List<CfgNode> { state.ProcDesc.ExceptionSinkNode };
+                        }
+                        else
+                        {
+                            retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
+                        }
                         RegisterNode(state, retNode);
                     }
                     return true;

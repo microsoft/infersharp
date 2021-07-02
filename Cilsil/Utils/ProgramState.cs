@@ -93,6 +93,12 @@ namespace Cilsil.Utils
         /// </summary>
         public Dictionary<int, BoxedValueType> VariableIndexToBoxedValueType { get; }
 
+        public Dictionary<int, CfgNode> OffsetToExceptionNode { get; }
+
+        public Dictionary<CfgNode, int> NodeToExceptionNodeOffset { get; }
+
+        private Dictionary<int, int> TryOffsetToCatchOffset;
+
         /// <summary>
         /// Previous expression registered by return node.
         /// </summary>
@@ -163,6 +169,9 @@ namespace Cilsil.Utils
                                          new LocalVariable(Identifier.ReturnIdentifier,
                                                            Method));
             PreviousReturnedType = Typ.FromTypeReference(Method.ReturnType);
+            OffsetToExceptionNode = new Dictionary<int, CfgNode>();
+            NodeToExceptionNodeOffset = new Dictionary<CfgNode, int>();
+            TryOffsetToCatchOffset = new Dictionary<int, int>();
         }
 
         /// <summary>
@@ -404,6 +413,28 @@ namespace Cilsil.Utils
             else
             {
                 return string.Empty;
+            }
+        }
+
+        public void RegisterTryBlockExceptionHandling(int tryStartOffset, int tryEndOffset, int exceptionBlockStartOffset)
+        {
+            foreach (int offset in Enumerable.Range(tryStartOffset, tryEndOffset - 1))
+            {
+                TryOffsetToCatchOffset[offset] = exceptionBlockStartOffset;
+            } 
+        }
+
+        public void AddOffsetToExceptionNodeMapping(CfgNode node)
+        {
+            OffsetToExceptionNode[CurrentInstruction.Offset] = node;
+        }
+
+        public void AddNodeToExceptionNodeOffsetMapping(CfgNode node)
+        {
+            if (TryOffsetToCatchOffset.ContainsKey(CurrentInstruction.Offset))
+            {
+                var exceptionNodeOffset = TryOffsetToCatchOffset[CurrentInstruction.Offset];
+                NodeToExceptionNodeOffset[node] = exceptionNodeOffset;
             }
         }
 
