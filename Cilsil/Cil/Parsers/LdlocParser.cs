@@ -61,9 +61,9 @@ namespace Cilsil.Cil.Parsers
 
             Expression value = null;
             Typ type = null;
-            if (state.GetDanglingConditionProgramStackCopy().Count > 0)
+            if (state.GetProgramStackCopy().Count > 0)
             {
-                (value, type) = state.DanglingConditionProgramStackPeek();
+                (value, type) = state.Peek();
             }
 
             // Updates the type to the appropriate boxed one if the variable contains a boxed
@@ -83,8 +83,9 @@ namespace Cilsil.Cil.Parsers
             else if (value != null && value is BinopExpression && type is Tptr)
             {
                 // For if/else/loop branching, we add the binop expression in condition.
-                state.PopConditionExpression();
-                state.PushConditionExpr(value, new Tint(Tint.IntKind.IBool));
+                state.Pop();
+                state.PushAndLoad(variableExpression, variableType);
+                state.PushExpr(value, new Tint(Tint.IntKind.IBool));
                 state.PushInstruction(instruction.Next);
                 return true;
             }

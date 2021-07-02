@@ -73,7 +73,7 @@ namespace Cilsil.Cil.Parsers
 
             if (value is BinopExpression && type is Tptr)
             {
-                state.PushConditionExpr(value, type);
+                state.PushExpr(value, type);
                 state.PushInstruction(instruction.Next);
             }
             else
