@@ -12,7 +12,10 @@ In addition to implementing the C# frontend, we contributed our [language-agnost
 
 ## Get Started
 
-The current version is ![GitHub release (latest by date)](https://img.shields.io/github/v/release/microsoft/infersharp). Please refer to the [release page](https://github.com/microsoft/infersharp/releases) for more information on the changes.
+The latest version is ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/microsoft/infersharp?include_prereleases). Please refer to the [release page](https://github.com/microsoft/infersharp/releases) for more information on the changes.
+
+### Windows Subsystem for Linux
+The instructions on how to run Infer# on Windows via WSL2 can be found [here](/RUNNING_INFERSHARP_ON_WINDOWS.md).
 
 ### GitHub Action
 The instructions on how to run Infer# as a GitHub Action can be found here: [Infer# Action](https://github.com/marketplace/actions/infersharp).
