@@ -107,6 +107,35 @@ namespace Cilsil.Utils
         private int NextAvailableTemporaryVariableId;
 
         /// <summary>
+        /// The next available integer identifier for synthetic variables. See 
+        /// <see cref="Identifier.SyntheticIdentifier"/> for more information.
+        /// </summary>
+        private int NextAvailableSyntheticVariableId;
+
+        /// <summary>
+        /// List of nodes to link to an exception block when a leave instruction is encountered. If
+        /// the translation state is not in a try or catch block, translated body nodes don't need 
+        /// to be recorded.
+        /// </summary>
+        public List<CfgNode> NodesToLinkWithExceptionBlock;
+
+        /// <summary>
+        /// <c>true</c> if the top instruction is in a try or catch block; <c>false</c> otherwise. 
+        /// </summary>
+        public bool InstructionInTryOrCatch;
+
+        /// <summary>
+        /// Maps each exception handler to the catch variable node through which entry blocks route
+        /// control flow. 
+        /// </summary>
+        public Dictionary<ExceptionHandler, CfgNode> ExceptionHandlerToCatchVarNode;
+
+        /// <summary>
+        /// Contains information about the program's exception handlers.
+        /// </summary>
+        public MethodExceptionHandlers MethodExceptionHandlers;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ProgramState"/> class.
         /// </summary>
         /// <param name="method">The method being translated.</param>
@@ -121,15 +150,21 @@ namespace Cilsil.Utils
             PreviousNode = ProcDesc.StartNode;
 
             CurrentLocation = Location.FromSequencePoint(
-                                        method.DebugInformation.SequencePoints.FirstOrDefault());
+                method.DebugInformation.SequencePoints.FirstOrDefault());
 
             InstructionsStack = new Stack<TranslationSnapshot>();
             ParsedInstructions = new List<Instruction>();
 
+            MethodExceptionHandlers = new MethodExceptionHandlers(method.Body);
+            NodesToLinkWithExceptionBlock = new List<CfgNode>();
+            InstructionInTryOrCatch = false;
+
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
+            ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, CfgNode>();
 
             NextAvailableTemporaryVariableId = 0;
+            NextAvailableSyntheticVariableId = 0;
         }
 
         /// <summary>
@@ -215,6 +250,13 @@ namespace Cilsil.Utils
             };
 
         /// <summary>
+        /// Retrieves a fresh synthetic variable name.
+        /// </summary>
+        /// <returns>The name.</returns>
+        public string GetSyntheticVariableName() => 
+            Identifier.SyntheticIdentifier + NextAvailableSyntheticVariableId++;
+
+        /// <summary>
         /// Pushes an expression and its type onto the stack.
         /// </summary>
         /// <param name="exp">The expression to push.</param>
@@ -266,7 +308,25 @@ namespace Cilsil.Utils
             (var right, var expressionType) = Pop();
             (var left, _) = Pop();
 
+            // Object-null checks are represented in CIL using Gt. In this case, binop kind should be 
+            // updated to Ne.
+            if (binopKind == BinopExpression.BinopKind.Gt &&
+                right.Equals(new ConstExpression(new IntRepresentation(0, false, true))))
+            {
+                binopKind = BinopExpression.BinopKind.Ne;
+            }
+
             return (new BinopExpression(binopKind, left, right), expressionType);
+        }
+
+        /// <summary>
+        /// Reinitializes the nodes to link with exception block. This should occur when either a
+        /// try block or a catch block is entered. The underlying list is null when nodes are not
+        /// to be recorded for exception-handler linking.
+        /// </summary>
+        public void ReinitializeNodesToLinkWithExceptionBlock()
+        {
+
         }
 
         /// <summary>
@@ -277,15 +337,20 @@ namespace Cilsil.Utils
         /// which to continue the translation from when translating the instruction. See 
         /// <see cref="PreviousNode"/> for more info. If this is not provided or is null, 
         /// <see cref="PreviousNode"/> is not updated.</param>
-        public void PushInstruction(Instruction instruction, CfgNode node = null) =>
+        public void PushInstruction(Instruction instruction, CfgNode node = null)
+        {
+            // Control flow can enter a try-block either by jump to the first instruction or
+            // fall-through from the previous one; we start to save the nodes if control flow
+            // transitions from unhandled code to handled code. 
             InstructionsStack.Push(
                 new TranslationSnapshot
                 {
                     Instruction = instruction,
                     PreviousNode = node ?? PreviousNode,
                     PreviousStack = ProgramStack.Clone(),
-                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId
+                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
                 });
+        }
 
         /// <summary>
         /// Pops an instruction to be parsed.

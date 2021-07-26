@@ -45,22 +45,36 @@ namespace Cilsil.Sil.Expressions
         /// Constructor for a [sizeof(typ)] kind of expression.
         /// </summary>
         /// <param name="type">The type of the expression.</param>
-        /// <param name="kind">The subtype; currently only "exact" (the current type) is 
-        /// supported.</param>
+        /// <param name="kind">The subtype.</param>
         /// <param name="dynamicLength">The number of elements stored in the array. Note that this 
         /// value, tracked by symbolic execution, may differ from the static length, for example 
         /// when the array is over-allocated. </param>
         /// <param name="numberBytes">The number of bytes returned by the evaluation of 
         /// [sizeof(typ)], where typ is the underlying data type, if this is statically known (is 
         /// null if it is not).</param>
-        public SizeofExpression(Typ type, string kind, Expression dynamicLength = null,
+        public SizeofExpression(Typ type, SizeofExpressionKind kind, Expression dynamicLength = null,
                                 int? numberBytes = null)
         {
             Type = type;
-            Kind = kind;
+            Kind = kind.ToString();
             NumberBytes = numberBytes;
             DynamicLength = dynamicLength;
         }
+
+        /// <summary>
+        /// The supported kinds of sizeof expressions. 
+        /// </summary>
+        public enum SizeofExpressionKind
+        {
+            /// <summary>
+            /// Denotes the current type only.
+            /// </summary>
+            exact,
+            /// <summary>
+            /// Denotes the current type and a list of types that are not their subtypes.
+            /// </summary>
+            instof
+        };
 
         /// <summary>
         /// Converts to string.

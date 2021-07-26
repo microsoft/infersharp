@@ -6,6 +6,7 @@ using Cilsil.Services.Results;
 using Cilsil.Sil;
 using Cilsil.Utils;
 using Mono.Cecil;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -88,7 +89,8 @@ namespace Cilsil.Services
 
             // True if the translation terminates early, false otherwise.
             var translationUnfinished = false;
-            if (!method.IsAbstract && methodBody.Instructions.Count > 0)
+
+                if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
                 programState.PushInstruction(methodBody.Instructions.First());
                 do
@@ -149,7 +151,7 @@ namespace Cilsil.Services
             }
         }
 
-        private void SetNodePredecessors(ProgramState programState)
+        private static void SetNodePredecessors(ProgramState programState)
         {
             var done = new HashSet<CfgNode>();
             var todo = new Queue<CfgNode>();
@@ -175,7 +177,7 @@ namespace Cilsil.Services
         /// Checks if the target method is a Dispose function.
         /// </summary>
         /// <param name="method">Target method to be checked.</param>
-        private bool IsDisposeFunction(MethodDefinition method)
+        private static bool IsDisposeFunction(MethodDefinition method)
         {
             return (method.Name.Equals("Dispose") || method.Name.Equals("System.IDisposable.Dispose"))
                 && method.ReturnType.FullName.Equals("System.Void");
