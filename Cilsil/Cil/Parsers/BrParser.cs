@@ -82,7 +82,6 @@ namespace Cilsil.Cil.Parsers
                     (conditionTrueExpression, conditionTrueExpressionType) =
                         state.PopTwoAndApplyBinop(BinopExpression.BinopKind.Ne);
                     break;
-
                 default:
                     return false;
             }

@@ -84,6 +84,12 @@ namespace Cilsil.Utils
         public Dictionary<int, BoxedValueType> VariableIndexToBoxedValueType { get; }
 
         /// <summary>
+        /// Tracks indices at which the expression stored is produced from the translation of the
+        /// isinst instruction.
+        /// </summary>
+        public HashSet<int> IndicesWithIsInstReturnType { get; }
+
+        /// <summary>
         /// True if there are remaining instructions to translate, and false otherwise.
         /// </summary>
         public bool HasInstruction => InstructionsStack.Count > 0;
@@ -163,6 +169,7 @@ namespace Cilsil.Utils
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
             ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, CfgNode>();
 
+            IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;
             NextAvailableSyntheticVariableId = 0;
         }
@@ -303,10 +310,18 @@ namespace Cilsil.Utils
         /// <param name="binopKind">The type of the binary operation.</param>
         /// <returns>The binary operation expression as well as the type associated with its
         /// underlying operands.</returns>
-        public (BinopExpression, Typ) PopTwoAndApplyBinop(BinopExpression.BinopKind binopKind)
+        public (Expression, Typ) PopTwoAndApplyBinop(BinopExpression.BinopKind binopKind)
         {
-            (var right, var expressionType) = Pop();
-            (var left, _) = Pop();
+            (var right, var rightExpressionType) = Pop();
+            (var left, var leftExpressionType) = Pop();
+
+            // In this case, the expression is a boolean comparison on the expression produced from
+            // an isinst translation, which itself is already a boolean value; we simply return
+            // this value.
+            if (binopKind == BinopExpression.BinopKind.Gt && leftExpressionType.IsInstReturnType)
+            {
+                return (left, leftExpressionType);
+            }
 
             // Object-null checks are represented in CIL using Gt. In this case, binop kind should be 
             // updated to Ne.
@@ -316,7 +331,7 @@ namespace Cilsil.Utils
                 binopKind = BinopExpression.BinopKind.Ne;
             }
 
-            return (new BinopExpression(binopKind, left, right), expressionType);
+            return (new BinopExpression(binopKind, left, right), rightExpressionType);
         }
 
         /// <summary>

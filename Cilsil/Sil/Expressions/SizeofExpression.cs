@@ -21,7 +21,7 @@ namespace Cilsil.Sil.Expressions
         public Typ Type { get; }
 
         /// <summary>
-        /// The subtype; currently only "exact" (the type of the variable itself) is supported.
+        /// The subtype.
         /// </summary>
         [JsonProperty]
         public string Kind { get; }
