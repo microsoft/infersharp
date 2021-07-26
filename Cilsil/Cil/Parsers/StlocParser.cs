@@ -73,6 +73,10 @@ namespace Cilsil.Cil.Parsers
             {
                 state.IndicesWithIsInstReturnType.Add(index);
             }
+            else if (!type.IsInstReturnType && state.IndicesWithIsInstReturnType.Contains(index))
+            {
+                state.IndicesWithIsInstReturnType.Remove(index);
+            }
 
             var variable = new LocalVariable(LocalName(index), state.Method);
             var storeValueIntoVariable = new Store(new LvarExpression(variable),
