@@ -249,13 +249,15 @@ namespace Cilsil.Utils
         /// <param name="kind">The type of identifier to be created.</param>
         /// <param name="name">The name of the identifier to be created. Defaults to a standard 
         /// type-dependent name.</param>
+        /// <param name="variableId">Integer assigned to distinguish between identifiers. Defaults to
+        /// a negative number as a flag to use incremented temporary variable Id.</param>
         /// <returns>The new identifier.</returns>
-        public Identifier GetIdentifier(Identifier.IdentKind kind, string name = null) =>
+        public Identifier GetIdentifier(Identifier.IdentKind kind, string name = null, int variableId = -1) =>
             new Identifier()
             {
                 Kind = kind,
                 Name = name ?? Identifier.StandardNames[kind],
-                Stamp = NextAvailableTemporaryVariableId++
+                Stamp = variableId != -1 ? variableId : NextAvailableTemporaryVariableId++
             };
 
         /// <summary>
