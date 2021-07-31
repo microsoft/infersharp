@@ -52,7 +52,7 @@ namespace Cilsil.Sil.Expressions
         /// A <see cref="string" /> that represents this instance.
         /// </returns>
         public override string ToString() =>
-            $"{Left.ToString()} {BinopKindToString(Operator)} {Right.ToString()}";
+            $"{Left} {BinopKindToString(Operator)} {Right}";
 
         /// <summary>
         /// Determines whether the specified <see cref="object" />, is equal to this 
@@ -84,7 +84,7 @@ namespace Cilsil.Sil.Expressions
         /// </summary>
         /// <param name="kind">The binary operator.</param>
         /// <returns></returns>
-        public string BinopKindToString(BinopKind kind)
+        public static string BinopKindToString(BinopKind kind)
         {
             switch (kind)
             {

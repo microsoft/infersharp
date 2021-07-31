@@ -20,6 +20,12 @@ namespace Cilsil.Sil.Types
         public virtual string TypeKind => this is Tptr ? "Tptr" : GetType().Name;
 
         /// <summary>
+        /// <c>true</c> if this references the type of the expression produced during the
+        /// translation of the isinst instruction, <c>false</c> otherwise. 
+        /// </summary>
+        public bool IsInstReturnType = false;
+
+        /// <summary>
         /// Strips away a <see cref="Tptr"/> to return the underlying type.
         /// </summary>
         /// <returns>The underlying type.</returns>

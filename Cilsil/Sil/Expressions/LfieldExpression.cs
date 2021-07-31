@@ -53,7 +53,7 @@ namespace Cilsil.Sil.Expressions
         /// <returns>
         /// A <see cref="string" /> that represents this instance.
         /// </returns>
-        public override string ToString() => $"{Expression.ToString()}.{Identifier}";
+        public override string ToString() => $"{Expression}.{Identifier}";
 
         /// <summary>
         /// Determines whether the specified <see cref="object" />, is equal to this 

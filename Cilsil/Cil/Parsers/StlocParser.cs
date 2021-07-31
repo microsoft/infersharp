@@ -15,7 +15,6 @@ namespace Cilsil.Cil.Parsers
                                                             ProgramState state)
         {
             int index;
-            CfgNode node = null;
             switch (instruction.OpCode.Code)
             {
                 case Code.Stloc_0:
@@ -70,13 +69,21 @@ namespace Cilsil.Cil.Parsers
             {
                 state.VariableIndexToBoxedValueType.Remove(index);
             }
+            else if (type.IsInstReturnType)
+            {
+                state.IndicesWithIsInstReturnType.Add(index);
+            }
+            else if (!type.IsInstReturnType && state.IndicesWithIsInstReturnType.Contains(index))
+            {
+                state.IndicesWithIsInstReturnType.Remove(index);
+            }
 
             var variable = new LocalVariable(LocalName(index), state.Method);
             var storeValueIntoVariable = new Store(new LvarExpression(variable),
                                                    value,
                                                    type,
                                                    state.CurrentLocation);
-            node = AddMethodBodyInstructionsToCfg(state, storeValueIntoVariable);
+            var node = AddMethodBodyInstructionsToCfg(state, storeValueIntoVariable);
             RegisterLocalVariable(state, variable, type);
             state.PushInstruction(instruction.Next, node);
             return true;

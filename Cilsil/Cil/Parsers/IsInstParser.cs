@@ -1,7 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+using Cilsil.Sil;
+using Cilsil.Sil.Expressions;
+using Cilsil.Sil.Instructions;
+using Cilsil.Sil.Types;
 using Cilsil.Utils;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System.Collections.Generic;
 
 namespace Cilsil.Cil.Parsers
 {
@@ -12,14 +18,31 @@ namespace Cilsil.Cil.Parsers
         {
             switch (instruction.OpCode.Code)
             {
-                // We ignore the type-checking behavior of isinst, as that is largely
-                // runtime-dependent and therefore not statically verifiable in any nontrivial
-                // context; we instead translate only its null-checking behavior. To do this, 
-                // nothing need be done in particular for the isinst instruction, as the bytecode 
-                // which follows it constitutes a null-check for the item on top of the program 
-                // stack.
                 case Code.Isinst:
-                    state.PushInstruction(instruction.Next);
+                    (var objectExpression, var objectType) = state.Pop();
+                    var typeToCheck = instruction.Operand as TypeReference;
+                    var returnIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+                    var returnType = new Tint(Tint.IntKind.IBool, true);
+                    var builtinFunctionExpression = new ConstExpression(
+                        ProcedureName.BuiltIn__instanceof);
+                    var sizeofExpression = new SizeofExpression(
+                        Typ.FromTypeReferenceNoPointer(typeToCheck), 
+                        SizeofExpression.SizeofExpressionKind.instof);
+                    var args = new List<Call.CallArg> 
+                    { 
+                        new Call.CallArg(objectExpression, objectType), 
+                        new Call.CallArg(sizeofExpression, new Tvoid())
+                    };
+                    var callInstruction = new Call(
+                        returnIdentifier, 
+                        returnType, 
+                        builtinFunctionExpression, 
+                        args, 
+                        new Call.CallFlags(), 
+                        state.CurrentLocation);
+                    var newNode = AddMethodBodyInstructionsToCfg(state, callInstruction);
+                    state.PushExpr(new VarExpression(returnIdentifier), returnType);
+                    state.PushInstruction(instruction.Next, newNode);
                     return true;
                 default:
                     return false;

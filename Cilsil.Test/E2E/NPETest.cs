@@ -673,21 +673,14 @@ namespace Cilsil.Test.E2E
         }
 
         /// <summary>
-        /// Validates our (limited) translation of isinst. The only type-checking scenarios that
-        /// can be statically supported are trivial. We therefore treat them just as null-checks:
-        /// this is captured in the translation by simply treating isinst itself as a nop, as the 
-        /// bytecode separately captures the null-check component of instance type-checking. We 
-        /// capture the fact that our translation amounts to a null-check behavior by passing in 
-        /// both an actual instance of TestClass as well as a non-TestClass object, and validating 
-        /// that in both cases the null value is returned by the method, while the null input
-        /// results in the instantiated TestClass being returned. 
+        /// Validates our translation of isinst.
         /// </summary>
         /// <param name="testInputCode">Defines the object to be input to the type-checking
-        /// TestClass method; 0 for instantiated TestClass, 1 for generic object (non-TestClass), 
+        /// TestClass method; 0 for instantiated TestClass, 1 for generic object (non-TestClass),
         /// 2 for null.</param>
         /// <param name="expectedError">The expected error.</param>
         [DataRow(0, InferError.NULL_DEREFERENCE)]
-        [DataRow(1, InferError.NULL_DEREFERENCE)]
+        [DataRow(1, InferError.None)]
         [DataRow(2, InferError.None)]
         [DataTestMethod]
         public void NullExceptionIsInst(int testInputCode, InferError expectedError)
