@@ -133,10 +133,14 @@ namespace Cilsil.Cil.Parsers
         /// applied to it, which causes the exception to be stored in a catch variable.
         /// </summary>
         /// <param name="state">The state.</param>
+        /// <param name="handler">The exception handler for which the node is being 
+        /// created.</param>
         /// <returns>The created entry node, as well as the identifier in which the exception is 
         /// stored.</returns>
-        private static (CfgNode, Identifier) CreateExceptionEntryNode(ProgramState state)
+        public static (CfgNode, Identifier) CreateExceptionEntryNode(ProgramState state, 
+                                                                     ExceptionHandler handler)
         {
+            var handlerStartLocation = GetHandlerStartLocation(state, handler);
             var returnIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
             var returnExpression = new LvarExpression(
                 new LocalVariable(Identifier.ReturnIdentifier, state.Method));
@@ -145,12 +149,12 @@ namespace Cilsil.Cil.Parsers
             var getReturnValue = new Load(returnIdentifier,
                                           returnExpression,
                                           returnType,
-                                          state.CurrentLocation);
+                                          handlerStartLocation);
             var deactivateException = new Store(returnExpression,
                                                 new ConstExpression(
                                                     new IntRepresentation(0, false, true)),
                                                 returnType,
-                                                state.CurrentLocation);
+                                                handlerStartLocation);
 
             var exceptionIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
             var unwrapReturnValue = new Call(exceptionIdentifier,
@@ -159,9 +163,9 @@ namespace Cilsil.Cil.Parsers
                                                  ProcedureName.BuiltIn__unwrap_exception),
                                              new List<Call.CallArg>(),
                                              new Call.CallFlags(),
-                                             state.CurrentLocation);
+                                             handlerStartLocation);
 
-            var node = new StatementNode(state.CurrentLocation,
+            var node = new StatementNode(handlerStartLocation,
                                          StatementNode.StatementNodeKind.ExceptionHandler,
                                          state.ProcDesc);
 
@@ -200,10 +204,6 @@ namespace Cilsil.Cil.Parsers
             switch (handler.HandlerType)
             {
                 case ExceptionHandlerType.Catch:
-                    // The CIL specification dictates that the exception object is on top of the
-                    // stack when the catch handler is entered; the first instruction of the catch
-                    // handler will handle the object pushed onto the stack.
-                    state.PushExpr(new VarExpression(exceptionIdentifier), exceptionType);
                     state.AppendToPreviousNode = true;
                     break;
                 case ExceptionHandlerType.Finally:
@@ -232,7 +232,7 @@ namespace Cilsil.Cil.Parsers
         /// <param name="handler">The exception handler.</param>
         /// <param name="state">The state.</param>
         /// <returns>The node.</returns>
-        private static CfgNode GetHandlerCatchVarNode(ProgramState state,
+        public static CfgNode GetHandlerCatchVarNode(ProgramState state,
                                                       ExceptionHandler handler)
         {
             if (!state.ExceptionHandlerToCatchVarNode.ContainsKey(handler))
@@ -243,11 +243,38 @@ namespace Cilsil.Cil.Parsers
             return state.ExceptionHandlerToCatchVarNode[handler];
         }
 
-        private static (CfgNode, CfgNode) CreateExceptionTypeCheckBranchNodes(
-            ProgramState state, 
-            ExceptionHandler handler, 
-            TypeReference exceptionType, 
-            Identifier exceptionIdentifier)
+        public static (CfgNode, Identifier) GetCatchHandlerSetEntryNode(ProgramState state, 
+                                                                        ExceptionHandler handler)
+        {
+            if (!state.ExceptionHandlerSetToEntryNode.ContainsKey(handler)) 
+            {
+                state.ExceptionHandlerSetToEntryNode[handler] = CreateExceptionEntryNode(state, 
+                                                                                         handler);
+                return state.ExceptionHandlerSetToEntryNode[handler];
+            }
+            else
+            {
+                var copy = new StatementNode(state.CurrentLocation,
+                                             StatementNode.StatementNodeKind.ExceptionHandler,
+                                             state.ProcDesc);
+                copy.Instructions = state.ExceptionHandlerSetToEntryNode[handler].node.Instructions;
+                state.Cfg.RegisterNode(copy);
+                return (copy, state.ExceptionHandlerSetToEntryNode[handler].id);
+            }
+        }
+
+        public static CfgNode GetFinallyExceptionBranchNode(ProgramState state, 
+                                                            ExceptionHandler handler)
+        {
+            var node = new StatementNode(GetHandlerStartLocation(state, handler), 
+                                         StatementNode.StatementNodeKind.FinallyBranch, 
+                                         state.ProcDesc);
+            state.Cfg.RegisterNode(node);
+            return node;
+        }
+
+        public static (CfgNode, CfgNode) CreateExceptionTypeCheckBranchNodes(
+            ProgramState state, ExceptionHandler handler, Identifier exceptionIdentifier)
         {
 
             var handlerStartLocation = GetHandlerStartLocation(state, handler);
@@ -256,11 +283,11 @@ namespace Cilsil.Cil.Parsers
             var isInstArgs = new List<Call.CallArg>
                     {
                         new Call.CallArg(exceptionExpression,
-                                         Typ.FromTypeReference(exceptionType)),
+                                         Typ.FromTypeReference(handler.CatchType)),
                         new Call.CallArg(
                             new SizeofExpression(
-                                Typ.FromTypeReferenceNoPointer(exceptionType), 
-                                SizeofExpression.SizeofExpressionKind.exact), 
+                                Typ.FromTypeReferenceNoPointer(handler.CatchType),
+                                SizeofExpression.SizeofExpressionKind.exact),
                             new Tvoid())
                     };
             // We don't mark the function output as an isinst output, as there is no load or store
@@ -270,42 +297,51 @@ namespace Cilsil.Cil.Parsers
                                       new ConstExpression(ProcedureName.BuiltIn__instanceof),
                                       isInstArgs,
                                       new Call.CallFlags(),
-                                      state.CurrentLocation);
+                                      handlerStartLocation);
 
             var isInstOutputExpression = new VarExpression(isInstIdentifier);
-            var pruneTrueInstruction = new Prune(isInstOutputExpression, 
-                                                 true, 
-                                                 Prune.IfKind.Ik_switch, 
+            var pruneTrueInstruction = new Prune(isInstOutputExpression,
+                                                 true,
+                                                 Prune.IfKind.Ik_switch,
                                                  handlerStartLocation);
 
-            var pruneFalseInstruction = new Prune(new UnopExpression(UnopExpression.UnopKind.LNot, 
-                                                                     isInstOutputExpression, 
+            var pruneFalseInstruction = new Prune(new UnopExpression(UnopExpression.UnopKind.LNot,
+                                                                     isInstOutputExpression,
                                                                      null),
                                                   false,
                                                   Prune.IfKind.Ik_switch,
                                                   handlerStartLocation);
 
-            var setCatchVarInstruction = new Store(GetHandlerCatchVar(state, handler), 
-                                                   exceptionExpression, 
-                                                   Typ.FromTypeReference(state.Method.ReturnType), 
+            var setCatchVarInstruction = new Store(GetHandlerCatchVar(state, handler),
+                                                   exceptionExpression,
+                                                   Typ.FromTypeReference(state.Method.ReturnType),
                                                    handlerStartLocation);
-        }
 
-        protected static bool CreateExceptionEntryBlock(ProgramState state,
-                                                        ExceptionHandler handler)
-        {
-            (var doorNode, var exceptionIdentifier) = CreateExceptionEntryNode(state);
-            var catchVarNode = GetHandlerCatchVarNode(state, handler);
-            switch (handler.HandlerType)
+            var pruneTrueNode = new PruneNode(handlerStartLocation,
+                                              true,
+                                              PruneNode.PruneNodeKind.ExceptionHandler,
+                                              Prune.IfKind.Ik_switch,
+                                              state.ProcDesc);
+
+            var pruneFalseNode = new PruneNode(handlerStartLocation,
+                                               false,
+                                               PruneNode.PruneNodeKind.ExceptionHandler,
+                                               Prune.IfKind.Ik_switch,
+                                               state.ProcDesc);
+
+
+            pruneTrueNode.Instructions.AddRange(new List<SilInstruction> 
+            { 
+                isInstCall, pruneTrueInstruction, setCatchVarInstruction 
+            });
+
+            pruneFalseNode.Instructions.AddRange(new List<SilInstruction>
             {
-                case ExceptionHandlerType.Catch:
-                    break;
-                case ExceptionHandlerType.Finally:
-                    
-                    break;
-                default:
-                    return false;
-            }
+                isInstCall, pruneFalseInstruction
+            });
+            state.Cfg.RegisterNode(pruneTrueNode);
+            state.Cfg.RegisterNode(pruneFalseNode);
+            return (pruneTrueNode, pruneFalseNode);
         }
 
         /// <summary>

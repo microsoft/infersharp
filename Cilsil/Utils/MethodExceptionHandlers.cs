@@ -29,10 +29,6 @@ namespace Cilsil.Utils
 
         public readonly Dictionary<int, ExceptionHandlerNode> CatchOffsetToCatchHandler;
 
-        private static bool InstructionWithinBounds(Instruction instruction, 
-                                             (Instruction start, Instruction end) bounds) =>
-            instruction.Offset >= bounds.start.Offset && instruction.Offset <= bounds.end.Offset;
-
         private static bool InstructionBlockWithinBounds(
             (Instruction start, Instruction end) block,
             (Instruction start, Instruction end) bounds) =>
@@ -77,13 +73,18 @@ namespace Cilsil.Utils
             foreach (var catchTry in TryBoundsToCatchHandlers.Keys)
             {
                 TryBoundsToCatchHandlers[catchTry].Sort((x, y) => 
-                    x.ExceptionHandler.TryStart.Offset.CompareTo(
-                        y.ExceptionHandler.TryStart.Offset));
+                    x.ExceptionHandler.HandlerStart.Offset.CompareTo(
+                        y.ExceptionHandler.HandlerStart.Offset));
 
                 for (int i = 0; i < TryBoundsToCatchHandlers[catchTry].Count - 1; i++)
                 {
                     TryBoundsToCatchHandlers[catchTry][i].NextCatchBlock = 
                         TryBoundsToCatchHandlers[catchTry][i + 1];
+                }
+                for (int i = 1; i < TryBoundsToCatchHandlers[catchTry].Count; i++)
+                {
+                    TryBoundsToCatchHandlers[catchTry][i].PreviousCatchBlock =
+                        TryBoundsToCatchHandlers[catchTry][i - 1];
                 }
             }
 

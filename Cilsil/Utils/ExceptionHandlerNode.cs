@@ -1,4 +1,5 @@
-﻿using Mono.Cecil.Cil;
+﻿using Cilsil.Sil;
+using Mono.Cecil.Cil;
 
 namespace Cilsil.Utils
 {
@@ -13,13 +14,24 @@ namespace Cilsil.Utils
         /// </summary>
         public readonly ExceptionHandler ExceptionHandler;
         /// <summary>
-        /// The next catch clause.
+        /// The next catch handler node.
         /// </summary>
         public ExceptionHandlerNode NextCatchBlock;
+        /// <summary>
+        /// The previous catch handler node.
+        /// </summary>
+        public ExceptionHandlerNode PreviousCatchBlock;
         /// <summary>
         /// The finally block.
         /// </summary>
         public ExceptionHandler FinallyBlock;
+
+        /// <summary>
+        /// The false exception type-check entry node of the block; initially null until it has
+        /// been written to; always captures the node created the last time the translation visited
+        /// this handler.
+        /// </summary>
+        public CfgNode CatchHandlerLatestFalseEntryNode = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExceptionHandlerNode"/> class.

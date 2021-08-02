@@ -90,7 +90,7 @@ namespace Cilsil.Services
             // True if the translation terminates early, false otherwise.
             var translationUnfinished = false;
 
-                if (!method.IsAbstract && methodBody.Instructions.Count > 0)
+            if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
                 programState.PushInstruction(methodBody.Instructions.First());
                 do
@@ -133,7 +133,12 @@ namespace Cilsil.Services
                 // Sets exception sink node as default exception node for all nodes in the graph.
                 foreach (var node in programState.ProcDesc.Nodes)
                 {
-                    node.ExceptionNodes.Add(programState.ProcDesc.ExceptionSinkNode);
+                    // Nodes linked with exception handlers should not be linked with the sink, and
+                    // will already have the corresponding nodes linked.
+                    if (node.ExceptionNodes.Count == 0)
+                    {
+                        node.ExceptionNodes.Add(programState.ProcDesc.ExceptionSinkNode);
+                    }
                 }
 
                 // Exception node for start and exception sink should be exit, exception node for exit 
@@ -165,6 +170,11 @@ namespace Cilsil.Services
                     {
                         s.Predecessors.Add(n);
                         todo.Enqueue(s);
+                    }
+                    if (n.ExceptionNodes.Count > 0 && 
+                        n.ExceptionNodes[0] != programState.ProcDesc.ExceptionSinkNode)
+                    {
+                        todo.Enqueue(n.ExceptionNodes[0]);
                     }
                 }
             }

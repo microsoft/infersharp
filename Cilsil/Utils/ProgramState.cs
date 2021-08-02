@@ -131,10 +131,19 @@ namespace Cilsil.Utils
         public bool InstructionInTryOrCatch;
 
         /// <summary>
-        /// Maps each exception handler to the catch variable node through which entry blocks route
-        /// control flow. 
+        /// Maps each exception handler to the node in which its catch variable is loaded.
         /// </summary>
         public Dictionary<ExceptionHandler, CfgNode> ExceptionHandlerToCatchVarNode;
+
+        /// <summary>
+        /// The exception handler to its entry node as well as the identifier for the unwrapped 
+        /// exception.
+        /// </summary>
+        public Dictionary<ExceptionHandler,
+                          (CfgNode node, Identifier id)> ExceptionHandlerSetToEntryNode;
+
+        public Dictionary<ExceptionHandler, LvarExpression> 
+            FinallyHandlerToSyntheticExceptionVariable;
 
         /// <summary>
         /// Contains information about the program's exception handlers.
@@ -168,6 +177,8 @@ namespace Cilsil.Utils
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
             ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, CfgNode>();
+            FinallyHandlerToSyntheticExceptionVariable = 
+                new Dictionary<ExceptionHandler, LvarExpression>();
 
             IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;
