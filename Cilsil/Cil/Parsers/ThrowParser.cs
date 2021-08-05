@@ -6,6 +6,7 @@ using Cilsil.Sil.Expressions;
 using Cilsil.Sil.Instructions;
 using Cilsil.Sil.Types;
 using Cilsil.Utils;
+using System.Collections.Generic;
 
 namespace Cilsil.Cil.Parsers
 {
@@ -29,7 +30,9 @@ namespace Cilsil.Cil.Parsers
                                              new ExnExpression(returnValue),
                                              Typ.FromTypeReference(retType),
                                              state.CurrentLocation);
-                    AddMethodBodyInstructionsToCfg(state, retInstr);
+                    retNode.Instructions.Add(retInstr);
+                    retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
+                    RegisterNode(state, retNode);
                     state.PushInstruction(instruction.Next);
                     return true;
                 default:
