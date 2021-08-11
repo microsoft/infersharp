@@ -23,6 +23,8 @@ namespace Cilsil.Utils
                                     ExceptionHandlerNode> CatchBoundsToCatchHandler =
             new Dictionary<(Instruction tryStart, Instruction tryEnd), ExceptionHandlerNode>();
 
+        public readonly Dictionary<Instruction, ExceptionHandler> FinallyEndToHandler;
+
         public readonly Dictionary<int, List<ExceptionHandlerNode>> TryOffsetToCatchHandlers;
 
         public readonly Dictionary<int, ExceptionHandler> TryOffsetToFinallyHandler;
@@ -64,6 +66,7 @@ namespace Cilsil.Utils
                         break;
                     case ExceptionHandlerType.Finally:
                         TryBoundsToFinallyHandlers[tryBounds] = exceptionHandler;
+                        FinallyEndToHandler[exceptionHandler.HandlerEnd] = exceptionHandler;
                         break;
                     default:
                         break;
@@ -85,6 +88,12 @@ namespace Cilsil.Utils
                 {
                     TryBoundsToCatchHandlers[catchTry][i].PreviousCatchBlock =
                         TryBoundsToCatchHandlers[catchTry][i - 1];
+                }
+
+                foreach (var catchHandlerNode in TryBoundsToCatchHandlers[catchTry])
+                {
+                    catchHandlerNode.FirstCatchHandler = 
+                        TryBoundsToCatchHandlers[catchTry][0].ExceptionHandler;
                 }
             }
 
@@ -164,6 +173,18 @@ namespace Cilsil.Utils
             for (int i = 1; i < boundsList.Count; i++)
             {
                 if (boundsList[i-1].end > boundsList[i].start)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public bool NoFinallyEndWithThrow()
+        {
+            foreach(var finallyEnd in FinallyEndToHandler.Keys)
+            {
+                if (finallyEnd.OpCode.Code == Code.Throw)
                 {
                     return false;
                 }

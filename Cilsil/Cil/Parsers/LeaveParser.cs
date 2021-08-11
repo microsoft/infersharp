@@ -28,11 +28,20 @@ namespace Cilsil.Cil.Parsers
                     // Leave occurs within try block.
                     if (exnInfo.TryOffsetToCatchHandlers.ContainsKey(instruction.Offset))
                     {
+                        (var entryNode, var exceptionIdentifier) = GetHandlerEntryNode(
+                            state, exnInfo.TryOffsetToCatchHandlers[instruction.Offset][0]
+                                          .ExceptionHandler);
                         // Exceptional control flow routes through the first of the set of
-                        // associated catch handlers.
-                        var entryNode = CreateCatchEntryBlock(
-                            state, exnInfo.TryOffsetToCatchHandlers[instruction.Offset][0]);
+                        // associated catch handlers; this invocation pushes the catch handler's
+                        // first instruction onto the stack and continues the translation from the
+                        // handler's catch variable load node. 
+                        CreateCatchHandlerEntryBlock(
+                            state, 
+                            exnInfo.TryOffsetToCatchHandlers[instruction.Offset][0],
+                            entryNode, 
+                            exceptionIdentifier);
                         CreateExceptionalEdges(state, entryNode);
+
                         // Regular control flow routes through the finally block, if present, prior
                         // to routing control flow to leave.
                         if (exnInfo.TryOffsetToFinallyHandler.ContainsKey(instruction.Offset))
@@ -42,6 +51,19 @@ namespace Cilsil.Cil.Parsers
                             state.PushInstruction(finallyHandler.HandlerStart, state.PreviousNode);
                         }
                     }
+                    // Leave occurs within try block without an associated catch handler.
+                    else if (exnInfo.TryOffsetToFinallyHandler.ContainsKey(instruction.Offset))
+                    {
+                        var finallyHandler =
+                            exnInfo.TryOffsetToFinallyHandler[instruction.Offset];
+                        var finallyEntryNode =
+                            CreateFinallyExceptionalEntryBlock(state, finallyHandler);
+                        CreateExceptionalEdges(state, finallyEntryNode);
+                        (var loadCatchVarNode, _) =
+                            GetHandlerCatchVarNode(state, finallyHandler);
+                        state.PushInstruction(finallyHandler.HandlerStart, state.PreviousNode);
+                        state.PushInstruction(finallyHandler.HandlerStart, loadCatchVarNode);
+                    }
                     // Leave occurs within catch block, as leave can only occur in one of the two.
                     else
                     {
@@ -50,12 +72,29 @@ namespace Cilsil.Cil.Parsers
                         // prior to routing control flow to leave.
                         if (currentHandler.FinallyBlock != null)
                         {
+                            var finallyEntryNode =
+                                CreateFinallyExceptionalEntryBlock(state,
+                                                                   currentHandler.FinallyBlock);
+                            CreateExceptionalEdges(state, finallyEntryNode);
+                            (var loadCatchVarNode, _) =
+                                GetHandlerCatchVarNode(state, currentHandler.FinallyBlock);
+                            state.PushInstruction(currentHandler.FinallyBlock.HandlerStart,
+                                                  loadCatchVarNode);
                         }
+
                         if (currentHandler.NextCatchBlock != null)
                         {
-                            var entryNode = 
+                            (_, var exceptionIdentifier) = GetHandlerEntryNode(
+                                state, currentHandler.FirstCatchHandler);
+                            // Continues translation with catch handler's first instruction from
+                            // the handler's catch variable load node.
+                            CreateCatchHandlerEntryBlock(
+                                state, 
+                                currentHandler.NextCatchBlock, 
+                                currentHandler.CatchHandlerLatestFalseEntryNode, 
+                                exceptionIdentifier);
                         }
-                        // Last handler; 
+                        // Last handler; the 
                         else
                         {
 
@@ -69,18 +108,20 @@ namespace Cilsil.Cil.Parsers
             }            
         }
 
-        private static CfgNode CreateCatchEntryBlock(ProgramState state, ExceptionHandlerNode handlerNode)
+        private static void CreateCatchHandlerEntryBlock(ProgramState state, 
+                                                         ExceptionHandlerNode handlerNode,
+                                                         CfgNode handlerEntryPredecessor, 
+                                                         Identifier exceptionIdentifier)
         {
-            (var entryNode, var exceptionIdentifier) = CreateExceptionEntryNode(
-                state, handlerNode.ExceptionHandler);
             (var trueBranch, var falseBranch) = CreateExceptionTypeCheckBranchNodes(
                 state, handlerNode.ExceptionHandler, exceptionIdentifier);
-            var loadCatchVarNode = GetHandlerCatchVarNode(
+            (var loadCatchVarNode, _) = GetHandlerCatchVarNode(
                 state, handlerNode.ExceptionHandler);
             handlerNode.CatchHandlerLatestFalseEntryNode = falseBranch;
-            entryNode.Successors.Add(trueBranch);
-            entryNode.Successors.Add(falseBranch);
+            handlerEntryPredecessor.Successors.Add(trueBranch);
+            handlerEntryPredecessor.Successors.Add(falseBranch);
             trueBranch.Successors.Add(loadCatchVarNode);
+
             // The CIL specification dictates that the exception object is on top of
             // the stack when the catch handler is entered; the first instruction of
             // the catch handler will handle the object pushed onto the stack.
@@ -88,18 +129,7 @@ namespace Cilsil.Cil.Parsers
                            new Tptr(Tptr.PtrKind.Pk_pointer,
                                     new Tstruct("System.Object")));
             state.PushInstruction(handlerNode.ExceptionHandler.HandlerStart,
-                                  trueBranch);
-            return entryNode;
-        }
-
-        private static CfgNode CreateFinallyExceptionalEntryBlock(ProgramState state, 
-                                                                  ExceptionHandler handler)
-        {
-            (var entryNode, var exceptionIdentifier) = CreateExceptionEntryNode(state, handler);
-            var finallyBranchNode = GetFinallyExceptionBranchNode(state, handler);
-            var loadCatchVarNode = GetHandlerCatchVarNode(state, handler);
-            entryNode.Successors.Add(finallyBranchNode);
-            finallyBranchNode.Successors.Add(loadCatchVarNode);
+                                  loadCatchVarNode);
         }
 
         private static void CreateExceptionalEdges(ProgramState state, CfgNode entryNode)

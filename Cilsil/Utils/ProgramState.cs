@@ -131,9 +131,12 @@ namespace Cilsil.Utils
         public bool InstructionInTryOrCatch;
 
         /// <summary>
-        /// Maps each exception handler to the node in which its catch variable is loaded.
+        /// Maps each exception handler to the node in which its catch variable is loaded as well
+        /// as the associated synthetic variable into which the exception catch variable is stored,
+        /// in case of finally handler (null otherwise).
         /// </summary>
-        public Dictionary<ExceptionHandler, CfgNode> ExceptionHandlerToCatchVarNode;
+        public Dictionary<ExceptionHandler, 
+                         (CfgNode node, LvarExpression variable)> ExceptionHandlerToCatchVarNode;
 
         /// <summary>
         /// The exception handler to its entry node as well as the identifier for the unwrapped 
@@ -142,8 +145,9 @@ namespace Cilsil.Utils
         public Dictionary<ExceptionHandler,
                           (CfgNode node, Identifier id)> ExceptionHandlerSetToEntryNode;
 
-        public Dictionary<ExceptionHandler, LvarExpression> 
-            FinallyHandlerToSyntheticExceptionVariable;
+        public Dictionary<ExceptionHandler, CfgNode> FinallyHandlerToExceptionExit;
+
+        // todo -- exception exit
 
         /// <summary>
         /// Contains information about the program's exception handlers.
@@ -176,9 +180,9 @@ namespace Cilsil.Utils
 
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
-            ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, CfgNode>();
-            FinallyHandlerToSyntheticExceptionVariable = 
-                new Dictionary<ExceptionHandler, LvarExpression>();
+            ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, 
+                                                            (CfgNode, LvarExpression)>();
+            FinallyHandlerToExceptionExit = new Dictionary<ExceptionHandler, CfgNode>();
 
             IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;

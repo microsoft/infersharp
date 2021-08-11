@@ -25,6 +25,10 @@ namespace Cilsil.Utils
         /// The finally block.
         /// </summary>
         public ExceptionHandler FinallyBlock;
+        /// <summary>
+        /// The first catch handler.
+        /// </summary>
+        public ExceptionHandler FirstCatchHandler = null;
 
         /// <summary>
         /// The false exception type-check entry node of the block; initially null until it has

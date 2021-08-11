@@ -121,6 +121,12 @@ namespace Cilsil.Cil.Parsers
             Location.FromSequencePoint(
                 state.Method.DebugInformation.GetSequencePoint(handler.HandlerStart));
 
+        protected static Location GetHandlerEndLocation(ProgramState state,
+                                                        ExceptionHandler handler) =>
+            Location.FromSequencePoint(
+                state.Method.DebugInformation.GetSequencePoint(handler.HandlerEnd));
+
+
         private static LvarExpression GetHandlerCatchVar(ProgramState state,
                                                          ExceptionHandler handler) =>
             new LvarExpression(new LocalVariable(Identifier.CatchVarIdentifier + 
@@ -137,8 +143,8 @@ namespace Cilsil.Cil.Parsers
         /// created.</param>
         /// <returns>The created entry node, as well as the identifier in which the exception is 
         /// stored.</returns>
-        public static (CfgNode, Identifier) CreateExceptionEntryNode(ProgramState state, 
-                                                                     ExceptionHandler handler)
+        private static (CfgNode, Identifier) CreateExceptionEntryNode(ProgramState state, 
+                                                                      ExceptionHandler handler)
         {
             var handlerStartLocation = GetHandlerStartLocation(state, handler);
             var returnIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
@@ -184,10 +190,12 @@ namespace Cilsil.Cil.Parsers
         /// <param name="state">The program state.</param>
         /// <param name="handler">The exception handler for which the node is being
         /// created.</param>
-        /// <returns>The node in which the caught exception variable is loaded.</returns>
-        private static CfgNode CreateLoadCatchVarNode(ProgramState state,
-                                                      ExceptionHandler handler)
+        /// <returns>The node in which the caught exception variable is loaded, as well as the
+        /// synthetic exception variable created, if the handler is finally.</returns>
+        private static (CfgNode, LvarExpression) CreateLoadCatchVarNode(ProgramState state,
+                                                                        ExceptionHandler handler)
         {
+            LvarExpression syntheticExceptionVariable = null;
             var handlerStartLocation = GetHandlerStartLocation(state, handler);
             var exceptionIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
             var exceptionType = new Tptr(Tptr.PtrKind.Pk_pointer, new Tstruct("System.Object"));
@@ -209,19 +217,24 @@ namespace Cilsil.Cil.Parsers
                 case ExceptionHandlerType.Finally:
                     // In this case, the exception catch variable is stored into a synthetic
                     // variable we create here.
+                    syntheticExceptionVariable =
+                        new LvarExpression(new LocalVariable(state.GetSyntheticVariableName(),
+                                                             state.Method));
                     var storeIntoSyntheticVariable = new Store(
-                        new LvarExpression(new LocalVariable(state.GetSyntheticVariableName(), 
-                                                             state.Method)), 
+                        syntheticExceptionVariable, 
                         new VarExpression(exceptionIdentifier),
                         exceptionType, 
                         handlerStartLocation);
                     node.Instructions.Add(storeIntoSyntheticVariable);
+                    var finallyExceptionalEntry = 
+                        CreateFinallyExceptionalEntryBlock(state, handler);
+                    node.ExceptionNodes.Add(finallyExceptionalEntry);
                     break;
                 default:
-                    return null;
+                    return (null, null);
             }
             state.Cfg.RegisterNode(node);
-            return node;
+            return (node, syntheticExceptionVariable);
         }
 
 
@@ -232,8 +245,8 @@ namespace Cilsil.Cil.Parsers
         /// <param name="handler">The exception handler.</param>
         /// <param name="state">The state.</param>
         /// <returns>The node.</returns>
-        public static CfgNode GetHandlerCatchVarNode(ProgramState state,
-                                                      ExceptionHandler handler)
+        protected static (CfgNode, LvarExpression) GetHandlerCatchVarNode(ProgramState state,
+                                                                          ExceptionHandler handler)
         {
             if (!state.ExceptionHandlerToCatchVarNode.ContainsKey(handler))
             {
@@ -243,8 +256,30 @@ namespace Cilsil.Cil.Parsers
             return state.ExceptionHandlerToCatchVarNode[handler];
         }
 
-        public static (CfgNode, Identifier) GetCatchHandlerSetEntryNode(ProgramState state, 
-                                                                        ExceptionHandler handler)
+        protected static CfgNode CreateFinallyExceptionalEntryBlock(ProgramState state,
+                                                                    ExceptionHandler handler)
+        {
+            (var entryNode, _) = GetHandlerEntryNode(state, handler);
+            var finallyBranchNode = GetFinallyExceptionBranchNode(state, handler);
+            (var loadCatchVarNode, _) = GetHandlerCatchVarNode(state, handler);
+            entryNode.Successors.Add(finallyBranchNode);
+            finallyBranchNode.Successors.Add(loadCatchVarNode);
+            return entryNode;
+        }
+
+        /// <summary>
+        /// Gets the entry node for either the set of catch handlers or the finally handler. There 
+        /// should only be one exception identifier per catch set or finally handler, with the
+        /// nodes being copy of that created for the first of the set. When this method is invoked 
+        /// within the translation of any catch handler, the argument should reference
+        /// the first of the set of handlers). 
+        /// </summary>
+        /// <param name="state">The state.</param>
+        /// <param name="handler">The handler.</param>
+        /// <returns>The exception entry node, as well as the identifier for the unwrapped 
+        /// exception.</returns>
+        protected static (CfgNode, Identifier) GetHandlerEntryNode(ProgramState state, 
+                                                                   ExceptionHandler handler)
         {
             if (!state.ExceptionHandlerSetToEntryNode.ContainsKey(handler)) 
             {
@@ -257,14 +292,15 @@ namespace Cilsil.Cil.Parsers
                 var copy = new StatementNode(state.CurrentLocation,
                                              StatementNode.StatementNodeKind.ExceptionHandler,
                                              state.ProcDesc);
-                copy.Instructions = state.ExceptionHandlerSetToEntryNode[handler].node.Instructions;
+                copy.Instructions = 
+                    state.ExceptionHandlerSetToEntryNode[handler].node.Instructions;
                 state.Cfg.RegisterNode(copy);
                 return (copy, state.ExceptionHandlerSetToEntryNode[handler].id);
             }
         }
 
-        public static CfgNode GetFinallyExceptionBranchNode(ProgramState state, 
-                                                            ExceptionHandler handler)
+        protected static CfgNode GetFinallyExceptionBranchNode(ProgramState state, 
+                                                               ExceptionHandler handler)
         {
             var node = new StatementNode(GetHandlerStartLocation(state, handler), 
                                          StatementNode.StatementNodeKind.FinallyBranch, 
@@ -273,7 +309,7 @@ namespace Cilsil.Cil.Parsers
             return node;
         }
 
-        public static (CfgNode, CfgNode) CreateExceptionTypeCheckBranchNodes(
+        protected static (CfgNode, CfgNode) CreateExceptionTypeCheckBranchNodes(
             ProgramState state, ExceptionHandler handler, Identifier exceptionIdentifier)
         {
 
@@ -342,6 +378,33 @@ namespace Cilsil.Cil.Parsers
             state.Cfg.RegisterNode(pruneTrueNode);
             state.Cfg.RegisterNode(pruneFalseNode);
             return (pruneTrueNode, pruneFalseNode);
+        }
+
+        /// <summary>
+        /// Creates a node for returning an exceptional value; does not register the node in the
+        /// CFG.
+        /// </summary>
+        /// <param name="state">The state.</param>
+        /// <param name="returnValue">The exceptional value to be returned.</param>
+        /// <param name="location">The location.</param>
+        /// <returns></returns>
+        protected static CfgNode CreateExceptionReturnNode(ProgramState state,
+                                                           Expression returnValue,
+                                                           Location location)
+        {
+            var retType = state.Method.ReturnType.GetElementType();
+            var retNode = new StatementNode(location,
+                                            StatementNode.StatementNodeKind.ReturnStmt,
+                                            state.ProcDesc);
+            var returnVariable = new LvarExpression(new LocalVariable(Identifier.ReturnIdentifier,
+                                                    state.Method));
+            var retInstr = new Store(returnVariable,
+                                     new ExnExpression(returnValue),
+                                     Typ.FromTypeReference(retType),
+                                     location);
+            retNode.Instructions.Add(retInstr);
+            retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
+            return retNode;
         }
 
         /// <summary>

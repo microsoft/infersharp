@@ -17,21 +17,12 @@ namespace Cilsil.Cil.Parsers
         {
             switch (instruction.OpCode.Code)
             {
+                // TODO: implement rethrow as well. 
                 case Code.Throw:
-                    var retType = state.Method.ReturnType.GetElementType();
-                    var retNode = new StatementNode(state.CurrentLocation,
-                                                    StatementNode.StatementNodeKind.ReturnStmt,
-                                                    state.ProcDesc);
-                    Expression returnVariable = new LvarExpression(
-                        new LocalVariable(Identifier.ReturnIdentifier,
-                                          state.Method));
                     (var returnValue, _) = state.Pop();
-                    var retInstr = new Store(returnVariable,
-                                             new ExnExpression(returnValue),
-                                             Typ.FromTypeReference(retType),
-                                             state.CurrentLocation);
-                    retNode.Instructions.Add(retInstr);
-                    retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
+                    var retNode = CreateExceptionReturnNode(state,
+                                                            returnValue, 
+                                                            state.CurrentLocation);
                     RegisterNode(state, retNode);
                     state.PushInstruction(instruction.Next);
                     return true;
