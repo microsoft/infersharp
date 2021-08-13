@@ -94,12 +94,6 @@ namespace Cilsil.Cil.Parsers
                                 currentHandler.CatchHandlerLatestFalseEntryNode, 
                                 exceptionIdentifier);
                         }
-                        // Last handler; the 
-                        else
-                        {
-
-                        }
-
                     }
 
                     return true;

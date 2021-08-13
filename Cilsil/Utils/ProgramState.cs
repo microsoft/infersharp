@@ -180,9 +180,12 @@ namespace Cilsil.Utils
 
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
+
             ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, 
                                                             (CfgNode, LvarExpression)>();
             FinallyHandlerToExceptionExit = new Dictionary<ExceptionHandler, CfgNode>();
+            ExceptionHandlerSetToEntryNode = new Dictionary<ExceptionHandler, 
+                                                            (CfgNode node, Identifier id)>();
 
             IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;

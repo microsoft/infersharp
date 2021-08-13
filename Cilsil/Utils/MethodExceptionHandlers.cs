@@ -23,7 +23,8 @@ namespace Cilsil.Utils
                                     ExceptionHandlerNode> CatchBoundsToCatchHandler =
             new Dictionary<(Instruction tryStart, Instruction tryEnd), ExceptionHandlerNode>();
 
-        public readonly Dictionary<Instruction, ExceptionHandler> FinallyEndToHandler;
+        public readonly Dictionary<Instruction, ExceptionHandler> FinallyEndToHandler = 
+            new Dictionary<Instruction, ExceptionHandler>();
 
         public readonly Dictionary<int, List<ExceptionHandlerNode>> TryOffsetToCatchHandlers;
 
@@ -45,13 +46,13 @@ namespace Cilsil.Utils
         {
             foreach (var exceptionHandler in methodBody.ExceptionHandlers)
             {
-                var tryBounds = (exceptionHandler.TryStart, exceptionHandler.TryEnd);
+                var tryBounds = (exceptionHandler.TryStart, exceptionHandler.TryEnd.Previous);
                 switch (exceptionHandler.HandlerType)
                 {
                     case ExceptionHandlerType.Catch:
                         var catchHandlerNode = new ExceptionHandlerNode(exceptionHandler);
                         var catchBounds = (exceptionHandler.HandlerStart, 
-                                           exceptionHandler.HandlerEnd);
+                                           exceptionHandler.HandlerEnd.Previous);
                         if (TryBoundsToCatchHandlers.ContainsKey(tryBounds))
                         {
                             TryBoundsToCatchHandlers[tryBounds].Add(catchHandlerNode);
@@ -66,7 +67,8 @@ namespace Cilsil.Utils
                         break;
                     case ExceptionHandlerType.Finally:
                         TryBoundsToFinallyHandlers[tryBounds] = exceptionHandler;
-                        FinallyEndToHandler[exceptionHandler.HandlerEnd] = exceptionHandler;
+                        FinallyEndToHandler[exceptionHandler.HandlerEnd.Previous] =
+                            exceptionHandler;
                         break;
                     default:
                         break;
@@ -163,11 +165,12 @@ namespace Cilsil.Utils
             foreach(var handler in CatchBoundsToCatchHandler.Values)
             {
                 boundsList.Add((handler.ExceptionHandler.HandlerStart.Offset, 
-                                handler.ExceptionHandler.HandlerEnd.Offset));
+                                handler.ExceptionHandler.HandlerEnd.Previous.Offset));
             }
             foreach(var handler in TryBoundsToFinallyHandlers.Values)
             {
-                boundsList.Add((handler.HandlerStart.Offset, handler.HandlerEnd.Offset));
+                boundsList.Add((handler.HandlerStart.Offset, 
+                                handler.HandlerEnd.Previous.Offset));
             }
             boundsList.Sort ((x, y) => x.end.CompareTo(y.end));
             for (int i = 1; i < boundsList.Count; i++)

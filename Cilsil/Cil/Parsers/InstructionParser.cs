@@ -124,7 +124,7 @@ namespace Cilsil.Cil.Parsers
         protected static Location GetHandlerEndLocation(ProgramState state,
                                                         ExceptionHandler handler) =>
             Location.FromSequencePoint(
-                state.Method.DebugInformation.GetSequencePoint(handler.HandlerEnd));
+                state.Method.DebugInformation.GetSequencePoint(handler.HandlerEnd.Previous));
 
 
         private static LvarExpression GetHandlerCatchVar(ProgramState state,
@@ -677,7 +677,7 @@ namespace Cilsil.Cil.Parsers
         protected CfgNode AddMethodBodyInstructionsToCfg(ProgramState state,
                                                          params SilInstruction[] instructions)
         {
-            if (state.AppendToPreviousNode)
+            if (state.AppendToPreviousNode && !(state.PreviousNode is PruneNode))
             {
                 state.PreviousNode.Instructions.AddRange(instructions);
                 state.AppendToPreviousNode = false;
