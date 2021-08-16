@@ -116,8 +116,8 @@ namespace Cilsil.Cil.Parsers
             }
         }
 
-        private static Location GetHandlerStartLocation(ProgramState state,
-                                                        ExceptionHandler handler) =>
+        protected static Location GetHandlerStartLocation(ProgramState state,
+                                                          ExceptionHandler handler) =>
             Location.FromSequencePoint(
                 state.Method.DebugInformation.GetSequencePoint(handler.HandlerStart));
 
@@ -226,9 +226,12 @@ namespace Cilsil.Cil.Parsers
                         exceptionType, 
                         handlerStartLocation);
                     node.Instructions.Add(storeIntoSyntheticVariable);
-                    var finallyExceptionalEntry = 
-                        CreateFinallyExceptionalEntryBlock(state, handler);
-                    node.ExceptionNodes.Add(finallyExceptionalEntry);
+                    (var entryNode, _) = GetHandlerEntryNode(state, handler);
+                    var finallyBranchNode = CreateFinallyExceptionBranchNode(state, handler);
+                    entryNode.Successors.Add(finallyBranchNode);
+                    finallyBranchNode.Successors.Add(node);
+
+                    node.ExceptionNodes.Add(entryNode);
                     break;
                 default:
                     return (null, null);
@@ -260,7 +263,7 @@ namespace Cilsil.Cil.Parsers
                                                                     ExceptionHandler handler)
         {
             (var entryNode, _) = GetHandlerEntryNode(state, handler);
-            var finallyBranchNode = GetFinallyExceptionBranchNode(state, handler);
+            var finallyBranchNode = CreateFinallyExceptionBranchNode(state, handler);
             (var loadCatchVarNode, _) = GetHandlerCatchVarNode(state, handler);
             entryNode.Successors.Add(finallyBranchNode);
             finallyBranchNode.Successors.Add(loadCatchVarNode);
@@ -299,7 +302,7 @@ namespace Cilsil.Cil.Parsers
             }
         }
 
-        protected static CfgNode GetFinallyExceptionBranchNode(ProgramState state, 
+        protected static CfgNode CreateFinallyExceptionBranchNode(ProgramState state, 
                                                                ExceptionHandler handler)
         {
             var node = new StatementNode(GetHandlerStartLocation(state, handler), 

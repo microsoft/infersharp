@@ -353,16 +353,6 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
-        /// Reinitializes the nodes to link with exception block. This should occur when either a
-        /// try block or a catch block is entered. The underlying list is null when nodes are not
-        /// to be recorded for exception-handler linking.
-        /// </summary>
-        public void ReinitializeNodesToLinkWithExceptionBlock()
-        {
-
-        }
-
-        /// <summary>
         /// Pushes an instruction to be parsed.
         /// </summary>
         /// <param name="instruction">Instruction to be parsed.</param>

@@ -25,7 +25,7 @@ namespace Cilsil.Cil.Parsers
                     var exnInfo = state.MethodExceptionHandlers;
                     var target = instruction.Operand as Instruction;
                     state.PushInstruction(target);
-                    // Leave occurs within try block.
+                    // Leave occurs within try block and has catch handler(s).
                     if (exnInfo.TryOffsetToCatchHandlers.ContainsKey(instruction.Offset))
                     {
                         (var entryNode, var exceptionIdentifier) = GetHandlerEntryNode(
@@ -48,7 +48,19 @@ namespace Cilsil.Cil.Parsers
                         {
                             var finallyHandler =
                                 exnInfo.TryOffsetToFinallyHandler[instruction.Offset];
-                            state.PushInstruction(finallyHandler.HandlerStart, state.PreviousNode);
+                            // Creates a new node to ensure finally instructions aren't attached
+                            // to 
+                            var finallyHandlerStartNode = new StatementNode(
+                                location: GetHandlerStartLocation(state, finallyHandler),
+                                kind: StatementNode.StatementNodeKind.MethodBody,
+                                proc: state.ProcDesc);
+
+                            state.Cfg.RegisterNode(finallyHandlerStartNode);
+                            state.PreviousNode.Successors.Add(finallyHandlerStartNode);
+                            state.AppendToPreviousNode = true;
+
+                            state.PushInstruction(finallyHandler.HandlerStart, 
+                                                  finallyHandlerStartNode);
                         }
                     }
                     // Leave occurs within try block without an associated catch handler.
