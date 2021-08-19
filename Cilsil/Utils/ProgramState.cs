@@ -147,7 +147,9 @@ namespace Cilsil.Utils
 
         public Dictionary<ExceptionHandler, CfgNode> FinallyHandlerToExceptionExit;
 
-        // todo -- exception exit
+        public Instruction EndfinallyControlFlow;
+
+        public Dictionary<Instruction, (CfgNode, Identifier)> LeaveToExceptionEntryNode;
 
         /// <summary>
         /// Contains information about the program's exception handlers.
@@ -186,6 +188,7 @@ namespace Cilsil.Utils
             FinallyHandlerToExceptionExit = new Dictionary<ExceptionHandler, CfgNode>();
             ExceptionHandlerSetToEntryNode = new Dictionary<ExceptionHandler, 
                                                             (CfgNode node, Identifier id)>();
+            LeaveToExceptionEntryNode = new Dictionary<Instruction, (CfgNode, Identifier)>();
 
             IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;
@@ -332,7 +335,7 @@ namespace Cilsil.Utils
         {
             (var right, var rightExpressionType) = Pop();
             (var left, var leftExpressionType) = Pop();
-
+            var binopOutputType = rightExpressionType;
             // In this case, the expression is a boolean comparison on the expression produced from
             // an isinst translation, which itself is already a boolean value; we simply return
             // this value.
@@ -349,7 +352,17 @@ namespace Cilsil.Utils
                 binopKind = BinopExpression.BinopKind.Ne;
             }
 
-            return (new BinopExpression(binopKind, left, right), rightExpressionType);
+            if (binopKind == BinopExpression.BinopKind.Lt || 
+                binopKind == BinopExpression.BinopKind.Gt || 
+                binopKind == BinopExpression.BinopKind.Le || 
+                binopKind == BinopExpression.BinopKind.Ge || 
+                binopKind == BinopExpression.BinopKind.Eq || 
+                binopKind == BinopExpression.BinopKind.Ne)
+            {
+                binopOutputType = new Tint(Tint.IntKind.IBool);
+            }
+
+            return (new BinopExpression(binopKind, left, right), binopOutputType);
         }
 
         /// <summary>

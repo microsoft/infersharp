@@ -32,6 +32,7 @@ namespace Cilsil.Utils
 
         public readonly Dictionary<int, ExceptionHandlerNode> CatchOffsetToCatchHandler;
 
+
         private static bool InstructionBlockWithinBounds(
             (Instruction start, Instruction end) block,
             (Instruction start, Instruction end) bounds) =>
