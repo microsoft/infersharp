@@ -101,7 +101,11 @@ namespace Cilsil.Services
                     // Checks if there is a node for the offset that we can reuse.
                     (var nodeAtOffset, var excessiveVisits) =
                         programState.GetOffsetNode(nextInstruction.Offset);
-                    if (nodeAtOffset != null)
+                    // We don't reuse nodes of finally handlers.
+                    if (nodeAtOffset != null && 
+                        !programState.MethodExceptionHandlers
+                                     .FinallyOffsetToFinallyHandler
+                                     .ContainsKey(nextInstruction.Offset))
                     {
                         programState.PreviousNode.Successors.Add(nodeAtOffset);
                     }

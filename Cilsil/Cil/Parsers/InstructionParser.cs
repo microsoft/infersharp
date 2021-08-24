@@ -116,6 +116,10 @@ namespace Cilsil.Cil.Parsers
             }
         }
 
+        protected static Location GetPreviousInstructionLocation(ProgramState state) =>
+            Location.FromSequencePoint(
+                state.Method.DebugInformation.GetSequencePoint(state.CurrentInstruction.Previous));
+
         protected static Location GetHandlerStartLocation(ProgramState state,
                                                           ExceptionHandler handler) =>
             Location.FromSequencePoint(
@@ -203,7 +207,7 @@ namespace Cilsil.Cil.Parsers
             var catchVarLoad = new Load(exceptionIdentifier,
                                         GetHandlerCatchVar(state, handler),
                                         exceptionType,
-                                        state.CurrentLocation);
+                                        handlerStartLocation);
 
             var node = new StatementNode(location: handlerStartLocation,
                                          kind: StatementNode.StatementNodeKind.MethodBody,
@@ -233,15 +237,7 @@ namespace Cilsil.Cil.Parsers
 
                     node.ExceptionNodes.Add(entryNode);
 
-                    var finallyBodyExceptionEntry = new StatementNode(
-                        location: handlerStartLocation,
-                        kind: StatementNode.StatementNodeKind.MethodBody,
-                        proc: state.ProcDesc);
-                    state.Cfg.RegisterNode(finallyBodyExceptionEntry);
-                    node.Successors.Add(finallyBodyExceptionEntry);
-                    state.AppendToPreviousNode = true;
-
-                    state.PushInstruction(handler.HandlerStart, finallyBodyExceptionEntry);
+                    state.PushInstruction(handler.HandlerStart, node);
                     break;
                 default:
                     return (null, null);

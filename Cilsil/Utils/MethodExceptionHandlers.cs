@@ -19,9 +19,13 @@ namespace Cilsil.Utils
                                     ExceptionHandler> TryBoundsToFinallyHandlers =
             new Dictionary<(Instruction tryStart, Instruction tryEnd), ExceptionHandler>();
 
-        private readonly Dictionary<(Instruction tryStart, Instruction tryEnd),
+        private readonly Dictionary<(Instruction catchStart, Instruction catchEnd),
                                     ExceptionHandlerNode> CatchBoundsToCatchHandler =
-            new Dictionary<(Instruction tryStart, Instruction tryEnd), ExceptionHandlerNode>();
+            new Dictionary<(Instruction catchStart, Instruction catchEnd), ExceptionHandlerNode>();
+
+        private readonly Dictionary<(Instruction finallyStart, Instruction finallyEnd),
+                                   ExceptionHandler> FinallyBoundsToFinallyHandler =
+            new Dictionary<(Instruction finallyStart, Instruction finallyEnd), ExceptionHandler>();
 
         public readonly Dictionary<Instruction, ExceptionHandler> FinallyEndToHandler = 
             new Dictionary<Instruction, ExceptionHandler>();
@@ -32,6 +36,7 @@ namespace Cilsil.Utils
 
         public readonly Dictionary<int, ExceptionHandlerNode> CatchOffsetToCatchHandler;
 
+        public readonly Dictionary<int, ExceptionHandler> FinallyOffsetToFinallyHandler;
 
         private static bool InstructionBlockWithinBounds(
             (Instruction start, Instruction end) block,
@@ -68,6 +73,9 @@ namespace Cilsil.Utils
                         break;
                     case ExceptionHandlerType.Finally:
                         TryBoundsToFinallyHandlers[tryBounds] = exceptionHandler;
+                        FinallyBoundsToFinallyHandler[(
+                            exceptionHandler.HandlerStart, 
+                            exceptionHandler.HandlerEnd.Previous)] = exceptionHandler;
                         FinallyEndToHandler[exceptionHandler.HandlerEnd.Previous] =
                             exceptionHandler;
                         break;
@@ -119,6 +127,7 @@ namespace Cilsil.Utils
             TryOffsetToCatchHandlers = ConvertBoundsToOffsets(TryBoundsToCatchHandlers);
             TryOffsetToFinallyHandler = ConvertBoundsToOffsets(TryBoundsToFinallyHandlers);
             CatchOffsetToCatchHandler = ConvertBoundsToOffsets(CatchBoundsToCatchHandler);
+            FinallyOffsetToFinallyHandler = ConvertBoundsToOffsets(FinallyBoundsToFinallyHandler);
         }
 
         /// <summary>

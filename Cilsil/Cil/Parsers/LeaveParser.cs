@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 using Cilsil.Sil;
 using Cilsil.Sil.Expressions;
+using Cilsil.Sil.Instructions;
 using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil.Cil;
@@ -25,6 +26,7 @@ namespace Cilsil.Cil.Parsers
                     var exnInfo = state.MethodExceptionHandlers;
                     var target = instruction.Operand as Instruction;
 
+                    // Leave within try of catch-block.
                     if (exnInfo.TryOffsetToCatchHandlers.ContainsKey(instruction.Offset))
                     {
                         CfgNode entryNode;
@@ -73,6 +75,43 @@ namespace Cilsil.Cil.Parsers
                                 currentHandler.CatchHandlerLatestFalseEntryNode,
                                 exceptionIdentifier);
                         }
+                        // Last catch handler of set; need to route control flow through the false
+                        // exception type-matching node.
+                        else
+                        {
+                            if (currentHandler.FinallyBlock != null)
+                            {
+                                var finallyBranchNode = CreateFinallyExceptionBranchNode(
+                                    state, currentHandler.ExceptionHandler);
+                                currentHandler.CatchHandlerLatestFalseEntryNode
+                                              .Successors
+                                              .Add(finallyBranchNode);
+                                (var loadCatchVarNode, _) = GetHandlerCatchVarNode(
+                                    state, currentHandler.FinallyBlock);
+                                finallyBranchNode.Successors.Add(loadCatchVarNode);
+                            }
+                            else
+                            {
+                                (_, var exceptionIdentifier) =
+                                    GetHandlerEntryNode(state, currentHandler.ExceptionHandler);
+                                var returnVariable = new LvarExpression(
+                                    new LocalVariable(Identifier.ReturnIdentifier, state.Method));
+                                var retType = state.Method.ReturnType.GetElementType();
+                                var retInstr = new Store(
+                                    returnVariable,
+                                    new ExnExpression(new VarExpression(exceptionIdentifier)),
+                                    Typ.FromTypeReference(retType),
+                                    GetHandlerStartLocation(state, 
+                                                            currentHandler.ExceptionHandler));
+                                currentHandler.CatchHandlerLatestFalseEntryNode
+                                              .Instructions
+                                              .Add(retInstr);
+                                currentHandler.CatchHandlerLatestFalseEntryNode
+                                              .Successors
+                                              .Add(state.ProcDesc.ExceptionSinkNode);
+                            }
+                            
+                        }
 
                         // Exceptional control flow routes through the finally block, if present,
                         // prior to routing control flow to leave.
@@ -81,20 +120,13 @@ namespace Cilsil.Cil.Parsers
                             var finallyEntryNode = CreateFinallyExceptionalEntryBlock(
                                 state, currentHandler.FinallyBlock);
                             CreateExceptionalEdges(state, finallyEntryNode);
-                            state.PushInstruction(
-                                currentHandler.FinallyBlock.HandlerStart,
-                                CreateFinallyHandlerNonExceptionalEntry(
-                                    state, currentHandler.FinallyBlock, target));
                         }
                         // Control flow routes directly to the target, as there is no finally block
-                        // through which to first route it. 
-                        else
-                        {
-                            state.PushInstruction(target);
-                        }
+                        // through which to first route it.
+                        state.PushInstruction(target);
                     }
-                    // Leave occurs within a finally block (we leave this as the last option, as
-                    // the try block of a finally encompasses all of the try-catch bytecode, in
+                    // Leave occurs within try of finally block (we leave this as the last option,
+                    // as the try block of a finally encompasses all of the try-catch bytecode, in
                     // the case of try-catch-finally.
                     else 
                     {
@@ -120,13 +152,18 @@ namespace Cilsil.Cil.Parsers
                                                                        ExceptionHandler handler,
                                                                        Instruction leaveTarget)
         {
-            var finallyHandlerStartNode = new StatementNode(
-                location: GetHandlerStartLocation(state, handler),
-                kind: StatementNode.StatementNodeKind.MethodBody,
-                proc: state.ProcDesc);
-            state.Cfg.RegisterNode(finallyHandlerStartNode);
-            state.PreviousNode.Successors.Add(finallyHandlerStartNode);
-            state.AppendToPreviousNode = true;
+            CfgNode finallyHandlerStartNode = null;
+            (var nodeOffset, _) = state.GetOffsetNode(handler.HandlerStart.Offset);
+            if (nodeOffset == null)
+            {
+                finallyHandlerStartNode = new StatementNode(
+                    location: GetHandlerStartLocation(state, handler),
+                    kind: StatementNode.StatementNodeKind.MethodBody,
+                    proc: state.ProcDesc);
+                state.Cfg.RegisterNode(finallyHandlerStartNode);
+                state.PreviousNode.Successors.Add(finallyHandlerStartNode);
+                state.AppendToPreviousNode = true;
+            }
             state.EndfinallyControlFlow = leaveTarget;
             return finallyHandlerStartNode;
         }
