@@ -308,27 +308,33 @@ namespace Cilsil.Cil.Parsers
         /// </summary>
         /// <param name="state">The state.</param>
         /// <param name="handler">The handler.</param>
+        /// <param name="createCopy"> If <c>true</c>, creates a copy of the handler entry 
+        /// node.</param>
         /// <returns>The exception entry node, as well as the identifier for the unwrapped 
         /// exception.</returns>
         protected static (CfgNode, Identifier) GetHandlerEntryNode(ProgramState state, 
-                                                                   ExceptionHandler handler)
+                                                                   ExceptionHandler handler,
+                                                                   bool createCopy = true)
         {
             if (!state.ExceptionHandlerSetToEntryNode.ContainsKey(handler)) 
             {
                 state.ExceptionHandlerSetToEntryNode[handler] = CreateExceptionEntryNode(state, 
                                                                                          handler);
-                return state.ExceptionHandlerSetToEntryNode[handler];
             }
             else
             {
-                var copy = new StatementNode(state.CurrentLocation,
-                                             StatementNode.StatementNodeKind.ExceptionHandler,
-                                             state.ProcDesc);
-                copy.Instructions = 
-                    state.ExceptionHandlerSetToEntryNode[handler].node.Instructions;
-                state.Cfg.RegisterNode(copy);
-                return (copy, state.ExceptionHandlerSetToEntryNode[handler].id);
+                if (createCopy)
+                {
+                    var copy = new StatementNode(state.CurrentLocation,
+                                                 StatementNode.StatementNodeKind.ExceptionHandler,
+                                                 state.ProcDesc);
+                    copy.Instructions =
+                        state.ExceptionHandlerSetToEntryNode[handler].node.Instructions;
+                    state.Cfg.RegisterNode(copy);
+                    return (copy, state.ExceptionHandlerSetToEntryNode[handler].id);
+                }
             }
+            return state.ExceptionHandlerSetToEntryNode[handler];
         }
 
         protected static CfgNode CreateFinallyExceptionBranchNode(ProgramState state, 

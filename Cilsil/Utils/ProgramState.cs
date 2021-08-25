@@ -402,7 +402,7 @@ namespace Cilsil.Utils
 
             var currentSequencePoint =
                 Method.DebugInformation.GetSequencePoint(CurrentInstruction);
-            if (currentSequencePoint != null)
+            if (currentSequencePoint != null && currentSequencePoint.StartLine < 10000000)
             {
                 var newLocation = Location.FromSequencePoint(currentSequencePoint);
                 CurrentLocation = newLocation;
