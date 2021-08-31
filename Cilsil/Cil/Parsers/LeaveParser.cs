@@ -74,9 +74,19 @@ namespace Cilsil.Cil.Parsers
                                 state, currentHandler.FinallyBlock);
                             CreateExceptionalEdges(state, finallyEntryNode);
                         }
-                        // Control flow routes directly to the target, as there is no finally block
-                        // through which to first route it.
-                        state.PushInstruction(target);
+
+                        if (currentHandler.FinallyBlock != null)
+                        {
+                            state.PushInstruction(currentHandler.FinallyBlock.HandlerStart,
+                                                  CreateFinallyHandlerNonExceptionalEntry(
+                                                      state, currentHandler.FinallyBlock, target));
+                        }
+                        else
+                        {
+                            // Control flow routes directly to the target, as there is no finally block
+                            // through which to first route it.
+                            state.PushInstruction(target);
+                        }
                     }
                     // Leave occurs within try of finally block (we leave this as the last option,
                     // as the try block of a finally encompasses all of the try-catch bytecode, in
