@@ -38,6 +38,8 @@ namespace Cilsil.Utils
 
         public readonly Dictionary<int, ExceptionHandler> FinallyOffsetToFinallyHandler;
 
+        public const int DefaultHandlerEndOffset = -1;
+
         private static bool InstructionBlockWithinBounds(
             (Instruction start, Instruction end) block,
             (Instruction start, Instruction end) bounds) =>
@@ -203,6 +205,35 @@ namespace Cilsil.Utils
                 }
             }
             return true;
+        }
+
+        public int GetBlockEndOffsetFromOffset(int offset)
+        {
+            if (TryOffsetToCatchHandlers.ContainsKey(offset))
+            {
+                return TryOffsetToCatchHandlers[offset][0].ExceptionHandler
+                                                          .TryEnd
+                                                          .Previous
+                                                          .Offset;
+            }
+            else if (CatchOffsetToCatchHandler.ContainsKey(offset))
+            {
+                return CatchOffsetToCatchHandler[offset].ExceptionHandler
+                                                        .HandlerEnd
+                                                        .Previous
+                                                        .Offset;
+            }
+            else if (TryOffsetToFinallyHandler.ContainsKey(offset))
+            {
+                return TryOffsetToFinallyHandler[offset].TryEnd.Previous.Offset;
+            }
+
+            else if (FinallyOffsetToFinallyHandler.ContainsKey(offset))
+            {
+                return FinallyOffsetToFinallyHandler[offset].HandlerEnd.Previous.Offset;
+            }
+            return DefaultHandlerEndOffset;
+;
         }
 
         private static Dictionary<int, T> ConvertBoundsToOffsets<T>(

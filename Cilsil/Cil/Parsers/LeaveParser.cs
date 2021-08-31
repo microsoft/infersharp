@@ -65,58 +65,6 @@ namespace Cilsil.Cil.Parsers
                     {
                         var currentHandler = exnInfo.CatchOffsetToCatchHandler[instruction.Offset];
 
-                        if (currentHandler.NextCatchBlock != null)
-                        {
-                            (_, var exceptionIdentifier) = GetHandlerEntryNode(
-                                state, currentHandler.FirstCatchHandler, false);
-                            // Continues translation with catch handler's first instruction from
-                            // the handler's catch variable load node.
-                            CreateCatchHandlerEntryBlock(
-                                state,
-                                currentHandler.NextCatchBlock,
-                                currentHandler.CatchHandlerLatestFalseEntryNode,
-                                exceptionIdentifier);
-                        }
-                        // Last catch handler of set; need to route control flow through the false
-                        // exception type-matching node.
-                        else
-                        {
-                            if (currentHandler.FinallyBlock != null)
-                            {
-                                var finallyBranchNode = CreateFinallyExceptionBranchNode(
-                                    state, currentHandler.ExceptionHandler);
-                                currentHandler.CatchHandlerLatestFalseEntryNode
-                                              .Successors
-                                              .Add(finallyBranchNode);
-                                (var loadCatchVarNode, _) = GetHandlerCatchVarNode(
-                                    state, currentHandler.FinallyBlock);
-                                finallyBranchNode.Successors.Add(loadCatchVarNode);
-                            }
-                            else
-                            {
-                                (_, var exceptionIdentifier) =
-                                    GetHandlerEntryNode(state, 
-                                                        currentHandler.ExceptionHandler, 
-                                                        false);
-                                var returnVariable = new LvarExpression(
-                                    new LocalVariable(Identifier.ReturnIdentifier, state.Method));
-                                var retType = state.Method.ReturnType.GetElementType();
-                                var retInstr = new Store(
-                                    returnVariable,
-                                    new ExnExpression(new VarExpression(exceptionIdentifier)),
-                                    Typ.FromTypeReference(retType),
-                                    GetHandlerStartLocation(state, 
-                                                            currentHandler.ExceptionHandler));
-                                currentHandler.CatchHandlerLatestFalseEntryNode
-                                              .Instructions
-                                              .Add(retInstr);
-                                currentHandler.CatchHandlerLatestFalseEntryNode
-                                              .Successors
-                                              .Add(state.ProcDesc.ExceptionSinkNode);
-                            }
-                            
-                        }
-
                         // Exceptional control flow routes through the finally block, if present,
                         // prior to routing control flow to leave.
                         if (currentHandler.FinallyBlock != null && 

@@ -76,7 +76,9 @@ namespace Cilsil.Utils
         /// been translated) to the CFG node containing the translated SIL instruction as well as 
         /// the program stack immediately prior to the translation of that CIL instruction.
         /// </summary>
-        public Dictionary<int, List<(CfgNode Node, ProgramStack Stack)>> OffsetToNode { get; }
+        public Dictionary<int, List<(CfgNode Node, 
+                                    ProgramStack Stack, 
+                                    int PredecessorBlockEndOffset)>> OffsetToNode { get; }
 
         /// <summary>
         /// Maps a variable index to a boxed variable type, if there is one stored at the location.
@@ -180,7 +182,7 @@ namespace Cilsil.Utils
             NodesToLinkWithExceptionBlock = new List<CfgNode>();
             InstructionInTryOrCatch = false;
 
-            OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack)>>();
+            OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack, int)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
 
             ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, 
@@ -201,12 +203,34 @@ namespace Cilsil.Utils
         /// </summary>
         /// <remarks>The node is saved for the current offset along with the current stack 
         /// state.</remarks>
-        public void SaveNodeOffset(CfgNode node, ProgramStack previousStack)
+        public void SaveNodeOffset(CfgNode node, 
+                                   ProgramStack previousStack, 
+                                   int previousNodeHandlerEndOffset)
         {
-            OffsetToNode
-                .GetOrCreateValue(CurrentInstruction.Offset,
-                                  new List<(CfgNode Node, ProgramStack Stack)>())
-                .Add((node, previousStack));
+            // If not a catch block, where the stack is expected to contain the thrown exception,
+            // and the previous node is from a different handler block, we empty the saved stack,
+            // as there should not be anything on the stack when transferring control between
+            // different handler blocks.
+            if (!MethodExceptionHandlers.CatchOffsetToCatchHandler
+                                        .ContainsKey(CurrentInstruction.Offset) &&
+                node.BlockEndOffset != PreviousNode.BlockEndOffset)
+            {
+                OffsetToNode
+                    .GetOrCreateValue(CurrentInstruction.Offset,
+                                      new List<(CfgNode Node, ProgramStack Stack, int)>())
+                    .Add((node,
+                          new ProgramStack(),
+                          previousNodeHandlerEndOffset));
+            }
+            else
+            {
+                OffsetToNode
+                    .GetOrCreateValue(CurrentInstruction.Offset,
+                                      new List<(CfgNode Node, ProgramStack Stack, int)>())
+                    .Add((node,
+                          previousStack,
+                          previousNodeHandlerEndOffset));
+            }
         }
 
         /// <summary>
@@ -218,7 +242,9 @@ namespace Cilsil.Utils
         /// <remarks>For a node to be reusable for a particular offset, the corresponding program 
         /// stack must be a list subset (i.e. guarantees it has the necessary stack instructions 
         /// required at that state).</remarks>
-        public (CfgNode, bool) GetOffsetNode(int offset)
+        public (CfgNode, bool) GetOffsetNode(
+            int offset, 
+            int predecessorHandlerBlockEndOffset = MethodExceptionHandlers.DefaultHandlerEndOffset)
         {
             if (OffsetToNode.ContainsKey(offset))
             {
@@ -235,7 +261,10 @@ namespace Cilsil.Utils
                     // This prevents this issue by making sure that the stack is exactly the same 
                     // before we try to reuse it.
                     return (OffsetToNode[offset]
-                            .FirstOrDefault(entry => entry.Stack.IsSubStackOf(ProgramStack))
+                            .FirstOrDefault(
+                                entry => entry.Stack.IsSubStackOf(ProgramStack) && 
+                                    entry.PredecessorBlockEndOffset ==
+                                    predecessorHandlerBlockEndOffset)
                             .Node, false);
                 }
             }
@@ -402,6 +431,7 @@ namespace Cilsil.Utils
 
             var currentSequencePoint =
                 Method.DebugInformation.GetSequencePoint(CurrentInstruction);
+            // Line number is sometimes extremely high, for example with branching instructions.
             if (currentSequencePoint != null && currentSequencePoint.StartLine < 10000000)
             {
                 var newLocation = Location.FromSequencePoint(currentSequencePoint);
@@ -450,7 +480,6 @@ namespace Cilsil.Utils
             /// The next available integer identifier for temporary variables at this state.
             /// </summary>
             public int NextAvailableTemporaryVariableId;
-
         }
     }
 }

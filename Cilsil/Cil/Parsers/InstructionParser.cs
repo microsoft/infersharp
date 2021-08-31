@@ -104,6 +104,9 @@ namespace Cilsil.Cil.Parsers
         {
             state.Cfg.RegisterNode(node);
             state.PreviousNode.Successors.Add(node);
+            node.BlockEndOffset = state.MethodExceptionHandlers
+                                       .GetBlockEndOffsetFromOffset(
+                                            state.CurrentInstruction.Offset);
             if (state.MethodExceptionHandlers.GetExceptionHandlerAtInstruction(
                     state.CurrentInstruction) != null)
             {
@@ -111,7 +114,9 @@ namespace Cilsil.Cil.Parsers
             }
             if (RememberNodeOffset)
             {
-                state.SaveNodeOffset(node, PreviousProgramStack);
+                state.SaveNodeOffset(node,
+                                     PreviousProgramStack, 
+                                     state.PreviousNode.BlockEndOffset);
                 RememberNodeOffset = false;
             }
         }
@@ -246,28 +251,74 @@ namespace Cilsil.Cil.Parsers
             return (node, syntheticExceptionVariable);
         }
 
-        protected static void CreateCatchHandlerEntryBlock(ProgramState state,
-                                                           ExceptionHandlerNode handlerNode,
+        protected static void CreateCatchHandlerEntryBlock(ProgramState state, 
+                                                           ExceptionHandlerNode handlerNode, 
                                                            CfgNode handlerEntryPredecessor,
                                                            Identifier exceptionIdentifier)
         {
             (var trueBranch, var falseBranch) = CreateExceptionTypeCheckBranchNodes(
                 state, handlerNode.ExceptionHandler, exceptionIdentifier);
-            (var loadCatchVarNode, _) = GetHandlerCatchVarNode(
-                state, handlerNode.ExceptionHandler);
-            handlerNode.CatchHandlerLatestFalseEntryNode = falseBranch;
             handlerEntryPredecessor.Successors.Add(trueBranch);
             handlerEntryPredecessor.Successors.Add(falseBranch);
+
+            if (!state.ExceptionHandlerToCatchVarNode.ContainsKey(handlerNode.ExceptionHandler))
+            {
+                state.ExceptionHandlerToCatchVarNode[handlerNode.ExceptionHandler] =
+                    CreateLoadCatchVarNode(state, handlerNode.ExceptionHandler);
+                // The CIL specification dictates that the exception object is on top of
+                // the stack when the catch handler is entered; the first instruction of
+                // the catch handler will handle the object pushed onto the stack.
+                state.PushExpr(new VarExpression(exceptionIdentifier),
+                               new Tptr(Tptr.PtrKind.Pk_pointer,
+                                        new Tstruct("System.Object")));
+                state.PushInstruction(
+                    handlerNode.ExceptionHandler.HandlerStart,
+                    state.ExceptionHandlerToCatchVarNode[handlerNode.ExceptionHandler].node);
+            }
+            (var loadCatchVarNode, _) = GetHandlerCatchVarNode(
+                state, handlerNode.ExceptionHandler);
             trueBranch.Successors.Add(loadCatchVarNode);
 
-            // The CIL specification dictates that the exception object is on top of
-            // the stack when the catch handler is entered; the first instruction of
-            // the catch handler will handle the object pushed onto the stack.
-            state.PushExpr(new VarExpression(exceptionIdentifier),
-                           new Tptr(Tptr.PtrKind.Pk_pointer,
-                                    new Tstruct("System.Object")));
-            state.PushInstruction(handlerNode.ExceptionHandler.HandlerStart,
-                                  loadCatchVarNode);
+            if (handlerNode.NextCatchBlock != null)
+            {
+                // Continues translation with catch handler's first instruction from
+                // the handler's catch variable load node.
+                CreateCatchHandlerEntryBlock(state, 
+                                             handlerNode.NextCatchBlock,
+                                             falseBranch,
+                                             exceptionIdentifier);
+            }
+            // Last catch handler of set; need to route control flow through the false
+            // exception type-matching node.
+            else
+            {
+                if (handlerNode.FinallyBlock != null)
+                {
+                    var finallyBranchNode = CreateFinallyExceptionBranchNode(
+                        state, handlerNode.ExceptionHandler);
+                    falseBranch.Successors
+                               .Add(finallyBranchNode);
+                    (var finallyLoadCatchVar, _) = GetHandlerCatchVarNode(
+                        state, handlerNode.FinallyBlock);
+                    finallyBranchNode.Successors.Add(finallyLoadCatchVar);
+                }
+                else
+                {
+                    var returnVariable = new LvarExpression(
+                        new LocalVariable(Identifier.ReturnIdentifier, state.Method));
+                    var retType = state.Method.ReturnType.GetElementType();
+                    var retInstr = new Store(
+                        returnVariable,
+                        new ExnExpression(new VarExpression(exceptionIdentifier)),
+                        Typ.FromTypeReference(retType),
+                        GetHandlerStartLocation(state,
+                                                handlerNode.ExceptionHandler));
+                    falseBranch.Instructions
+                               .Add(retInstr);
+                    falseBranch.Successors
+                               .Add(state.ProcDesc.ExceptionSinkNode);
+                }
+            }
         }
 
         /// <summary>
@@ -436,6 +487,12 @@ namespace Cilsil.Cil.Parsers
             {
                 isInstCall, pruneFalseInstruction
             });
+            pruneTrueNode.BlockEndOffset = state.MethodExceptionHandlers
+                                                  .GetBlockEndOffsetFromOffset(
+                                                       state.CurrentInstruction.Offset);
+            pruneFalseNode.BlockEndOffset = state.MethodExceptionHandlers
+                                                   .GetBlockEndOffsetFromOffset(
+                                                        state.CurrentInstruction.Offset);
             state.Cfg.RegisterNode(pruneTrueNode);
             state.Cfg.RegisterNode(pruneFalseNode);
             return (pruneTrueNode, pruneFalseNode);
@@ -738,7 +795,9 @@ namespace Cilsil.Cil.Parsers
         protected CfgNode AddMethodBodyInstructionsToCfg(ProgramState state,
                                                          params SilInstruction[] instructions)
         {
-            if (state.AppendToPreviousNode && !(state.PreviousNode is PruneNode))
+            if (state.AppendToPreviousNode && 
+                !(state.PreviousNode is PruneNode) && 
+                state.CurrentLocation == state.PreviousNode.Location)
             {
                 state.PreviousNode.Instructions.AddRange(instructions);
                 state.AppendToPreviousNode = false;

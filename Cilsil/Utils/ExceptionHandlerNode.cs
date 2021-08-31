@@ -31,13 +31,6 @@ namespace Cilsil.Utils
         public ExceptionHandler FirstCatchHandler = null;
 
         /// <summary>
-        /// The false exception type-check entry node of the block; initially null until it has
-        /// been written to; always captures the node created the last time the translation visited
-        /// this handler.
-        /// </summary>
-        public CfgNode CatchHandlerLatestFalseEntryNode = null;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ExceptionHandlerNode"/> class.
         /// </summary>
         /// <param name="exceptionHandler">The exception handler.</param>
