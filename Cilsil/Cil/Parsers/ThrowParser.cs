@@ -24,7 +24,6 @@ namespace Cilsil.Cil.Parsers
                                                             returnValue, 
                                                             state.CurrentLocation);
                     RegisterNode(state, retNode);
-                    state.PushInstruction(instruction.Next);
                     return true;
                 default:
                     return false;
