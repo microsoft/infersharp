@@ -713,6 +713,7 @@ namespace Cilsil.Test.E2E
 
         [DataRow(false, InferError.None)]
         [DataRow(true, InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
         public void NullExceptionTestCatchException(bool returnsNull, InferError expectedError)
         {
             TestRunManager.Run(
