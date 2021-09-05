@@ -67,7 +67,8 @@ namespace Cilsil.Test.Assets
             TestStarg,
             CloseStream,
             ReturnInitializedStreamReader,
-            ReturnInitializedMemoryStream
+            ReturnInitializedMemoryStream,
+            CatchReturnsNullIfTrue
         }
 
         /// <summary>
@@ -416,6 +417,12 @@ namespace Cilsil.Test.Assets
                     if (args == null || args.Length != 2)
                     {
                         throw new ArgumentException("TestStarg requires 2 arguments");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.CatchReturnsNullIfTrue:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException("CatchReturnsNullIfTrue requires 1 argument.");
                     }
                     return GetMethodCall(true);
                 default:

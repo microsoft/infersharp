@@ -268,5 +268,39 @@ namespace Cilsil.Test.Assets
                 return new TestClass();
             }
         }
+
+        private static void ThrowsFileNotFoundException()
+        {
+            throw new FileNotFoundException();
+        }
+
+        private static void ThrowsIOException()
+        {
+            throw new IOException();
+        }
+
+        public static TestClass CatchReturnsNullIfTrue(bool input)
+        {
+            try
+            {
+                if (input)
+                {
+                    ThrowsIOException();
+                }
+                else
+                {
+                    ThrowsFileNotFoundException();
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                return new TestClass();
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+            return new TestClass();
+        }
     }
 }
