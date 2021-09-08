@@ -99,7 +99,7 @@ namespace Cilsil.Cil.Parsers
                                                        value,
                                                        type,
                                                        state.CurrentLocation);
-                node = AddMethodBodyInstructionsToCfg(state, storeValueIntoVariable);
+                var node = AddMethodBodyInstructionsToCfg(state, storeValueIntoVariable);
                 state.PushInstruction(instruction.Next, node);
             }
 

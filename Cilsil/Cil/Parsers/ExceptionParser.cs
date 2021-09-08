@@ -263,7 +263,9 @@ namespace Cilsil.Cil.Parsers
                 args.Add(new Call.CallArg(expression, type));
             }
             args.Add(
-                new Call.CallArg(new SizeofExpression(exceptionType.StripPointer(), "exact"), new Tvoid()));
+                new Call.CallArg(new SizeofExpression(exceptionType.StripPointer(), 
+                                                      SizeofExpression.SizeofExpressionKind.exact), 
+                                 new Tvoid()));
 
             return (new Call(newObjectIdentifier,
                              exceptionType,

@@ -102,6 +102,8 @@ namespace Cilsil.Utils
         /// Previous expression type registered by return node.
         /// </summary>
         private Typ PreviousReturnedType;
+
+        /// <summary> 
         /// Tracks indices at which the expression stored is produced from the translation of the
         /// isinst instruction.
         /// </summary>
@@ -339,7 +341,7 @@ namespace Cilsil.Utils
                 binopKind = BinopExpression.BinopKind.Ne;
             }
 
-            return (new BinopExpression(binopKind, left, right), expressionType);
+            return (new BinopExpression(binopKind, left, right), rightExpressionType);
         }
 
         /// <summary>
