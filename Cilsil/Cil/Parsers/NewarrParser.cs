@@ -44,7 +44,7 @@ namespace Cilsil.Cil.Parsers
 
                     var arrayLengthSizeofExp = new SizeofExpression(
                         new Tarray(arrayContentType),
-                        "exact",
+                        SizeofExpression.SizeofExpressionKind.exact,
                         arrayLength);
 
                     var arrayTypeWithPtr = new Tptr(Tptr.PtrKind.Pk_pointer,

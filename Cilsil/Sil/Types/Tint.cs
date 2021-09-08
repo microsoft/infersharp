@@ -25,9 +25,13 @@ namespace Cilsil.Sil.Types
         /// Initializes a new instance of the <see cref="Tint"/> class.
         /// </summary>
         /// <param name="kind">The kind of integer.</param>
-        public Tint(IntKind kind)
+        /// <param name="isInstReturnType"><c>true</c> if this type is that of the boolean type 
+        /// produced during the translation of isinst, a type-checking CIL instruction,  
+        /// <c>false</c> otherwise.</param>
+        public Tint(IntKind kind, bool isInstReturnType = false)
         {
             Kind = kind;
+            IsInstReturnType = isInstReturnType;
         }
 
         /// <summary>

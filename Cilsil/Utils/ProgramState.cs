@@ -102,6 +102,10 @@ namespace Cilsil.Utils
         /// Previous expression type registered by return node.
         /// </summary>
         private Typ PreviousReturnedType;
+        /// Tracks indices at which the expression stored is produced from the translation of the
+        /// isinst instruction.
+        /// </summary>
+        public HashSet<int> IndicesWithIsInstReturnType { get; }
 
         /// <summary>
         /// True if there are remaining instructions to translate, and false otherwise.
@@ -154,7 +158,7 @@ namespace Cilsil.Utils
 
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
-
+            IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;
 
             ExceptionBlockStartToEndOffsets = new Dictionary<int, int>();
@@ -314,10 +318,18 @@ namespace Cilsil.Utils
         /// <param name="binopKind">The type of the binary operation.</param>
         /// <returns>The binary operation expression as well as the type associated with its
         /// underlying operands.</returns>
-        public (BinopExpression, Typ) PopTwoAndApplyBinop(BinopExpression.BinopKind binopKind)
+        public (Expression, Typ) PopTwoAndApplyBinop(BinopExpression.BinopKind binopKind)
         {
-            (var right, var expressionType) = Pop();
-            (var left, _) = Pop();
+            (var right, var rightExpressionType) = Pop();
+            (var left, var leftExpressionType) = Pop();
+
+            // In this case, the expression is a boolean comparison on the expression produced from
+            // an isinst translation, which itself is already a boolean value; we simply return
+            // this value.
+            if (binopKind == BinopExpression.BinopKind.Gt && leftExpressionType.IsInstReturnType)
+            {
+                return (left, leftExpressionType);
+            }
 
             // Object-null checks are represented in CIL using Gt. In this case, binop kind should be 
             // updated to Ne.

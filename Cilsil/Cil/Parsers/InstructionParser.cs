@@ -172,7 +172,10 @@ namespace Cilsil.Cil.Parsers
                                                isObjCBlock: false);
             var args = new List<Call.CallArg>
             {
-                new Call.CallArg(new SizeofExpression(type.StripPointer(), "exact"), type)
+                new Call.CallArg(
+                    new SizeofExpression(type.StripPointer(), 
+                                         SizeofExpression.SizeofExpressionKind.exact), 
+                    type)
             };
 
             return (new Call(newObjectIdentifier,
@@ -210,7 +213,8 @@ namespace Cilsil.Cil.Parsers
                          {
                                      new Call.CallArg(
                                          new SizeofExpression(
-                                             type.StripPointer(), "exact"),
+                                             type.StripPointer(), 
+                                             SizeofExpression.SizeofExpressionKind.exact),
                                          type)
                          },
                          callFlags,

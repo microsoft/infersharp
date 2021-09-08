@@ -57,8 +57,7 @@ namespace Cilsil.Sil
                               true);
 
         /// <summary>
-        /// Standard procedure name used in [val instanceof typ] translation, interpreted specially
-        /// by the backend.
+        /// Standard procedure name used for translating type-checking bytecode.
         /// </summary>
         public static readonly ProcedureName BuiltIn__instanceof =
             new ProcedureName("__instanceof",

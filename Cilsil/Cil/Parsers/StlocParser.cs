@@ -15,7 +15,6 @@ namespace Cilsil.Cil.Parsers
                                                             ProgramState state)
         {
             int index;
-            CfgNode node = null;
             switch (instruction.OpCode.Code)
             {
                 case Code.Stloc_0:
@@ -69,6 +68,14 @@ namespace Cilsil.Cil.Parsers
                     state.VariableIndexToBoxedValueType.ContainsKey(index))
             {
                 state.VariableIndexToBoxedValueType.Remove(index);
+            }
+            else if (type.IsInstReturnType)
+            {
+                state.IndicesWithIsInstReturnType.Add(index);
+            }
+            else if (!type.IsInstReturnType && state.IndicesWithIsInstReturnType.Contains(index))
+            {
+                state.IndicesWithIsInstReturnType.Remove(index);
             }
 
             if (value is BinopExpression && type is Tptr)

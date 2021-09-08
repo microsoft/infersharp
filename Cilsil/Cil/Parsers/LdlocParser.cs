@@ -72,6 +72,10 @@ namespace Cilsil.Cil.Parsers
             {
                 variableType = state.VariableIndexToBoxedValueType[index];
             }
+            else if (state.IndicesWithIsInstReturnType.Contains(index))
+            {
+                variableType = new Tint(Tint.IntKind.IBool, true);
+            }
 
             if (instruction.OpCode.Code == Code.Ldloca || instruction.OpCode.Code == Code.Ldloca_S)
             {
