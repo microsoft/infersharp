@@ -10,6 +10,9 @@ namespace Cilsil.Utils
     /// </summary>
     public class MethodExceptionHandlers
     {
+        // Internal fields for managing exception handler information. Assumes that try-catch, 
+        // try-finally are not nested, though try-catch-finally is supported.
+        #region
         private readonly Dictionary<(Instruction tryStart, Instruction tryEnd),
                                     List<ExceptionHandlerNode>> TryBoundsToCatchHandlers =
             new Dictionary<(Instruction tryStart, Instruction tryEnd), 
@@ -26,21 +29,41 @@ namespace Cilsil.Utils
         private readonly Dictionary<(Instruction finallyStart, Instruction finallyEnd),
                                    ExceptionHandler> FinallyBoundsToFinallyHandler =
             new Dictionary<(Instruction finallyStart, Instruction finallyEnd), ExceptionHandler>();
+        #endregion
 
+        // Public fields for managing exception handler information. Assumes that try-catch, 
+        // try-finally are not nested, though try-catch-finally is supported.
+        #region
+        /// <summary>
+        /// Maps the last instruction of a finally handler to the handler.
+        /// </summary>
         public readonly Dictionary<Instruction, ExceptionHandler> FinallyEndToHandler = 
             new Dictionary<Instruction, ExceptionHandler>();
 
         /// <summary>
-        /// 
+        /// Maps offsets within try-blocks of try-catch to the corresponding catch handler set.
         /// </summary>
         public readonly Dictionary<int, List<ExceptionHandlerNode>> TryOffsetToCatchHandlers;
 
+        /// <summary>
+        /// Maps offsets within try-blocks of try-finally to the corresponding finally handler.
+        /// </summary>
         public readonly Dictionary<int, ExceptionHandler> TryOffsetToFinallyHandler;
 
+        /// <summary>
+        /// Maps offsets within catch-blocks to the corresponding catch handler.
+        /// </summary>
         public readonly Dictionary<int, ExceptionHandlerNode> CatchOffsetToCatchHandler;
 
+        /// <summary>
+        /// Maps offsets within finally-blocks to the corresponding finally handler.
+        /// </summary>
         public readonly Dictionary<int, ExceptionHandler> FinallyOffsetToFinallyHandler;
+        #endregion
 
+        /// <summary>
+        /// The default handler end offset, overwritten when it can be found.
+        /// </summary>
         public const int DefaultHandlerEndOffset = -1;
 
         private static bool InstructionBlockWithinBounds(
@@ -215,6 +238,11 @@ namespace Cilsil.Utils
             return true;
         }
 
+        /// <summary>
+        /// Used for excluding translation of methods with finally blocks ending in throw.
+        /// </summary>
+        /// <returns><c>true</c> if there is no finally block that ends with throw, <c>false</c>
+        /// otherwise.</returns>
         public bool NoFinallyEndWithThrow()
         {
             foreach(var finallyEnd in FinallyEndToHandler.Keys)
@@ -227,6 +255,12 @@ namespace Cilsil.Utils
             return true;
         }
 
+        /// <summary>
+        /// Gets the block end offset from a given offset; returns the default handler end offset
+        /// if the offset is not found within exception handlers.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        /// <returns></returns>
         public int GetBlockEndOffsetFromOffset(int offset)
         {
             if (TryOffsetToCatchHandlers.ContainsKey(offset))
