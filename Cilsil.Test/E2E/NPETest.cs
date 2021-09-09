@@ -718,13 +718,14 @@ namespace Cilsil.Test.E2E
         {
             TestRunManager.Run(
                 InitVars(firstLocalVarType: VarType.TestClass,
-                         firstLocalVarValue: CallTestClassMethod(TestClassMethod.TestIsInst,
-                                                                  false,
-                                                                  args: new string[]
-                                                                  {
-                                                                      returnsNull.ToString()
-                                                                                 .ToLower()
-                                                                  })) +
+                         firstLocalVarValue: CallTestClassMethod(
+                             TestClassMethod.CatchReturnsNullIfTrue,
+                             false,
+                             args: new string[]
+                             {
+                                 returnsNull.ToString()
+                                             .ToLower()
+                             })) +
                     DerefObject(VarName.FirstLocal), GetString(expectedError));
         }
 
