@@ -68,7 +68,8 @@ namespace Cilsil.Test.Assets
             CloseStream,
             ReturnInitializedStreamReader,
             ReturnInitializedMemoryStream,
-            CatchReturnsNullIfTrue
+            CatchReturnsNullIfTrue,
+            FinallyReturnsNullIfTrue
         }
 
         /// <summary>
@@ -423,6 +424,12 @@ namespace Cilsil.Test.Assets
                     if (args == null || args.Length != 1)
                     {
                         throw new ArgumentException("CatchReturnsNullIfTrue requires 1 argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.FinallyReturnsNullIfTrue:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException("FinallyReturnsNullIfTrue requires 1 argument.");
                     }
                     return GetMethodCall(true);
                 default:

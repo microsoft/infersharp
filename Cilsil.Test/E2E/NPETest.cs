@@ -729,6 +729,24 @@ namespace Cilsil.Test.E2E
                     DerefObject(VarName.FirstLocal), GetString(expectedError));
         }
 
+        [DataRow(false, InferError.None)]
+        [DataRow(true, InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
+        public void NullExceptionTestFinallyException(bool returnsNull, InferError expectedError)
+        {
+            TestRunManager.Run(
+                InitVars(firstLocalVarType: VarType.TestClass,
+                         firstLocalVarValue: CallTestClassMethod(
+                             TestClassMethod.FinallyReturnsNullIfTrue,
+                             false,
+                             args: new string[]
+                             {
+                                 returnsNull.ToString()
+                                             .ToLower()
+                             })) +
+                    DerefObject(VarName.FirstLocal), GetString(expectedError));
+        }
+
         /// <summary>
         /// Validates the use of Infer models for pre-compiled code during analysis. The model 
         /// tested here is String.IsNullOrWhiteSpace, but the purpose of the test is to verify

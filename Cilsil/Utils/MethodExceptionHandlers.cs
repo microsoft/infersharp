@@ -192,6 +192,7 @@ namespace Cilsil.Utils
                                        handler.TryEnd.Previous.Offset));
             }
             boundsList.Sort ((x, y) => x.end.CompareTo(y.end));
+            finallyBoundsList.Sort((x, y) => x.end.CompareTo(y.end));
 
             for (int i = 1; i < boundsList.Count; i++)
             {
