@@ -320,11 +320,11 @@ namespace Cilsil.Test.Assets
             }
             catch (FileNotFoundException)
             {
-                output = null;
+                output = new TestClass();
             }
             catch (IOException)
             {
-                output = new TestClass();
+                output = null;
             }
             finally
             {
