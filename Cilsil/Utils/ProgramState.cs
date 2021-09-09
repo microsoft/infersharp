@@ -375,7 +375,6 @@ namespace Cilsil.Utils
             {
                 return (left, leftExpressionType);
             }
-
             // Object-null checks are represented in CIL using Gt. In this case, binop kind should be 
             // updated to Ne.
             if (binopKind == BinopExpression.BinopKind.Gt &&
