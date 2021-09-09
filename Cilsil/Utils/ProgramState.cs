@@ -141,12 +141,15 @@ namespace Cilsil.Utils
                          (CfgNode node, LvarExpression variable)> ExceptionHandlerToCatchVarNode;
 
         /// <summary>
-        /// The exception handler to its entry node as well as the identifier for the unwrapped 
+        /// The exception handler to its entry node as well as pthe identifier for the unwrapped 
         /// exception.
         /// </summary>
         public Dictionary<ExceptionHandler,
                           (CfgNode node, Identifier id)> ExceptionHandlerSetToEntryNode;
 
+        /// <summary>
+        /// Maps finally handler to exception exit
+        /// </summary>
         public Dictionary<ExceptionHandler, CfgNode> FinallyHandlerToExceptionExit;
 
         public Instruction EndfinallyControlFlow;

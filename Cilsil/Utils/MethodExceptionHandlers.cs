@@ -256,11 +256,15 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
-        /// Gets the block end offset from a given offset; returns the default handler end offset
-        /// if the offset is not found within exception handlers.
+        /// Gets the end offset for the most immediate surrounding exception handling block at a 
+        /// given offset; returns the default handler end offset if the offset is not found within 
+        /// exception handlers. Note the order of checks; for example, if an offset is in the try 
+        /// of a try-catch, the try-catch try end is returned, as opposed to the try-finally 
+        /// try end if there is an enclosing finally block.
         /// </summary>
         /// <param name="offset">The offset.</param>
-        /// <returns></returns>
+        /// <returns>The end offset of the most immediate surrounding exception-handling block; 
+        /// returns the default value if the offset is not in a block.</returns>
         public int GetBlockEndOffsetFromOffset(int offset)
         {
             if (TryOffsetToCatchHandlers.ContainsKey(offset))

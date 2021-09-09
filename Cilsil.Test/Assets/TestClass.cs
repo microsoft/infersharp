@@ -332,5 +332,26 @@ namespace Cilsil.Test.Assets
             }
             return returnValue;
         }
+
+        public static void TryFinallyResourceLeak()
+        {
+            var stream = new StreamReader("file.txt");
+            try
+            {
+                ThrowsIOException();
+            }
+            finally
+            {
+                stream.Close();
+            }
+        }
+
+        public static void TryFinallyResourceLeakUsing()
+        {
+            using (var stream = new StreamReader("file.txt"))
+            {
+                ThrowsIOException();
+            }
+        }
     }
 }
