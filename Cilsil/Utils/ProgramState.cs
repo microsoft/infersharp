@@ -148,12 +148,22 @@ namespace Cilsil.Utils
                           (CfgNode node, Identifier id)> ExceptionHandlerSetToEntryNode;
 
         /// <summary>
-        /// Maps finally handler to exception exit
+        /// Maps finally handler to the exceptional exit node created for it, if it has been
+        /// created yet.
         /// </summary>
         public Dictionary<ExceptionHandler, CfgNode> FinallyHandlerToExceptionExit;
 
+        /// <summary>
+        /// The instruction through which control flow should be routed when endfinally is
+        /// encountered; this is set as the leave target when a non-exceptional entry into a
+        /// finally block is created.
+        /// </summary>
         public Instruction EndfinallyControlFlow;
 
+        /// <summary>
+        /// Maps a leave instruction offset to the exceptional entry node created for it, as well
+        /// as the associated identifier for the unwrapped exception.
+        /// </summary>
         public Dictionary<Instruction, (CfgNode, Identifier)> LeaveToExceptionEntryNode;
 
         /// <summary>
