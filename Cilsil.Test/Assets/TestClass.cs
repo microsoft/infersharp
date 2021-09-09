@@ -279,6 +279,13 @@ namespace Cilsil.Test.Assets
             throw new IOException();
         }
 
+        /// <summary>
+        /// If input <c>true</c>, a certain exception is thrown which when caught results in a null 
+        /// object being returned; otherwise, an instantiated object is returned.
+        /// </summary>
+        /// <param name="input">if <c>true</c>, a null object is returned; otherwise, an
+        /// instantiated object is returned.</param>
+        /// <returns>A possibly null <see cref="TestClass"/> instance.</returns>
         public static TestClass CatchReturnsNullIfTrue(bool input)
         {
             try
@@ -303,6 +310,12 @@ namespace Cilsil.Test.Assets
             return new TestClass();
         }
 
+        /// <summary>
+        /// Analogous to <see cref="CatchReturnsNullIfTrue(bool)"/>, but with a finally handler.
+        /// </summary>
+        /// <param name="input">if <c>true</c>, a null object is returned; otherwise, an
+        /// instantiated object is returned.</param>
+        /// <returns>A possibly null <see cref="TestClass"/> instance.</returns>
         public static TestClass FinallyReturnsNullIfTrue(bool input)
         {
             TestClass output = new TestClass();
@@ -333,6 +346,9 @@ namespace Cilsil.Test.Assets
             return returnValue;
         }
 
+        /// <summary>
+        /// No resource leak should be reported, as the allocated stream is closed in finally.
+        /// </summary>
         public static void TryFinallyResourceLeak()
         {
             var stream = new StreamReader("file.txt");
@@ -346,6 +362,9 @@ namespace Cilsil.Test.Assets
             }
         }
 
+        /// <summary>
+        /// Identical to <see cref="TryFinallyResourceLeak"/>.
+        /// </summary>
         public static void TryFinallyResourceLeakUsing()
         {
             using (var stream = new StreamReader("file.txt"))

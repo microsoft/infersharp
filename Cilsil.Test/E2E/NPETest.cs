@@ -711,6 +711,12 @@ namespace Cilsil.Test.E2E
                     DerefObject(VarName.FirstLocal), GetString(expectedError));
         }
 
+        /// <summary>
+        /// Validates that caught exceptions and their types are interpreted correctly.
+        /// </summary>
+        /// <param name="returnsNull">if <c>true</c>, a null dereference should occur; if
+        /// <c>false</c>, no warning should occur.</param>
+        /// <param name="expectedError">The expected error.</param>
         [DataRow(false, InferError.None)]
         [DataRow(true, InferError.NULL_DEREFERENCE)]
         [DataTestMethod]
@@ -729,6 +735,13 @@ namespace Cilsil.Test.E2E
                     DerefObject(VarName.FirstLocal), GetString(expectedError));
         }
 
+        /// <summary>
+        /// Validates that caught exceptions and their types are interpreted correctly, and that 
+        /// control flow through finally is correctly handled.
+        /// </summary>
+        /// <param name="returnsNull">if <c>true</c>, a null dereference should occur; if
+        /// <c>false</c>, no warning should occur.</param>
+        /// <param name="expectedError">The expected error.</param>
         [DataRow(false, InferError.None)]
         [DataRow(true, InferError.NULL_DEREFERENCE)]
         [DataTestMethod]
