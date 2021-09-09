@@ -30,6 +30,9 @@ namespace Cilsil.Utils
         public readonly Dictionary<Instruction, ExceptionHandler> FinallyEndToHandler = 
             new Dictionary<Instruction, ExceptionHandler>();
 
+        /// <summary>
+        /// 
+        /// </summary>
         public readonly Dictionary<int, List<ExceptionHandlerNode>> TryOffsetToCatchHandlers;
 
         public readonly Dictionary<int, ExceptionHandler> TryOffsetToFinallyHandler;
