@@ -176,7 +176,12 @@ namespace Cilsil.Cil.Parsers
                                              returnType,
                                              new ConstExpression(
                                                  ProcedureName.BuiltIn__unwrap_exception),
-                                             new List<Call.CallArg>(),
+                                             new List<Call.CallArg> 
+                                             { 
+                                                 new Call.CallArg(
+                                                     new VarExpression(returnIdentifier), 
+                                                     returnType) 
+                                             },
                                              new Call.CallFlags(),
                                              handlerStartLocation);
 
