@@ -302,5 +302,35 @@ namespace Cilsil.Test.Assets
             }
             return new TestClass();
         }
+
+        public static TestClass FinallyReturnsNullIfTrue(bool input)
+        {
+            TestClass output = new TestClass();
+            TestClass returnValue = new TestClass();
+            try
+            {
+                if (input)
+                {
+                    ThrowsIOException();
+                }
+                else
+                {
+                    ThrowsFileNotFoundException();
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                output = null;
+            }
+            catch (IOException)
+            {
+                output = new TestClass();
+            }
+            finally
+            {
+                returnValue = output;
+            }
+            return returnValue;
+        }
     }
 }

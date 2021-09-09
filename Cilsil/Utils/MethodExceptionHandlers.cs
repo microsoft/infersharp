@@ -170,7 +170,9 @@ namespace Cilsil.Utils
             // For any try-catch-finally block, the try associated with the finally block includes
             // the whole catch block (and therefore also the try associated with the catch block).
             var boundsList = new List<(int start, int end)>();
-            foreach((var tryStart, var tryEnd) in TryBoundsToCatchHandlers.Keys)
+            var finallyBoundsList = new List<(int start, int end)>();
+
+            foreach ((var tryStart, var tryEnd) in TryBoundsToCatchHandlers.Keys)
             {
                 boundsList.Add((tryStart.Offset, tryEnd.Offset));
             }
@@ -183,8 +185,14 @@ namespace Cilsil.Utils
             {
                 boundsList.Add((handler.HandlerStart.Offset, 
                                 handler.HandlerEnd.Previous.Offset));
+
+                finallyBoundsList.Add((handler.HandlerStart.Offset,
+                                       handler.HandlerEnd.Previous.Offset));
+                finallyBoundsList.Add((handler.TryStart.Offset,
+                                       handler.TryEnd.Previous.Offset));
             }
             boundsList.Sort ((x, y) => x.end.CompareTo(y.end));
+
             for (int i = 1; i < boundsList.Count; i++)
             {
                 if (boundsList[i-1].end > boundsList[i].start)
@@ -192,6 +200,14 @@ namespace Cilsil.Utils
                     return false;
                 }
             }
+            for (int i = 1; i < finallyBoundsList.Count; i++)
+            {
+                if (finallyBoundsList[i - 1].end > finallyBoundsList[i].start)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
