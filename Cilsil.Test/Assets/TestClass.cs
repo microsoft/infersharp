@@ -9,6 +9,7 @@ namespace Cilsil.Test.Assets
         public TestClass InstanceObjectField;
         public static TestClass StaticObjectField;
         public TestClass[] InstanceArrayField;
+        public static int StaticIntegerField;
 
         public record TestClassRecord { public string Name { get; init; } }
 
@@ -41,10 +42,7 @@ namespace Cilsil.Test.Assets
             InstanceObjectField = testClass;
         }
 
-        public static void InvokeConstructorWithNullParam()
-        {
-            _ = new TestClass(null);
-        }
+        public static void InvokeConstructorWithNullParam() => _ = new TestClass(null);
 
         /// <summary>
         /// Initializes the instance TestClass field. In test cases, this method provides coverage
@@ -53,9 +51,7 @@ namespace Cilsil.Test.Assets
         /// param name="initializeToNull">if set to <c>true</c>, set the field to null. If set to
         /// <c>false</c>, initialize the field.</param>
         public void InitializeInstanceObjectField(bool initializeToNull)
-        {
-            InstanceObjectField = initializeToNull ? null : new TestClass();
-        }
+            => InstanceObjectField = initializeToNull ? null : new TestClass();
 
         /// <summary>
         /// Initializes the instance TestClass field via reference. In test cases, this method
@@ -84,9 +80,7 @@ namespace Cilsil.Test.Assets
         /// param name="initializeToNull">if set to <c>true</c>, set the field to null. If set to
         /// <c>false</c>, initialize the field.</param>
         public static void InitializeStaticObjectField(bool initializeToNull)
-        {
-            StaticObjectField = initializeToNull ? null : new TestClass();
-        }
+            => StaticObjectField = initializeToNull ? null : new TestClass();
 
         /// <summary>
         /// Initializes the static TestClass field via reference. In test cases, this method
@@ -117,18 +111,12 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// This method returns an initialized StreamReader.
         /// </summary>
-        public static StreamReader ReturnInitializedStreamReader()
-        {
-            return new StreamReader(string.Empty);
-        }
+        public static StreamReader ReturnInitializedStreamReader() => new StreamReader(string.Empty);
 
         /// <summary>
         /// This method returns an initialized MemoryStream.
         /// </summary>
-        public static MemoryStream ReturnInitializedMemoryStream()
-        {
-            return new MemoryStream(0);
-        }
+        public static MemoryStream ReturnInitializedMemoryStream() => new MemoryStream(0);
 
         /// <summary>
         /// This method dereferences the input object via a call to GetHashCode(). This method will
@@ -167,8 +155,10 @@ namespace Cilsil.Test.Assets
         /// <returns>The array.</returns>
         public static TestClass ReturnElementFromInstanceArrayField(TestClass arrayElement)
         {
-            var testClass = new TestClass();
-            testClass.InstanceArrayField = new TestClass[] { arrayElement };
+            var testClass = new TestClass
+            {
+                InstanceArrayField = new TestClass[] { arrayElement }
+            };
             return testClass.InstanceArrayField[0];
         }
 
@@ -222,10 +212,7 @@ namespace Cilsil.Test.Assets
         /// reference.
         /// </summary>
         /// <param name="input">The integer to be incremented.</param>
-        public static void IncrementRefParameter(ref int input)
-        {
-            input++;
-        }
+        public static void IncrementRefParameter(ref int input) => input++;
 
         /// <summary>
         /// This method is used for the validation of box and unbox support. It boxes and unboxes

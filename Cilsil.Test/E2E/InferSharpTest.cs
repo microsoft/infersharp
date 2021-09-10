@@ -7,7 +7,7 @@ using static Cilsil.Test.Assets.Utils;
 namespace Cilsil.Test.E2E
 {
     [TestClass]
-    public class NPETest
+    public class InferSharpTest
     {
         public TestContext TestContext { get; set; }
 
@@ -176,6 +176,65 @@ namespace Cilsil.Test.E2E
                                                         TestClassMethod.InitializeStreamReaderObjectField,
                                                         true)),
                                GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates that a resource leak on a StreamReader initialized in exception handling block 
+        /// is identified.
+        /// </summary>
+        /// <param name="blockKind">The kind of exception handling block expected to wrap the resource.</param>
+        /// <param name="closeStream">If <c>true</c>, invokes the Close method; otherwise,
+        /// does not.</param>
+        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
+        [DataRow(BlockKind.Using, false, InferError.None)]
+        [DataRow(BlockKind.MultiVariableUsing, false, InferError.None)]
+        [DataRow(BlockKind.TryCatchFinally, true, InferError.None)]
+        [DataRow(BlockKind.TryCatchFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataRow(BlockKind.NestedTryCatchFinally, true, InferError.None)]
+        [DataRow(BlockKind.NestedTryCatchFinally, false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataRow(BlockKind.TryFilter, true, InferError.None)]
+        [DataRow(BlockKind.TryFilter, false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataTestMethod]
+        public void ResourceLeakExceptionHandling(BlockKind blockKind,
+                                                  bool closeStream,
+                                                  InferError expectedError)
+        {
+            TestRunManager.Run(InitBlock(resourceLocalVarType: VarType.StreamReader,
+                                resourceLocalVarValue: CallTestClassMethod(
+                                    TestClassMethod.ReturnInitializedStreamReader,
+                                    false),
+                                disposeResource: (closeStream ? CallMethod(
+                                                    VarName.FirstLocal,
+                                                    "Close")
+                                                : string.Empty),
+                                blockKind: blockKind),
+                               GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates that a null dereference on a variable in exception handling blocks 
+        /// is identified. 
+        /// </summary>
+        /// <param name="initVar">If <c>true</c>, instantiates the variable; otherwise,
+        /// does not.</param>
+        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
+        [DataRow(true, InferError.None)]
+        [DataRow(false, InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
+        public void NullDereferenceExceptionHandling(bool initVar,
+                                                     InferError expectedError)
+        {
+            TestRunManager.Run(InitBlock(resourceLocalVarType: VarType.StreamReader,
+                                resourceLocalVarValue: (
+                                    initVar ? CallTestClassMethod(
+                                                TestClassMethod.ReturnInitializedStreamReader,
+                                                false)
+                                            : null),
+                                disposeResource: CallMethod(
+                                                    VarName.FirstLocal,
+                                                    "Close"),
+                                blockKind: BlockKind.TryCatchFinally),
+                                GetString(expectedError));
         }
 
         /// <summary>
@@ -709,6 +768,29 @@ namespace Cilsil.Test.E2E
                                                                       inputObjectString
                                                                   })) +
                     DerefObject(VarName.FirstLocal), GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates thread safety violation detection of a public method's read without
+        /// synchronization on an integer field which may race with a write on that integer field.
+        /// </summary>
+        /// <param name="encloseReadInLock"><c>true</c> if the read should be enclosed in a lock,
+        /// <c>false</c> otherwise.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(false, InferError.THREAD_SAFETY_VIOLATION)]
+        [DataRow(true, InferError.None)]
+        [DataTestMethod]
+        public void ThreadSafetyViolationSimple(bool encloseReadInLock, InferError expectedError)
+        {
+            TestRunManager.Run(
+                encloseReadInLock ?
+                    EncloseInLock(
+                        InitVars(firstLocalVarType: VarType.Integer,
+                                 firstLocalVarValue: GetString(VarName.StaticIntegerField)))
+                                  :
+                    InitVars(firstLocalVarType: VarType.Integer,
+                                 firstLocalVarValue: GetString(VarName.StaticIntegerField)),
+                GetString(expectedError));
         }
 
         /// <summary>

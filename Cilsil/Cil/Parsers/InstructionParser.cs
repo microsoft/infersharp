@@ -63,6 +63,7 @@ namespace Cilsil.Cil.Parsers
                             .GetTypes()
                             .Where(t => t.IsClass
                                         && !t.IsAbstract
+                                        && !t.FullName.Contains("ExceptionParser")
                                         && t.IsSubclassOf(typeof(InstructionParser)));
             foreach (var t in parsers)
             {
@@ -96,14 +97,55 @@ namespace Cilsil.Cil.Parsers
         }
 
         /// <summary>
+        /// Attempts to parse catch block instructions with the registered instruction parsers.
+        /// </summary>
+        /// <param name="instruction"><see cref="Instruction"/> to be parsed.</param>
+        /// <param name="state">Current program state.</param>
+        /// <returns><c>true</c> if instruction is successfully translated, <c>false</c> 
+        /// otherwise.</returns>
+        public static bool ParseExceptionCilInstruction(Instruction instruction, ProgramState state)
+        {
+            var parsers = Assembly
+                            .GetExecutingAssembly()
+                            .GetTypes()
+                            .Where(t => t.IsClass
+                                        && !t.IsAbstract
+                                        && t.FullName.Contains("ExceptionParser")
+                                        && t.IsSubclassOf(typeof(InstructionParser)));
+
+            var parser = (InstructionParser)Activator.CreateInstance(parsers.First());
+
+            var previousProgramStack = state.GetProgramStackCopy();
+            parser.PreviousProgramStack = previousProgramStack;
+            parser.RememberNodeOffset = true;
+            if (parser.ParseCilInstructionInternal(instruction, state))
+            {
+                return true;
+            }
+
+            Log.WriteError($"Unable to parse instruction {instruction.OpCode.Code}");
+            Log.RecordUnknownInstruction(instruction.OpCode.Code.ToString());
+            return false;
+        }
+
+        /// <summary>
         /// Registers a node in the CFG and set it as the successor of the previous node.
         /// </summary>
         /// <param name="state">Current program state.</param>
         /// <param name="node">Node to register.</param>
-        protected void RegisterNode(ProgramState state, CfgNode node)
+        /// <param name="inExceptionNodes"><c>true</c> if adds to previous nodes's exception nodes; 
+        /// otherwise <c>false</c> and adds to sucessors of previsou node.</param>
+        protected void RegisterNode(ProgramState state, CfgNode node, Boolean inExceptionNodes = false)
         {
             state.Cfg.RegisterNode(node);
-            state.PreviousNode.Successors.Add(node);
+            if (inExceptionNodes)
+            {
+                state.PreviousNode.ExceptionNodes.Add(node);
+            }
+            else
+            {
+                state.PreviousNode.Successors.Add(node);
+            }
             if (RememberNodeOffset)
             {
                 state.SaveNodeOffset(node, PreviousProgramStack);
@@ -415,6 +457,22 @@ namespace Cilsil.Cil.Parsers
                                                   modifyInBlock: false,
                                                   isConstExpr: false));
             }
+        }
+
+        /// <summary>
+        /// Returns the registered type if the local variable is already registered to the proc 
+        /// attributes.
+        /// </summary>
+        /// <param name="state">Current program state.</param>
+        /// <param name="lvar">Variable to check.</param>
+        /// <returns>The type of the registered local variable; otherwise, returns null</returns>
+        protected Typ FindTypeOfLocalVariable(ProgramState state, LocalVariable lvar)
+        {
+            if (state.ProcDesc.PdAttributes.Locals.Any(l => l.Name == lvar.PvName))
+            {
+                return state.ProcDesc.PdAttributes.Locals.First(l => l.Name == lvar.PvName).Type;;
+            }
+            return null;
         }
     }
 }

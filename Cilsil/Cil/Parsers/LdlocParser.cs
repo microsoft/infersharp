@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Sil;
+using Cilsil.Sil.Expressions;
 using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil.Cil;
@@ -58,6 +59,13 @@ namespace Cilsil.Cil.Parsers
 
             (var variableExpression, var variableType) = CreateLocal(index, state.Method);
 
+            Expression value = null;
+            Typ type = null;
+            if (state.GetProgramStackCopy().Count > 0)
+            {
+                (value, type) = state.Peek();
+            }
+
             // Updates the type to the appropriate boxed one if the variable contains a boxed
             // value.
             if (state.VariableIndexToBoxedValueType.ContainsKey(index))
@@ -75,6 +83,15 @@ namespace Cilsil.Cil.Parsers
                 state.PushExpr(variableExpression, new Address(Tptr.PtrKind.Pk_pointer,
                                                                variableType,
                                                                variableExpression));
+            }
+            else if (value != null && value is BinopExpression && type is Tptr)
+            {
+                // For if/else/loop branching, we add the binop expression in condition.
+                state.Pop();
+                state.PushAndLoad(variableExpression, variableType);
+                state.PushExpr(value, new Tint(Tint.IntKind.IBool));
+                state.PushInstruction(instruction.Next);
+                return true;
             }
             else
             {

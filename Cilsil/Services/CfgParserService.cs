@@ -6,6 +6,8 @@ using Cilsil.Services.Results;
 using Cilsil.Sil;
 using Cilsil.Utils;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -48,7 +50,20 @@ namespace Cilsil.Services
             Cfg = new Cfg();
             foreach (var method in Methods)
             {
-                ComputeMethodCfg(method);
+                System.Diagnostics.Stopwatch watch = null;
+                if (Log.Debug)
+                {
+                    watch = System.Diagnostics.Stopwatch.StartNew();
+                }
+
+                bool success = ComputeMethodCfg(method);
+
+                if (success && Log.Debug)
+                {
+                    watch.Stop();
+
+                    Log.RecordMethodElapseTime(method, watch.ElapsedMilliseconds);
+                }
             }
             Log.WriteError("Timed out methods: " + TimeoutMethodCount);
             return new CfgParserResult(Cfg, Methods);
@@ -73,13 +88,13 @@ namespace Cilsil.Services
             return Execute();
         }
 
-        private void ComputeMethodCfg(MethodDefinition method)
+        private bool ComputeMethodCfg(MethodDefinition method)
         {
             var methodName = method.GetCompatibleFullName();
             if (Cfg.Procs.ContainsKey(methodName))
             {
                 Log.WriteWarning($"Method with duplicate full name found: {methodName }");
-                return;
+                return false;
             }
 
             var programState = new ProgramState(method, Cfg);
@@ -88,50 +103,89 @@ namespace Cilsil.Services
 
             // True if the translation terminates early, false otherwise.
             var translationUnfinished = false;
-            if (!method.IsAbstract && methodBody.Instructions.Count > 0)
+            foreach (var exceptionHandler in methodBody.ExceptionHandlers)
             {
-                programState.PushInstruction(methodBody.Instructions.First());
-                do
+                var exceptionHandlingBlock = exceptionHandler;
+                var exceptionHandlingBlockStartOffset = -1;
+                var exceptionHandlingBlockEndOffset = -1;
+                TypeReference catchType = null;
+                try
                 {
-                    var nextInstruction = programState.PopInstruction();
-                    // Checks if there is a node for the offset that we can reuse.
-                    (var nodeAtOffset, var excessiveVisits) =
-                        programState.GetOffsetNode(nextInstruction.Offset);
-                    if (nodeAtOffset != null)
+                    switch (exceptionHandlingBlock.HandlerType)
                     {
-                        programState.PreviousNode.Successors.Add(nodeAtOffset);
+                        case ExceptionHandlerType.Catch:
+                            catchType = exceptionHandlingBlock.CatchType;
+                            exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
+                            exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
+                            break;
+
+                        case ExceptionHandlerType.Finally:
+                            exceptionHandlingBlockStartOffset = exceptionHandlingBlock.HandlerStart.Offset;
+                            exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
+                            break;
+
+                        case ExceptionHandlerType.Filter:
+                            // Example: catch (ArgumentException e) when (e.ParamName == "…")   
+                            // Adds associated try block node offsets to a hashset.
+                            catchType = programState.Method.Module.Import(typeof(System.Exception));
+                            exceptionHandlingBlockStartOffset = exceptionHandlingBlock.FilterStart.Offset;
+                            exceptionHandlingBlockEndOffset = exceptionHandlingBlock.HandlerEnd.Offset;
+                            break;
+
+                        case ExceptionHandlerType.Fault:
+                        // uncommon case: fault block
+                        // Example: fault {}
+                        default:
+                            break;
                     }
-                    else if (excessiveVisits)
+                }
+                catch (Exception e)
+                {
+                    Log.WriteWarning($"Exception on processing exception handling blocks: {e.Message}.");
+                    continue;
+                }
+                if (exceptionHandlingBlockStartOffset != -1)
+                {
+                    programState.ExceptionBlockStartToEndOffsets.Add(exceptionHandlingBlockStartOffset, exceptionHandlingBlockEndOffset);
+                    if (catchType != null)
                     {
-                        TimeoutMethodCount++;
-                        Log.WriteError("Translation timeout.");
-                        Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
-                                                   nextInstruction.RemainingInstructionCount());
-                        translationUnfinished = true;
-                        break;
+                        programState.OffsetToExceptionType.Add(exceptionHandlingBlockStartOffset, catchType);
                     }
-                    else if (!InstructionParser.ParseCilInstruction(nextInstruction, programState))
-                    {
-                        Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
-                                                   nextInstruction.RemainingInstructionCount());
-                        translationUnfinished = true;
-                        break;
-                    }
-                } while (programState.HasInstruction);
+                }
             }
 
+            if (!method.IsAbstract && methodBody.Instructions.Count > 0)
+            {
+                (programState, translationUnfinished) =
+                    ParseInstructions(methodBody.Instructions.FirstOrDefault(),
+                                      programState,
+                                      translationUnfinished);
+            }
             // We add method to cfg only if its translation is finished. Otherwise, we skip that method.
             if (translationUnfinished && !IsDisposeFunction(method))
             {
                 // Deregisters resources of skipped method.
                 programState.ProcDesc.DeregisterResources(Cfg);
+                return false;
             }
             else
             {
                 // Sets exception sink node as default exception node for all nodes in the graph.
                 foreach (var node in programState.ProcDesc.Nodes)
                 {
-                    node.ExceptionNodes.Add(programState.ProcDesc.ExceptionSinkNode);
+
+                    if (node.ExceptionNodes.Count == 0)
+                    {
+                        node.ExceptionNodes.Add(programState.ProcDesc.ExceptionSinkNode);
+                    }
+                    if (node.Successors.Count == 0 && node != programState.ProcDesc.ExitNode)
+                    {
+                        node.Successors.Add(programState.ProcDesc.ExitNode);
+                    }
+                    else if (node.Successors.Count > 1 && node.Successors.Contains(programState.ProcDesc.ExitNode))
+                    {
+                        node.Successors.Remove(programState.ProcDesc.ExitNode);
+                    }
                 }
 
                 // Exception node for start and exception sink should be exit, exception node for exit 
@@ -140,13 +194,75 @@ namespace Cilsil.Services
                 programState.ProcDesc.ExitNode.ExceptionNodes.Clear();
                 programState.ProcDesc.ExceptionSinkNode.ExceptionNodes.Clear();
                 programState.ProcDesc.StartNode.ExceptionNodes.Add(programState.ProcDesc.ExitNode);
-                programState.ProcDesc.ExceptionSinkNode.ExceptionNodes.Add(
-                    programState.ProcDesc.ExitNode);
+                programState.ProcDesc.ExceptionSinkNode.ExceptionNodes.Add(programState.ProcDesc.ExitNode);
 
                 SetNodePredecessors(programState);
 
                 Cfg.Procs.Add(methodName, programState.ProcDesc);
+                return true;
             }
+        }
+
+        private (ProgramState, bool) ParseInstructions(Instruction instruction,
+                                                       ProgramState state,
+                                                       bool translationUnfinished)
+        {
+            state.PushInstruction(instruction);
+            do
+            {
+                System.Diagnostics.Stopwatch watch = null;
+                if (Log.Debug)
+                {
+                    watch = System.Diagnostics.Stopwatch.StartNew();
+                }
+
+                (var nextInstruction, _) = state.PopInstruction();
+
+                var inExceptionHandler = state.ExceptionBlockStartToEndOffsets.ContainsKey(nextInstruction.Offset);
+
+                (var nodeAtOffset, var excessiveVisits) =
+                    state.GetOffsetNode(nextInstruction.Offset);
+
+                if (nodeAtOffset != null)
+                {
+                    state.PreviousNode.Successors.Add(nodeAtOffset);
+                }
+                else if (excessiveVisits)
+                {
+                    TimeoutMethodCount++;
+                    Log.WriteError("Translation timeout.");
+                    Log.RecordUnfinishedMethod(state.Method.GetCompatibleFullName(),
+                                               nextInstruction.RemainingInstructionCount());
+                    translationUnfinished = true;
+                    break;
+                }
+                else if (inExceptionHandler &&
+                         !InstructionParser.ParseExceptionCilInstruction(nextInstruction, state) &&
+                         !InstructionParser.ParseCilInstruction(nextInstruction, state))
+                {
+                    Log.RecordUnfinishedMethod(state.Method.GetCompatibleFullName(),
+                                               nextInstruction.RemainingInstructionCount());
+                    translationUnfinished = true;
+                    break;
+                }
+                else if (!inExceptionHandler &&
+                         !InstructionParser.ParseCilInstruction(nextInstruction, state))
+                {
+                    Log.RecordUnfinishedMethod(state.Method.GetCompatibleFullName(),
+                                               nextInstruction.RemainingInstructionCount());
+                    translationUnfinished = true;
+                    break;
+                }
+
+                if (Log.Debug)
+                {
+                    watch.Stop();
+
+                    Log.RecordInstructionCountAndElapseTime(state.Method, nextInstruction, watch.Elapsed.TotalMilliseconds * 1000000);
+                }
+            } while (state.HasInstruction);
+
+            return (state, translationUnfinished);
         }
 
         private void SetNodePredecessors(ProgramState programState)
@@ -164,11 +280,22 @@ namespace Cilsil.Services
                         s.Predecessors.Add(n);
                         todo.Enqueue(s);
                     }
+                    foreach (var s in n.ExceptionNodes)
+                    {
+                        if (s != programState.ProcDesc.ExceptionSinkNode)
+                        {
+                            todo.Enqueue(s);
+                        }
+
+                    }
                 }
             }
-            programState.ProcDesc.ExceptionSinkNode.Successors.Add(programState.ProcDesc.ExitNode);
-            programState.ProcDesc.ExitNode.Predecessors.Add(
-                programState.ProcDesc.ExceptionSinkNode);
+            if (!programState.ProcDesc.ExceptionSinkNode.Successors.Contains(
+                 programState.ProcDesc.ExitNode))
+            {
+                programState.ProcDesc.ExceptionSinkNode.Successors.Add(programState.ProcDesc.ExitNode);
+            }
+            programState.ProcDesc.ExitNode.Predecessors.Add(programState.ProcDesc.ExceptionSinkNode);
         }
 
         /// <summary>

@@ -72,6 +72,16 @@ namespace Cilsil.Utils
         public List<Instruction> ParsedInstructions { get; private set; }
 
         /// <summary>
+        /// Maps catch/finally block starting offset to ending offset.
+        /// </summary>
+        public Dictionary<int, int> ExceptionBlockStartToEndOffsets { get; }
+
+        /// <summary>
+        /// Maps an catch block starting CFG node offset to exception type.
+        /// </summary>
+        public Dictionary<int, TypeReference> OffsetToExceptionType { get; }
+
+        /// <summary>
         /// Maps an instruction offset (a unique integer identifier for a CIL instruction which has
         /// been translated) to the CFG node containing the translated SIL instruction as well as 
         /// the program stack immediately prior to the translation of that CIL instruction.
@@ -84,6 +94,16 @@ namespace Cilsil.Utils
         public Dictionary<int, BoxedValueType> VariableIndexToBoxedValueType { get; }
 
         /// <summary>
+        /// Previous expression registered by return node.
+        /// </summary>
+        private Expression PreviousReturnedExpression;
+
+        /// <summary>
+        /// Previous expression type registered by return node.
+        /// </summary>
+        private Typ PreviousReturnedType;
+
+        /// <summary> 
         /// Tracks indices at which the expression stored is produced from the translation of the
         /// isinst instruction.
         /// </summary>
@@ -93,6 +113,12 @@ namespace Cilsil.Utils
         /// True if there are remaining instructions to translate, and false otherwise.
         /// </summary>
         public bool HasInstruction => InstructionsStack.Count > 0;
+
+        /// <summary>
+        /// True if the peek instruction in instruction stack is at the beginning of an exception handling block, and false otherwise.
+        /// </summary>
+        public bool NextInstructionInExceptionHandlingBlock
+            => ExceptionBlockStartToEndOffsets.ContainsKey(InstructionsStack.Peek().Instruction.Offset);
 
         /// <summary>
         /// Program stack for the current method. Each entry is an expression and a type for the 
@@ -136,6 +162,13 @@ namespace Cilsil.Utils
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
             IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;
+
+            ExceptionBlockStartToEndOffsets = new Dictionary<int, int>();
+            OffsetToExceptionType = new Dictionary<int, TypeReference>();
+            PreviousReturnedExpression = new LvarExpression(
+                                         new LocalVariable(Identifier.ReturnIdentifier,
+                                                           Method));
+            PreviousReturnedType = Typ.FromTypeReference(Method.ReturnType);
         }
 
         /// <summary>
@@ -182,8 +215,10 @@ namespace Cilsil.Utils
                             .Node, false);
                 }
             }
+
             return (null, false);
         }
+
 
         /// <summary>
         /// Returns a shallow copy of the current program stack.
@@ -211,13 +246,15 @@ namespace Cilsil.Utils
         /// <param name="kind">The type of identifier to be created.</param>
         /// <param name="name">The name of the identifier to be created. Defaults to a standard 
         /// type-dependent name.</param>
+        /// <param name="variableId">Integer assigned to distinguish between identifiers. Defaults to
+        /// a negative number as a flag to use incremented temporary variable Id.</param>
         /// <returns>The new identifier.</returns>
-        public Identifier GetIdentifier(Identifier.IdentKind kind, string name = null) =>
+        public Identifier GetIdentifier(Identifier.IdentKind kind, string name = null, int variableId = -1) =>
             new Identifier()
             {
                 Kind = kind,
                 Name = name ?? Identifier.StandardNames[kind],
-                Stamp = NextAvailableTemporaryVariableId++
+                Stamp = variableId != -1 ? variableId : NextAvailableTemporaryVariableId++
             };
 
         /// <summary>
@@ -225,7 +262,23 @@ namespace Cilsil.Utils
         /// </summary>
         /// <param name="exp">The expression to push.</param>
         /// <param name="type">The type of the expression being pushed.</param>
-        public void PushExpr(Expression exp, Typ type) => ProgramStack.Push((exp, type));
+        public void PushExpr(Expression exp, Typ type)
+        {
+            ProgramStack.Push((exp, type));
+        }
+
+        /// <summary>
+        /// Pushes PreviousReturnedExpression and its type onto the stack.
+        /// </summary>
+        public void PushRetExpr()
+        {
+            if (ProgramStack.Count == 0 ||
+                (ProgramStack.Count > 0 &&
+                !ProgramStack.Peek().Item1.Equals(PreviousReturnedExpression)))
+            {
+                ProgramStack.Push((PreviousReturnedExpression, PreviousReturnedType));
+            }
+        }
 
         /// <summary>
         /// Returns the top element of the stack, without removing it.
@@ -280,6 +333,14 @@ namespace Cilsil.Utils
                 return (left, leftExpressionType);
             }
 
+            // Object-null checks are represented in CIL using Gt. In this case, binop kind should be 
+            // updated to Ne.
+            if (binopKind == BinopExpression.BinopKind.Gt && 
+                right.Equals(new ConstExpression(new IntRepresentation(0, false, true))))
+            {
+                binopKind = BinopExpression.BinopKind.Ne;
+            }
+
             return (new BinopExpression(binopKind, left, right), rightExpressionType);
         }
 
@@ -298,14 +359,15 @@ namespace Cilsil.Utils
                     Instruction = instruction,
                     PreviousNode = node ?? PreviousNode,
                     PreviousStack = ProgramStack.Clone(),
-                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId
+                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
+                    PreviousReturnedType = PreviousReturnedType,
                 });
 
         /// <summary>
         /// Pops an instruction to be parsed.
         /// </summary>
-        /// <returns>The instruction to be parsed.</returns>
-        public Instruction PopInstruction()
+        /// <returns>The instruction to be parsed and its previous node.</returns>
+        public (Instruction, CfgNode) PopInstruction()
         {
             var snapshot = InstructionsStack.Pop();
             PreviousNode = snapshot.PreviousNode;
@@ -318,10 +380,25 @@ namespace Cilsil.Utils
             if (currentSequencePoint != null)
             {
                 var newLocation = Location.FromSequencePoint(currentSequencePoint);
+                var previousInstruction = CurrentInstruction.Previous;
+                while (newLocation.Line - CurrentLocation.Line >= 100 && previousInstruction != null)
+                {
+                    currentSequencePoint =
+                        Method.DebugInformation.GetSequencePoint(previousInstruction);
+                    previousInstruction = previousInstruction.Previous;
+                    if (currentSequencePoint == null)
+                    {
+                        continue;
+                    }
+                    newLocation = Location.FromSequencePoint(currentSequencePoint);
+                }
                 CurrentLocation = newLocation;
             }
-            ParsedInstructions.Add(snapshot.Instruction);
-            return CurrentInstruction;
+            if (Log.Debug)
+            {
+                ParsedInstructions.Add(snapshot.Instruction);
+            }
+            return (CurrentInstruction, PreviousNode);
         }
 
         /// <summary>
@@ -332,11 +409,18 @@ namespace Cilsil.Utils
         /// <returns>String representing the debug information.</returns>
         public string GetStateDebugInformation(object invalidObject)
         {
-            return $"Invalid value {invalidObject?.ToString()}\n" +
-                    "====State information====\n" +
-                    ProcDesc.ToString() + "\n" +
-                    "====Parsed Instructions====\n" +
-                    string.Join(",", ParsedInstructions);
+            if (Log.Debug)
+            {
+                return $"Invalid value {invalidObject?.ToString()}\n" +
+                        "====State information====\n" +
+                        ProcDesc.ToString() + "\n" +
+                        "====Parsed Instructions====\n" +
+                        string.Join(",", ParsedInstructions);
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
 
         /// <summary>
@@ -363,6 +447,11 @@ namespace Cilsil.Utils
             /// The next available integer identifier for temporary variables at this state.
             /// </summary>
             public int NextAvailableTemporaryVariableId;
+
+            /// <summary>
+            /// The expression type registered by return node at this state.
+            /// </summary>
+            public Typ PreviousReturnedType;
 
         }
     }
