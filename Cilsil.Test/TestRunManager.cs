@@ -213,9 +213,21 @@ namespace Cilsil.Test
                 switch (severity)
                 {
                     case Severity.Error:
-                    case Severity.Warning:
                         var bugType = bug.Value<string>("bug_type");
                         if (bugType == expectedErrorType)
+                        {
+                            var pname = bug.Value<string>("procedure");
+                            if (pname == expectedProcName)
+                            {
+                                // Check could be more robust, there are more fields in the JSON that we 
+                                // can validate against.
+                                return;
+                            }
+                        }
+                        throw new AssertFailedException($"Unexpected issue found: {bugType}");
+                    case Severity.Warning:
+                        bugType = bug.Value<string>("bug_type");
+                        if (bugType == expectedErrorType || bugType != "THREAD_SAFETY_VIOLATION")
                         {
                             var pname = bug.Value<string>("procedure");
                             if (pname == expectedProcName)
