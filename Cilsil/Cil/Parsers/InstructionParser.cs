@@ -121,10 +121,6 @@ namespace Cilsil.Cil.Parsers
             }
         }
 
-        protected static Location GetPreviousInstructionLocation(ProgramState state) =>
-            Location.FromSequencePoint(
-                state.Method.DebugInformation.GetSequencePoint(state.CurrentInstruction.Previous));
-
         protected static Location GetHandlerStartLocation(ProgramState state,
                                                           ExceptionHandler handler) =>
             Location.FromSequencePoint(
