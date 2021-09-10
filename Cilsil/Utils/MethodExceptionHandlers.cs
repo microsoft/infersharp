@@ -72,6 +72,11 @@ namespace Cilsil.Utils
                 block.start.Offset >= bounds.start.Offset && block.end.Offset <= bounds.end.Offset;
 
         /// <summary>
+        /// <c>true</c> if there is an unsupported exception block; <c>false</c> otherwise.
+        /// </summary>
+        public bool UnhandledExceptionBlock = false;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MethodExceptionHandlers"/> class.
         /// </summary>
         /// <param name="methodBody">The body of the method. for which to extract exception handler
@@ -107,7 +112,10 @@ namespace Cilsil.Utils
                         FinallyEndToHandler[exceptionHandler.HandlerEnd.Previous] =
                             exceptionHandler;
                         break;
+                    case ExceptionHandlerType.Filter:
+                    case ExceptionHandlerType.Fault:
                     default:
+                        UnhandledExceptionBlock = true;
                         break;
                 }
             }

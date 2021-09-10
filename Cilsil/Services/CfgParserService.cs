@@ -90,7 +90,8 @@ namespace Cilsil.Services
             // True if the translation terminates early, false otherwise.
             var translationUnfinished = false;
 
-            if (!method.IsAbstract && methodBody.Instructions.Count > 0 && 
+            if (!method.IsAbstract && methodBody.Instructions.Count > 0 &&
+                !programState.MethodExceptionHandlers.UnhandledExceptionBlock &&
                 programState.MethodExceptionHandlers.NoNestedTryCatchFinally() &&
                 programState.MethodExceptionHandlers.NoFinallyEndWithThrow())
             {
