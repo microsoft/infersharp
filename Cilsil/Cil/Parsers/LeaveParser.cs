@@ -83,8 +83,8 @@ namespace Cilsil.Cil.Parsers
                         }
                         else
                         {
-                            // Control flow routes directly to the target, as there is no finally block
-                            // through which to first route it.
+                            // Control flow routes directly to the target, as there is no finally
+                            // block through which to first route it.
                             state.PushInstruction(target);
                         }
                     }

@@ -90,10 +90,7 @@ namespace Cilsil.Services
             // True if the translation terminates early, false otherwise.
             var translationUnfinished = false;
 
-            if (!method.IsAbstract && methodBody.Instructions.Count > 0 &&
-                !programState.MethodExceptionHandlers.UnhandledExceptionBlock &&
-                programState.MethodExceptionHandlers.NoNestedTryCatchFinally() &&
-                programState.MethodExceptionHandlers.NoFinallyEndWithThrow())
+            if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
                 programState.PushInstruction(methodBody.Instructions.First());
                 do
@@ -116,6 +113,17 @@ namespace Cilsil.Services
                     {
                         programState.PreviousNode.Successors.Add(nodeAtOffset);
                     }
+                    else if (programState.MethodExceptionHandlers.UnhandledExceptionBlock ||
+                             !programState.MethodExceptionHandlers.NoNestedTryCatchFinally() ||
+                             !programState.MethodExceptionHandlers.NoFinallyEndWithThrow())
+                    {
+                        Log.WriteError($"Unhandled exception-handling.");
+                        Log.RecordUnknownInstruction("unhandled-exception");
+                        Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
+                                                   nextInstruction.RemainingInstructionCount());
+                        translationUnfinished = true;
+                        break;
+                    }
                     else if (excessiveVisits)
                     {
                         TimeoutMethodCount++;
@@ -135,7 +143,8 @@ namespace Cilsil.Services
                 } while (programState.HasInstruction);
             }
 
-            // We add method to cfg only if its translation is finished. Otherwise, we skip that method.
+            // We add method to cfg only if its translation is finished. Otherwise, we skip that
+            // method.
             if (translationUnfinished && !IsDisposeFunction(method))
             {
                 // Deregisters resources of skipped method.
@@ -202,8 +211,9 @@ namespace Cilsil.Services
         /// <param name="method">Target method to be checked.</param>
         private static bool IsDisposeFunction(MethodDefinition method)
         {
-            return (method.Name.Equals("Dispose") || method.Name.Equals("System.IDisposable.Dispose"))
-                && method.ReturnType.FullName.Equals("System.Void");
+            return (method.Name.Equals("Dispose") ||
+                    method.Name.Equals("System.IDisposable.Dispose")) &&
+                        method.ReturnType.FullName.Equals("System.Void");
         }
     }
 }
