@@ -86,6 +86,12 @@ namespace Cilsil.Utils
             foreach (var exceptionHandler in methodBody.ExceptionHandlers)
             {
                 var tryBounds = (exceptionHandler.TryStart, exceptionHandler.TryEnd.Previous);
+                if (exceptionHandler.HandlerStart == null || exceptionHandler.HandlerEnd == null)
+                {
+                    UnhandledExceptionBlock = true;
+                    break;
+                }
+
                 switch (exceptionHandler.HandlerType)
                 {
                     case ExceptionHandlerType.Catch:
