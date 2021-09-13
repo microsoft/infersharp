@@ -114,6 +114,9 @@ namespace Cilsil.Test.Assets
                 case VarName.StaticObjectField:
                     return GetString(VarType.TestClass) + "." +
                         nameof(TestClass.StaticObjectField);
+                case VarName.StaticIntegerField:
+                    return GetString(VarType.TestClass) + "." +
+                        nameof(TestClass.StaticIntegerField);
                 case VarName.InstanceObjectField:
                     return VarName.Tc.ToString() + "." +
                         nameof(TestClass.InstanceObjectField);
@@ -169,6 +172,7 @@ namespace Cilsil.Test.Assets
                 case InferError.DANGLING_POINTER_DEREFERENCE:
                 case InferError.NULL_DEREFERENCE:
                 case InferError.DOTNET_RESOURCE_LEAK:
+                case InferError.THREAD_SAFETY_VIOLATION:
                     return error.ToString();
                 case InferError.None:
                     return null;
