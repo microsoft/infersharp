@@ -780,7 +780,7 @@ namespace Cilsil.Test.E2E
                                   :
                     InitVars(firstLocalVarType: VarType.Integer,
                                  firstLocalVarValue: GetString(VarName.StaticIntegerField)),
-                GetString(expectedError));
+                GetString(expectedError), true);
         }
 
         /// <summary>
