@@ -211,23 +211,37 @@ namespace Cilsil.Test
             foreach (var bug in inferReport)
             {
                 var severity = bug.Value<string>("severity");
-                if (severity != "ERROR")
+                switch (severity)
                 {
-                    continue;
+                    case Severity.Error:
+                        var bugType = bug.Value<string>("bug_type");
+                        if (bugType == expectedErrorType)
+                        {
+                            var pname = bug.Value<string>("procedure");
+                            if (pname == expectedProcName)
+                            {
+                                // Check could be more robust, there are more fields in the JSON that we 
+                                // can validate against.
+                                return;
+                            }
+                        }
+                        throw new AssertFailedException($"Unexpected issue found: {bugType}");
+                    case Severity.Warning:
+                        bugType = bug.Value<string>("bug_type");
+                        if (bugType == expectedErrorType || bugType != "THREAD_SAFETY_VIOLATION")
+                        {
+                            var pname = bug.Value<string>("procedure");
+                            if (pname == expectedProcName)
+                            {
+                                // Check could be more robust, there are more fields in the JSON that we 
+                                // can validate against.
+                                return;
+                            }
+                        }
+                        throw new AssertFailedException($"Unexpected issue found: {bugType}");
+                    default:
+                        break;
                 }
-
-                var bugType = bug.Value<string>("bug_type");
-                if (bugType == expectedErrorType)
-                {
-                    var pname = bug.Value<string>("procedure");
-                    if (pname == expectedProcName)
-                    {
-                        // Check could be more robust, there are more fields in the JSON that we 
-                        // can validate against.
-                        return;
-                    }
-                }
-                throw new AssertFailedException($"Unexpected issue found: {bugType}");
             }
             if (!string.IsNullOrEmpty(expectedErrorType))
             {

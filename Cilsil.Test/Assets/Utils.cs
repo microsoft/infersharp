@@ -17,6 +17,15 @@ namespace Cilsil.Test.Assets
         public enum TestClassState { None, Uninitialized, Null, Initialized };
 
         /// <summary>
+        /// The various kinds of Severity that appear in the tests.
+        /// </summary>
+        public struct Severity
+        {
+            public const string Error = "ERROR";
+            public const string Warning = "WARNING";
+        };
+
+        /// <summary>
         /// The various variable names used in the tests.
         /// </summary>
         public enum VarName
