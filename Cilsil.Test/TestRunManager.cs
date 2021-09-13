@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Sil;
+using static Cilsil.Test.Assets.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using System;
@@ -46,6 +47,15 @@ namespace Cilsil.Test
 
         private const string TestCodeFileName = "TestCode.cs";
 
+        private const string SynchronizedFieldWriteMethod =
+            @"public void FieldWrite() 
+            {{
+                lock(_object)
+                {{
+                    TestClass.StaticIntegerField = 1;
+                }}
+            }}";
+
         // A counter which increments upon each test case execution. Used for producing a unique
         // folder path to store the corresponding test case output.
         private static int TestCaseCount = 0;
@@ -64,27 +74,58 @@ namespace Cilsil.Test
         /// </summary>
         /// <param name="code">The source code to be built.</param>
         /// <param name="returnType">The return type of TestMethod.</param>
-        /// <param name="decorate">Namespace, class, and method signatures are added to enclose the
-        /// source code if and only if this parameter is true.</param>
         /// <returns>The path to the testcode binaries produced by the build command, as well as 
         /// the path to the binaries for the test's core libraries.</returns>
         public string[] BuildCode(string code,
-                                   String returnType,
-                                   bool decorate = true)
+                                   string returnType,
+                                   bool addSynchronizedFieldWriteMethod = false)
         {
-            if (decorate)
+            var testMethodBody = CreateTestMethod(code, returnType);
+            var methodBodies = addSynchronizedFieldWriteMethod ? testMethodBody +
+                                                                 "\n\n" +
+                                                                 SynchronizedFieldWriteMethod
+                                                               : testMethodBody;
+            var codeToBuild = Decorate(methodBodies);
+
+            // C# core library DLL file path.
+            var coreLibraryFilePath = Path.Combine(TestBinaryFolder,
+                                                   "publish",
+                                                   "System.Private.CoreLib.dll");
+
+            File.WriteAllText(TestCodeFilePath, codeToBuild);
+            if (RunCommand("dotnet",
+                           $"publish {ProjectFilePath} -c Debug -r ubuntu.16.10-x64",
+                           out var stdout,
+                           out _) != 0)
             {
-                code =
-                    $@"using System;
-                       using System.IO;
-                        namespace Cilsil.Test.Assets
-                        {{
+                throw new ApplicationException(
+                    $"Test code failed to build with error: \n{stdout}");
+            }
+
+            return new string[] {
+                                    Path.Combine(TestBinaryFolder, "TestProject.dll"),
+                                    coreLibraryFilePath
+                                };
+
+            string CreateTestMethod(string testMethodCode, string testMethodReturnType)
+            {
+                return $@"public {testMethodReturnType} TestMethod()
+                          {{
+                                {testMethodCode}
+                          }}";
+            }
+
+            string Decorate(string methods)
+            {
+                return $@"using System;
+                          using System.IO;
+                          namespace Cilsil.Test.Assets
+                          {{
                             public class TestCode
                             {{
-                                public {returnType} TestMethod()
-                                {{
-                                    {code}
-                                }}
+                                private readonly object _object = new object();
+
+                                {methods}
 
                                 static void Main(string[] args)
                                 {{
@@ -93,18 +134,6 @@ namespace Cilsil.Test
                             }}
                         }}";
             }
-
-            // C# core library DLL file path.
-            var coreLibraryFilePath = Path.Combine(TestBinaryFolder, "publish", "System.Private.CoreLib.dll");
-
-            File.WriteAllText(TestCodeFilePath, code);
-            if (RunCommand("dotnet", $"publish {ProjectFilePath} -c Debug -r ubuntu.16.10-x64", out var stdout, out _) != 0)
-            {
-                throw new ApplicationException(
-                    $"Test code failed to build with error: \n{stdout}");
-            }
-
-            return new string[] { Path.Combine(TestBinaryFolder, "TestProject.dll"), coreLibraryFilePath };
         }
 
         public void Cleanup()

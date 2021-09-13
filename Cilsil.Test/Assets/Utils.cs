@@ -22,7 +22,7 @@ namespace Cilsil.Test.Assets
         public enum VarName
         {
             None, Tc, FirstLocal, SecondLocal, StaticObjectField,
-            InstanceObjectField
+            InstanceObjectField, StaticIntegerField
         };
 
         /// <summary>
@@ -42,7 +42,14 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various error types expected to be produced by Infer in the tests.
         /// </summary>
-        public enum InferError { None, NULL_DEREFERENCE, DANGLING_POINTER_DEREFERENCE, DOTNET_RESOURCE_LEAK }
+        public enum InferError 
+        { 
+            None, 
+            NULL_DEREFERENCE, 
+            DANGLING_POINTER_DEREFERENCE, 
+            DOTNET_RESOURCE_LEAK,
+            THREAD_SAFETY_VIOLATION
+        }
 
         /// <summary>
         /// The various class methods in TestClass which are called in the tests.
@@ -257,6 +264,14 @@ namespace Cilsil.Test.Assets
 
             return output;
         }
+
+        /// <summary>
+        /// Method for decorating a code block with a lock statement.
+        /// </summary>
+        /// <param name="codeBlock">The code block to be decorated.</param>
+        /// <returns>The code block enclosed in the lock statement.</returns>
+        public static string EncloseInLock(string codeBlock)
+            => "lock(_object) { " + codeBlock + " }";
 
         /// <summary>
         /// Method for generating a string representation of a call to a non-TestClass method.

@@ -114,6 +114,12 @@ namespace Cilsil.Sil
         public bool IsJavaSynchronizedMethod { get; set; } = false;
 
         /// <summary>
+        /// <c>true</c> if this instance is a CSharp synchronized method; otherwise, <c>false</c>.
+        /// </summary>
+        [JsonProperty]
+        public bool IsCSharpSynchronizedMethod { get; set; } = false;
+
+        /// <summary>
         /// <c>true</c> if this instance is a model; otherwise, <c>false</c>.
         /// </summary>
         [JsonProperty]
