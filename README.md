@@ -1,6 +1,6 @@
 # InferSharp
 
-**InferSharp** (also referred to as Infer#) is an interprocedural and scalable static code analyzer for C#. Via the capabilities of Facebook's [Infer](https://fbinfer.com/), this tool detects null pointer dereferences and resource leaks. Read more about our approach in the [Wiki page](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET).
+**InferSharp** (also referred to as Infer#) is an interprocedural and scalable static code analyzer for C#. Via the capabilities of Facebook's [Infer](https://fbinfer.com/), this tool detects race condition, null pointer dereferences and resource leaks. Read more about our approach in the [Wiki page](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET).
 
 In addition to implementing the C# frontend, we contributed our [language-agnostic serialization layer](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#language-agnostic-representation-of-sil) ([Commit #1361](https://github.com/facebook/infer/commit/285ddb4a98f337a40d61e73b7a0867e44fa4f042)) to facebook/infer, which opens up opportunities for [additional language support](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#overview) in the future.
 
@@ -27,7 +27,7 @@ If the existing pipeline runs on Windows or running a multi-stage job is desired
 ### Docker Image
 Alternatively, use our Docker image:
 ```shell
-docker pull mcr.microsoft.com/infersharp:v1.0
+docker pull mcr.microsoft.com/infersharp:v1.1
 ```
 Start a container in interactive mode, then run the following command in the container:
 ```shell
