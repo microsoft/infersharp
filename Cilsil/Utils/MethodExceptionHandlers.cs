@@ -200,6 +200,30 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
+        /// If the instruction is in a try or catch block and there is an associated finally
+        /// handler, returns it; else, returns null.
+        /// </summary>
+        /// <param name="instruction">The instruction for which to identify the associated finally
+        /// handler.</param>
+        /// <returns>The associated finally handler, if present; else null.</returns>
+        public ExceptionHandler GetFinallyHandlerAtInstruction(Instruction instruction)
+        {
+            if (TryOffsetToCatchHandlers.ContainsKey(instruction.Offset))
+            {
+                return TryOffsetToCatchHandlers[instruction.Offset][0].FinallyBlock;
+            }
+            else if (TryOffsetToFinallyHandler.ContainsKey(instruction.Offset))
+            {
+                return TryOffsetToFinallyHandler[instruction.Offset];
+            }
+            else if (CatchOffsetToCatchHandler.ContainsKey(instruction.Offset))
+            {
+                return CatchOffsetToCatchHandler[instruction.Offset].FinallyBlock;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// This method determines that there are no nested exception-handling blocks, aside from
         /// the catch block necessarily being nested in the try block of a try-catch-finally.
         /// </summary>

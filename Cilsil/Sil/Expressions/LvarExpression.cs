@@ -33,7 +33,7 @@ namespace Cilsil.Sil.Expressions
         /// <returns>
         /// A <see cref="string" /> that represents this instance.
         /// </returns>
-        public override string ToString() => $"&{Pvar.ToString()}";
+        public override string ToString() => $"&{Pvar}";
 
         /// <summary>
         /// Determines whether the specified <see cref="object" />, is equal to this 
