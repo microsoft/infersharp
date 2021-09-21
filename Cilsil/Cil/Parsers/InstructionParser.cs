@@ -526,6 +526,15 @@ namespace Cilsil.Cil.Parsers
             return retNode;
         }
 
+        protected static void CreateExceptionalEdges(ProgramState state, CfgNode entryNode)
+        {
+            foreach (var node in state.NodesToLinkWithExceptionBlock)
+            {
+                node.ExceptionNodes.Add(entryNode);
+            }
+            state.NodesToLinkWithExceptionBlock = new List<CfgNode>();
+        }
+
         /// <summary>
         /// Creates and returns a <see cref="Call"/> instruction indicating object memory 
         /// allocation and the temporary identifier for the new object. Examples of CIL
