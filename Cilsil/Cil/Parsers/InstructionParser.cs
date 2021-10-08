@@ -243,7 +243,9 @@ namespace Cilsil.Cil.Parsers
 
                     node.ExceptionNodes.Add(entryNode);
 
+                    state.FinallyExceptionalTranslation = true;
                     state.PushInstruction(handler.HandlerStart, node);
+                    state.FinallyExceptionalTranslation = false;
                     break;
                 default:
                     return (null, null);
