@@ -76,10 +76,10 @@ namespace Cilsil.Cil.Parsers
                                                                variableType,
                                                                variableExpression));
             }
-            else if(state.VariableIndexToBinopExpression.ContainsKey(index))
+            else if(state.VariableIndexToNullCheck.ContainsKey(index))
             {
-                state.PushExpr(state.VariableIndexToBinopExpression[index].expr,
-                               state.VariableIndexToBinopExpression[index].type);
+                state.PushExpr(state.VariableIndexToNullCheck[index].expr,
+                               state.VariableIndexToNullCheck[index].type);
             }
             else
             {

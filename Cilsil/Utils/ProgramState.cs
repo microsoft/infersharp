@@ -86,10 +86,11 @@ namespace Cilsil.Utils
         public Dictionary<int, BoxedValueType> VariableIndexToBoxedValueType { get; }
 
         /// <summary>
-        /// Maps a variable index to the binary expression, if there is one stored at the location.
+        /// Maps a variable index to the null check expression, if there is one stored at the 
+        /// location.
         /// </summary>
         public Dictionary<int, 
-                          (BinopExpression expr, Typ type)> VariableIndexToBinopExpression { get; }
+                          (BinopExpression expr, Typ type)> VariableIndexToNullCheck { get; }
 
         /// <summary>
         /// Tracks indices at which the expression stored is produced from the translation of the
@@ -209,7 +210,7 @@ namespace Cilsil.Utils
 
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack, int)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
-            VariableIndexToBinopExpression = new Dictionary<int, (BinopExpression, Typ)>();
+            VariableIndexToNullCheck = new Dictionary<int, (BinopExpression, Typ)>();
 
             ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, 
                                                             (CfgNode, LvarExpression)>();

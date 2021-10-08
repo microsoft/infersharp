@@ -46,6 +46,16 @@ namespace Cilsil.Sil.Expressions
         }
 
         /// <summary>
+        /// Determines if the binary expression is a null check.
+        /// </summary>
+        /// <returns>
+        ///   <c>true</c> if is a null check; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsNullCheck() =>
+            Operator == BinopKind.Ne &&
+            Right == new ConstExpression(new IntRepresentation(0, false, true));
+
+        /// <summary>
         /// Converts to string.
         /// </summary>
         /// <returns>
