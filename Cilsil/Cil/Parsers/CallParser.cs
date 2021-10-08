@@ -48,12 +48,12 @@ namespace Cilsil.Cil.Parsers
             else
             {
                 CreateMethodCall(state,
-                                isVirtual,
-                                calledMethod,
-                                out var retTypeRef,
-                                out var retId,
-                                out var callArgs,
-                                out var callInstr);
+                                 isVirtual,
+                                 calledMethod,
+                                 out var retTypeRef,
+                                 out var retId,
+                                 out var callArgs,
+                                 out var callInstr);
 
                 instrs.Add(callInstr);
 
