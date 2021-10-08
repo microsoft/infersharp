@@ -9,6 +9,7 @@ namespace Cilsil.Test.Assets
         public TestClass InstanceObjectField;
         public static TestClass StaticObjectField;
         public TestClass[] InstanceArrayField;
+        public static int StaticIntegerField;
 
         public record TestClassRecord { public string Name { get; init; } }
 

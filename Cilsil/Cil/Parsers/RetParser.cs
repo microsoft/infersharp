@@ -27,8 +27,8 @@ namespace Cilsil.Cil.Parsers
                     else
                     {
                         var retNode = new StatementNode(state.CurrentLocation,
-                                StatementNode.StatementNodeKind.ReturnStmt,
-                                state.ProcDesc);
+                                                        StatementNode.StatementNodeKind.ReturnStmt,
+                                                        state.ProcDesc);
                         (var returnValue, _) = state.Pop();
                         Expression returnVariable = new LvarExpression(
                             new LocalVariable(Identifier.ReturnIdentifier,

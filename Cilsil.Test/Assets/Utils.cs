@@ -17,12 +17,21 @@ namespace Cilsil.Test.Assets
         public enum TestClassState { None, Uninitialized, Null, Initialized };
 
         /// <summary>
+        /// The various kinds of Severity that appear in the tests.
+        /// </summary>
+        public struct Severity
+        {
+            public const string Error = "ERROR";
+            public const string Warning = "WARNING";
+        };
+
+        /// <summary>
         /// The various variable names used in the tests.
         /// </summary>
         public enum VarName
         {
             None, Tc, FirstLocal, SecondLocal, StaticObjectField,
-            InstanceObjectField
+            InstanceObjectField, StaticIntegerField
         };
 
         /// <summary>
@@ -42,7 +51,14 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various error types expected to be produced by Infer in the tests.
         /// </summary>
-        public enum InferError { None, NULL_DEREFERENCE, DANGLING_POINTER_DEREFERENCE, DOTNET_RESOURCE_LEAK }
+        public enum InferError 
+        { 
+            None, 
+            NULL_DEREFERENCE, 
+            DANGLING_POINTER_DEREFERENCE, 
+            DOTNET_RESOURCE_LEAK,
+            THREAD_SAFETY_VIOLATION
+        }
 
         /// <summary>
         /// The various class methods in TestClass which are called in the tests.
@@ -107,6 +123,9 @@ namespace Cilsil.Test.Assets
                 case VarName.StaticObjectField:
                     return GetString(VarType.TestClass) + "." +
                         nameof(TestClass.StaticObjectField);
+                case VarName.StaticIntegerField:
+                    return GetString(VarType.TestClass) + "." +
+                        nameof(TestClass.StaticIntegerField);
                 case VarName.InstanceObjectField:
                     return VarName.Tc.ToString() + "." +
                         nameof(TestClass.InstanceObjectField);
@@ -162,6 +181,7 @@ namespace Cilsil.Test.Assets
                 case InferError.DANGLING_POINTER_DEREFERENCE:
                 case InferError.NULL_DEREFERENCE:
                 case InferError.DOTNET_RESOURCE_LEAK:
+                case InferError.THREAD_SAFETY_VIOLATION:
                     return error.ToString();
                 case InferError.None:
                     return null;
@@ -257,6 +277,14 @@ namespace Cilsil.Test.Assets
 
             return output;
         }
+
+        /// <summary>
+        /// Method for decorating a code block with a lock statement.
+        /// </summary>
+        /// <param name="codeBlock">The code block to be decorated.</param>
+        /// <returns>The code block enclosed in the lock statement.</returns>
+        public static string EncloseInLock(string codeBlock)
+            => "lock(_object) { " + codeBlock + " }";
 
         /// <summary>
         /// Method for generating a string representation of a call to a non-TestClass method.
