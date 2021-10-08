@@ -69,6 +69,15 @@ namespace Cilsil.Cil.Parsers
             {
                 state.VariableIndexToBoxedValueType.Remove(index);
             }
+            else if (value is BinopExpression binopExpression)
+            {
+                state.VariableIndexToBinopExpression[index] = (binopExpression, type);
+            }
+            else if (!(value is BinopExpression) && 
+                     state.VariableIndexToBinopExpression.ContainsKey(index))
+            {
+                state.VariableIndexToBinopExpression.Remove(index);
+            }
             else if (type.IsInstReturnType)
             {
                 state.IndicesWithIsInstReturnType.Add(index);
