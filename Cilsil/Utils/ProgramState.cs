@@ -86,6 +86,13 @@ namespace Cilsil.Utils
         public Dictionary<int, BoxedValueType> VariableIndexToBoxedValueType { get; }
 
         /// <summary>
+        /// Maps a variable index to the null check expression, if there is one stored at the 
+        /// location.
+        /// </summary>
+        public Dictionary<int, 
+                          (BinopExpression expr, Typ type)> VariableIndexToNullCheck { get; }
+
+        /// <summary>
         /// Tracks indices at which the expression stored is produced from the translation of the
         /// isinst instruction.
         /// </summary>
@@ -172,6 +179,12 @@ namespace Cilsil.Utils
         public MethodExceptionHandlers MethodExceptionHandlers;
 
         /// <summary>
+        /// <c>true</c> if the current translation of finally is exceptional; <c>false</c> 
+        /// otherwise. 
+        /// </summary>
+        public bool FinallyExceptionalTranslation;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ProgramState"/> class.
         /// </summary>
         /// <param name="method">The method being translated.</param>
@@ -197,6 +210,7 @@ namespace Cilsil.Utils
 
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack, int)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
+            VariableIndexToNullCheck = new Dictionary<int, (BinopExpression, Typ)>();
 
             ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, 
                                                             (CfgNode, LvarExpression)>();
@@ -204,6 +218,8 @@ namespace Cilsil.Utils
             ExceptionHandlerSetToEntryNode = new Dictionary<ExceptionHandler, 
                                                             (CfgNode node, Identifier id)>();
             LeaveToExceptionEntryNode = new Dictionary<Instruction, (CfgNode, Identifier)>();
+
+            FinallyExceptionalTranslation = false;
 
             IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;
@@ -300,7 +316,12 @@ namespace Cilsil.Utils
         public Load PushAndLoad(Expression expression, Typ type)
         {
             var freshIdentifier = GetIdentifier(Identifier.IdentKind.Normal);
-            PushExpr(new VarExpression(freshIdentifier), type);
+            var isThis = false;
+            if (expression is LvarExpression variable && variable.Pvar.PvName == "this")
+            {
+                isThis = true;
+            }
+            PushExpr(new VarExpression(freshIdentifier, isThis), type);
             return new Load(freshIdentifier, expression, type, CurrentLocation);
         }
 
@@ -385,8 +406,8 @@ namespace Cilsil.Utils
             {
                 return (left, leftExpressionType);
             }
-            // Object-null checks are represented in CIL using Gt. In this case, binop kind should be 
-            // updated to Ne.
+            // Object-null checks are represented in CIL using Gt. In this case, binop kind should
+            // be updated to Ne.
             if (binopKind == BinopExpression.BinopKind.Gt &&
                 right.Equals(new ConstExpression(new IntRepresentation(0, false, true))))
             {
@@ -426,6 +447,8 @@ namespace Cilsil.Utils
                     PreviousNode = node ?? PreviousNode,
                     PreviousStack = ProgramStack.Clone(),
                     NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
+                    FinallyExceptionalTranslation = FinallyExceptionalTranslation,
+                    EndfinallyControlFlow = EndfinallyControlFlow,
                 });
         }
 
@@ -440,6 +463,8 @@ namespace Cilsil.Utils
             CurrentInstruction = snapshot.Instruction;
             ProgramStack = snapshot.PreviousStack;
             NextAvailableTemporaryVariableId = snapshot.NextAvailableTemporaryVariableId;
+            FinallyExceptionalTranslation = snapshot.FinallyExceptionalTranslation;
+            EndfinallyControlFlow = snapshot.EndfinallyControlFlow;
 
             var currentSequencePoint =
                 Method.DebugInformation.GetSequencePoint(CurrentInstruction);
@@ -492,6 +517,17 @@ namespace Cilsil.Utils
             /// The next available integer identifier for temporary variables at this state.
             /// </summary>
             public int NextAvailableTemporaryVariableId;
+
+            /// <summary>
+            /// <c>true</c> if translation of the finally block from the current state should be
+            /// exceptional; otherwise, <c>false</c>.
+            /// </summary>
+            public bool FinallyExceptionalTranslation;
+
+            /// <summary>
+            /// The instruction to route control flow after the endfinally block.
+            /// </summary>
+            public Instruction EndfinallyControlFlow;
         }
     }
 }
