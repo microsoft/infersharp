@@ -86,6 +86,10 @@ namespace Cilsil.Services
             var programState = new ProgramState(method, Cfg);
 
             var methodBody = method.Body;
+            var unhandledExceptionCase =
+                programState.MethodExceptionHandlers.UnhandledExceptionBlock ||
+                !programState.MethodExceptionHandlers.NoNestedTryCatchFinally() ||
+                !programState.MethodExceptionHandlers.NoFinallyEndWithThrow();
 
             // True if the translation terminates early, false otherwise.
             var translationUnfinished = false;
@@ -113,9 +117,7 @@ namespace Cilsil.Services
                     {
                         programState.PreviousNode.Successors.Add(nodeAtOffset);
                     }
-                    else if (programState.MethodExceptionHandlers.UnhandledExceptionBlock ||
-                             !programState.MethodExceptionHandlers.NoNestedTryCatchFinally() ||
-                             !programState.MethodExceptionHandlers.NoFinallyEndWithThrow())
+                    else if (unhandledExceptionCase)
                     {
                         Log.WriteError($"Unhandled exception-handling.");
                         Log.RecordUnknownInstruction("unhandled-exception");
