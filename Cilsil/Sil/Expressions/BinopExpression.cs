@@ -53,7 +53,7 @@ namespace Cilsil.Sil.Expressions
         /// </returns>
         public bool IsNullCheck() => 
             (Operator == BinopKind.Ne || Operator == BinopKind.Eq) &&
-            (Right is ConstExpression constExpr) &&
+            Right is ConstExpression constExpr &&
             constExpr.Equals(new ConstExpression(new IntRepresentation(0, false, true)));
         
         /// <summary>
