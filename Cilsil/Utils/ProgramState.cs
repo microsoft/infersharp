@@ -316,12 +316,7 @@ namespace Cilsil.Utils
         public Load PushAndLoad(Expression expression, Typ type)
         {
             var freshIdentifier = GetIdentifier(Identifier.IdentKind.Normal);
-            var isThis = false;
-            if (expression is LvarExpression variable && variable.Pvar.PvName == "this")
-            {
-                isThis = true;
-            }
-            PushExpr(new VarExpression(freshIdentifier, isThis), type);
+            PushExpr(new VarExpression(freshIdentifier), type);
             return new Load(freshIdentifier, expression, type, CurrentLocation);
         }
 

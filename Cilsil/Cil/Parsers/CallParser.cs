@@ -63,8 +63,7 @@ namespace Cilsil.Cil.Parsers
                 if (calledMethod.HasThis && calledMethod.Name != Identifier.ConstructorIdentifier)
                 {
                     var thisArg = callArgs.First();
-                    if (thisArg.Expression is VarExpression varExpression && 
-                        !varExpression.FromThis)
+                    if (thisArg.Expression is VarExpression varExpression)
                     {
                         instrs.Insert(0, CreateDereference(varExpression, thisArg.Type, state));
                     }

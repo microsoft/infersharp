@@ -17,19 +17,12 @@ namespace Cilsil.Sil.Expressions
         public Identifier Identifier { get; }
 
         /// <summary>
-        /// If <c>true</c>, this expression is from the load of "this"; otherwise, <c>false</c>.
-        /// </summary>
-        public readonly bool FromThis;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="VarExpression"/> class.
         /// </summary>
         /// <param name="id">The identifier.</param>
-        /// <param name="fromThis">If <c>true</c>, this variable references "this".</param>
-        public VarExpression(Identifier id, bool fromThis = false)
+        public VarExpression(Identifier id)
         {
             Identifier = id;
-            FromThis = fromThis;
         }
 
         /// <summary>
