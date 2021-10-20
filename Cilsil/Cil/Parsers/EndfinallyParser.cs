@@ -16,11 +16,12 @@ namespace Cilsil.Cil.Parsers
                 // be rare. 
                 case Code.Endfinally:
                     // This instruction was reached through non-exceptional control flow.
-                    if (!state.FinallyExceptionalTranslation)
+                    if (state.EndfinallyControlFlow != null)
                     {
                         // We continue translation with that operand from the end of the finally
                         // block, now that finally block has been translated.
                         state.PushInstruction(state.EndfinallyControlFlow);
+                        state.EndfinallyControlFlow = null;
                     }
                     // This instruction was reached through exceptional control flow.
                     else 
@@ -31,11 +32,6 @@ namespace Cilsil.Cil.Parsers
                         {
                             state.FinallyHandlerToExceptionExit[handler] =
                                 CreateFinallyExceptionExitNode(state, handler);
-                        }
-                        else
-                        {
-                            state.PreviousNode.Successors.Add(
-                                state.FinallyHandlerToExceptionExit[handler]);
                         }
                     }
                     return true;
