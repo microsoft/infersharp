@@ -122,15 +122,26 @@ namespace Cilsil.Cil.Parsers
         }
 
         protected static Location GetHandlerStartLocation(ProgramState state,
-                                                          ExceptionHandler handler) =>
-            Location.FromSequencePoint(
+                                                          ExceptionHandler handler)
+        {
+            var handlerLocation = Location.FromSequencePoint(
                 state.Method.DebugInformation.GetSequencePoint(handler.HandlerStart));
+            var methodBodyStartLocation = Location.FromSequencePoint(
+                state.Method.DebugInformation.GetSequencePoint(
+                    state.Method.Body.Instructions.First()));
+            return handlerLocation.Line < 10000000 ? handlerLocation : methodBodyStartLocation;
+        }
 
         protected static Location GetHandlerEndLocation(ProgramState state,
-                                                        ExceptionHandler handler) =>
-            Location.FromSequencePoint(
+                                                        ExceptionHandler handler)
+        {
+            var handlerLocation = Location.FromSequencePoint(
                 state.Method.DebugInformation.GetSequencePoint(handler.HandlerEnd.Previous));
-
+            var methodBodyStartLocation = Location.FromSequencePoint(
+                state.Method.DebugInformation.GetSequencePoint(
+                    state.Method.Body.Instructions.First()));
+            return handlerLocation.Line < 10000000 ? handlerLocation : methodBodyStartLocation;
+        }
 
         private static LvarExpression GetHandlerCatchVar(ProgramState state,
                                                          ExceptionHandler handler) =>
