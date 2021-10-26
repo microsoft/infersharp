@@ -13,8 +13,24 @@ steps:
 - script: pwd
   displayName: 'Show current dir (TMP)'
 
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+
+- task: UseDotNet@2
+  inputs:
+    packageType: 'runtime'
+    version: '5.x'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: './build_csharp_models.sh'
+
 - task: Docker@2
   displayName: 'Build and test'
+  enabled: false
   inputs:
     command: build
 
