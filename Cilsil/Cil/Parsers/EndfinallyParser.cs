@@ -23,9 +23,9 @@ namespace Cilsil.Cil.Parsers
                         state.PushInstruction(state.EndfinallyControlFlow);
                     }
                     // This instruction was reached through exceptional control flow.
-                    else 
+                    else
                     {
-                        var handler = 
+                        var handler =
                             state.MethodExceptionHandlers.FinallyEndToHandler[instruction];
                         if (!state.FinallyHandlerToExceptionExit.ContainsKey(handler))
                         {

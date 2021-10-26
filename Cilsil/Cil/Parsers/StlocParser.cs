@@ -71,9 +71,9 @@ namespace Cilsil.Cil.Parsers
             }
             else if (IsNullCheckExpression(value))
             {
-                state.VariableIndexToNullCheck[index] = ((BinopExpression) value, type);
+                state.VariableIndexToNullCheck[index] = ((BinopExpression)value, type);
             }
-            else if (!IsNullCheckExpression(value) && 
+            else if (!IsNullCheckExpression(value) &&
                      state.VariableIndexToNullCheck.ContainsKey(index))
             {
                 state.VariableIndexToNullCheck.Remove(index);
@@ -98,7 +98,7 @@ namespace Cilsil.Cil.Parsers
             return true;
         }
 
-        private static bool IsNullCheckExpression(Expression expr) => 
+        private static bool IsNullCheckExpression(Expression expr) =>
             expr is BinopExpression binopExpression && binopExpression.IsNullCheck();
     }
 }

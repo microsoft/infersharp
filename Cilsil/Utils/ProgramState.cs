@@ -76,9 +76,10 @@ namespace Cilsil.Utils
         /// been translated) to the CFG node containing the translated SIL instruction as well as 
         /// the program stack immediately prior to the translation of that CIL instruction.
         /// </summary>
-        public Dictionary<int, List<(CfgNode Node, 
-                                    ProgramStack Stack, 
-                                    int PredecessorBlockEndOffset)>> OffsetToNode { get; }
+        public Dictionary<int, List<(CfgNode Node,
+                                    ProgramStack Stack,
+                                    int PredecessorBlockEndOffset)>> OffsetToNode
+        { get; }
 
         /// <summary>
         /// Maps a variable index to a boxed variable type, if there is one stored at the location.
@@ -89,8 +90,9 @@ namespace Cilsil.Utils
         /// Maps a variable index to the null check expression, if there is one stored at the 
         /// location.
         /// </summary>
-        public Dictionary<int, 
-                          (BinopExpression expr, Typ type)> VariableIndexToNullCheck { get; }
+        public Dictionary<int,
+                          (BinopExpression expr, Typ type)> VariableIndexToNullCheck
+        { get; }
 
         /// <summary>
         /// Tracks indices at which the expression stored is produced from the translation of the
@@ -144,7 +146,7 @@ namespace Cilsil.Utils
         /// as the associated synthetic variable into which the exception catch variable is stored,
         /// in case of finally handler (null otherwise).
         /// </summary>
-        public Dictionary<ExceptionHandler, 
+        public Dictionary<ExceptionHandler,
                          (CfgNode node, LvarExpression variable)> ExceptionHandlerToCatchVarNode;
 
         /// <summary>
@@ -212,10 +214,10 @@ namespace Cilsil.Utils
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
             VariableIndexToNullCheck = new Dictionary<int, (BinopExpression, Typ)>();
 
-            ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler, 
+            ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler,
                                                             (CfgNode, LvarExpression)>();
             FinallyHandlerToExceptionExit = new Dictionary<ExceptionHandler, CfgNode>();
-            ExceptionHandlerSetToEntryNode = new Dictionary<ExceptionHandler, 
+            ExceptionHandlerSetToEntryNode = new Dictionary<ExceptionHandler,
                                                             (CfgNode node, Identifier id)>();
             LeaveToExceptionEntryNode = new Dictionary<Instruction, (CfgNode, Identifier)>();
 
@@ -232,8 +234,8 @@ namespace Cilsil.Utils
         /// </summary>
         /// <remarks>The node is saved for the current offset along with the current stack 
         /// state.</remarks>
-        public void SaveNodeOffset(CfgNode node, 
-                                   ProgramStack previousStack, 
+        public void SaveNodeOffset(CfgNode node,
+                                   ProgramStack previousStack,
                                    int previousNodeHandlerEndOffset)
         {
             // If not a catch block, where the stack is expected to contain the thrown exception,
@@ -272,7 +274,7 @@ namespace Cilsil.Utils
         /// stack must be a list subset (i.e. guarantees it has the necessary stack instructions 
         /// required at that state).</remarks>
         public (CfgNode, bool) GetOffsetNode(
-            int offset, 
+            int offset,
             int predecessorHandlerBlockEndOffset = MethodExceptionHandlers.DefaultHandlerEndOffset)
         {
             if (OffsetToNode.ContainsKey(offset))
@@ -291,7 +293,7 @@ namespace Cilsil.Utils
                     // before we try to reuse it.
                     return (OffsetToNode[offset]
                             .FirstOrDefault(
-                                entry => entry.Stack.IsSubStackOf(ProgramStack) && 
+                                entry => entry.Stack.IsSubStackOf(ProgramStack) &&
                                     entry.PredecessorBlockEndOffset ==
                                     predecessorHandlerBlockEndOffset)
                             .Node, false);
@@ -344,7 +346,7 @@ namespace Cilsil.Utils
         /// Retrieves a fresh synthetic variable name.
         /// </summary>
         /// <returns>The name.</returns>
-        public string GetSyntheticVariableName() => 
+        public string GetSyntheticVariableName() =>
             Identifier.SyntheticIdentifier + NextAvailableSyntheticVariableId++;
 
         /// <summary>
@@ -414,11 +416,11 @@ namespace Cilsil.Utils
                 binopKind = BinopExpression.BinopKind.Ne;
             }
 
-            if (binopKind == BinopExpression.BinopKind.Lt || 
-                binopKind == BinopExpression.BinopKind.Gt || 
-                binopKind == BinopExpression.BinopKind.Le || 
-                binopKind == BinopExpression.BinopKind.Ge || 
-                binopKind == BinopExpression.BinopKind.Eq || 
+            if (binopKind == BinopExpression.BinopKind.Lt ||
+                binopKind == BinopExpression.BinopKind.Gt ||
+                binopKind == BinopExpression.BinopKind.Le ||
+                binopKind == BinopExpression.BinopKind.Ge ||
+                binopKind == BinopExpression.BinopKind.Eq ||
                 binopKind == BinopExpression.BinopKind.Ne)
             {
                 binopOutputType = new Tint(Tint.IntKind.IBool);

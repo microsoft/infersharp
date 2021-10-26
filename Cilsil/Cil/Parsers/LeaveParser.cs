@@ -3,7 +3,6 @@
 using Cilsil.Sil;
 using Cilsil.Utils;
 using Mono.Cecil.Cil;
-using System.Collections.Generic;
 
 namespace Cilsil.Cil.Parsers
 {
@@ -77,7 +76,7 @@ namespace Cilsil.Cil.Parsers
 
                         // Exceptional control flow routes through the finally block, if present,
                         // prior to routing control flow to leave.
-                        if (currentHandler.FinallyBlock != null && 
+                        if (currentHandler.FinallyBlock != null &&
                             state.NodesToLinkWithExceptionBlock.Count > 0)
                         {
                             var finallyEntryNode = CreateFinallyExceptionalEntryBlock(
@@ -123,7 +122,7 @@ namespace Cilsil.Cil.Parsers
                     return true;
                 default:
                     return false;
-            }            
+            }
         }
 
         /// <summary>

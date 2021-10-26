@@ -1,5 +1,4 @@
 ﻿using Mono.Cecil.Cil;
-using System;
 using System.Collections.Generic;
 
 namespace Cilsil.Utils
@@ -15,7 +14,7 @@ namespace Cilsil.Utils
         #region
         private readonly Dictionary<(Instruction tryStart, Instruction tryEnd),
                                     List<ExceptionHandlerNode>> TryBoundsToCatchHandlers =
-            new Dictionary<(Instruction tryStart, Instruction tryEnd), 
+            new Dictionary<(Instruction tryStart, Instruction tryEnd),
                            List<ExceptionHandlerNode>>();
 
         private readonly Dictionary<(Instruction tryStart, Instruction tryEnd),
@@ -37,7 +36,7 @@ namespace Cilsil.Utils
         /// <summary>
         /// Maps the last instruction of a finally handler to the handler.
         /// </summary>
-        public readonly Dictionary<Instruction, ExceptionHandler> FinallyEndToHandler = 
+        public readonly Dictionary<Instruction, ExceptionHandler> FinallyEndToHandler =
             new Dictionary<Instruction, ExceptionHandler>();
 
         /// <summary>
@@ -96,7 +95,7 @@ namespace Cilsil.Utils
                 {
                     case ExceptionHandlerType.Catch:
                         var catchHandlerNode = new ExceptionHandlerNode(exceptionHandler);
-                        var catchBounds = (exceptionHandler.HandlerStart, 
+                        var catchBounds = (exceptionHandler.HandlerStart,
                                            exceptionHandler.HandlerEnd.Previous);
                         if (TryBoundsToCatchHandlers.ContainsKey(tryBounds))
                         {
@@ -105,7 +104,7 @@ namespace Cilsil.Utils
                         else
                         {
                             TryBoundsToCatchHandlers.Add(
-                                tryBounds, 
+                                tryBounds,
                                 new List<ExceptionHandlerNode> { catchHandlerNode });
                         }
                         CatchBoundsToCatchHandler[catchBounds] = catchHandlerNode;
@@ -113,7 +112,7 @@ namespace Cilsil.Utils
                     case ExceptionHandlerType.Finally:
                         TryBoundsToFinallyHandlers[tryBounds] = exceptionHandler;
                         FinallyBoundsToFinallyHandler[(
-                            exceptionHandler.HandlerStart, 
+                            exceptionHandler.HandlerStart,
                             exceptionHandler.HandlerEnd.Previous)] = exceptionHandler;
                         FinallyEndToHandler[exceptionHandler.HandlerEnd.Previous] =
                             exceptionHandler;
@@ -128,13 +127,13 @@ namespace Cilsil.Utils
 
             foreach (var catchTry in TryBoundsToCatchHandlers.Keys)
             {
-                TryBoundsToCatchHandlers[catchTry].Sort((x, y) => 
+                TryBoundsToCatchHandlers[catchTry].Sort((x, y) =>
                     x.ExceptionHandler.HandlerStart.Offset.CompareTo(
                         y.ExceptionHandler.HandlerStart.Offset));
 
                 for (int i = 0; i < TryBoundsToCatchHandlers[catchTry].Count - 1; i++)
                 {
-                    TryBoundsToCatchHandlers[catchTry][i].NextCatchBlock = 
+                    TryBoundsToCatchHandlers[catchTry][i].NextCatchBlock =
                         TryBoundsToCatchHandlers[catchTry][i + 1];
                 }
                 for (int i = 1; i < TryBoundsToCatchHandlers[catchTry].Count; i++)
@@ -145,14 +144,14 @@ namespace Cilsil.Utils
 
                 foreach (var catchHandlerNode in TryBoundsToCatchHandlers[catchTry])
                 {
-                    catchHandlerNode.FirstCatchHandler = 
+                    catchHandlerNode.FirstCatchHandler =
                         TryBoundsToCatchHandlers[catchTry][0].ExceptionHandler;
                 }
             }
 
             foreach (var catchTry in TryBoundsToCatchHandlers.Keys)
             {
-                foreach (var finallyTry  in TryBoundsToFinallyHandlers.Keys)
+                foreach (var finallyTry in TryBoundsToFinallyHandlers.Keys)
                 {
                     if (InstructionBlockWithinBounds(catchTry, finallyTry))
                     {
@@ -216,14 +215,14 @@ namespace Cilsil.Utils
             {
                 boundsList.Add((tryStart.Offset, tryEnd.Offset));
             }
-            foreach(var handler in CatchBoundsToCatchHandler.Values)
+            foreach (var handler in CatchBoundsToCatchHandler.Values)
             {
-                boundsList.Add((handler.ExceptionHandler.HandlerStart.Offset, 
+                boundsList.Add((handler.ExceptionHandler.HandlerStart.Offset,
                                 handler.ExceptionHandler.HandlerEnd.Previous.Offset));
             }
-            foreach(var handler in TryBoundsToFinallyHandlers.Values)
+            foreach (var handler in TryBoundsToFinallyHandlers.Values)
             {
-                boundsList.Add((handler.HandlerStart.Offset, 
+                boundsList.Add((handler.HandlerStart.Offset,
                                 handler.HandlerEnd.Previous.Offset));
 
                 finallyBoundsList.Add((handler.HandlerStart.Offset,
@@ -231,12 +230,12 @@ namespace Cilsil.Utils
                 finallyBoundsList.Add((handler.TryStart.Offset,
                                        handler.TryEnd.Previous.Offset));
             }
-            boundsList.Sort ((x, y) => x.end.CompareTo(y.end));
+            boundsList.Sort((x, y) => x.end.CompareTo(y.end));
             finallyBoundsList.Sort((x, y) => x.end.CompareTo(y.end));
 
             for (int i = 1; i < boundsList.Count; i++)
             {
-                if (boundsList[i-1].end > boundsList[i].start)
+                if (boundsList[i - 1].end > boundsList[i].start)
                 {
                     return false;
                 }
@@ -259,7 +258,7 @@ namespace Cilsil.Utils
         /// otherwise.</returns>
         public bool NoFinallyEndWithThrow()
         {
-            foreach(var finallyEnd in FinallyEndToHandler.Keys)
+            foreach (var finallyEnd in FinallyEndToHandler.Keys)
             {
                 if (finallyEnd.OpCode.Code == Code.Throw)
                 {
@@ -305,7 +304,7 @@ namespace Cilsil.Utils
                 return FinallyOffsetToFinallyHandler[offset].HandlerEnd.Previous.Offset;
             }
             return DefaultHandlerEndOffset;
-;
+            ;
         }
 
         private static Dictionary<int, T> ConvertBoundsToOffsets<T>(

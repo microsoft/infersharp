@@ -6,7 +6,6 @@ using Cilsil.Services.Results;
 using Cilsil.Sil;
 using Cilsil.Utils;
 using Mono.Cecil;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -103,11 +102,11 @@ namespace Cilsil.Services
                     // Checks if there is a node for the offset that we can reuse.
                     (var nodeAtOffset, var excessiveVisits) =
                         programState.GetOffsetNode(
-                            nextInstruction.Offset, 
-                            programState.PreviousNode?.BlockEndOffset ?? 
+                            nextInstruction.Offset,
+                            programState.PreviousNode?.BlockEndOffset ??
                             MethodExceptionHandlers.DefaultHandlerEndOffset);
                     // We don't reuse nodes of finally handlers.
-                    if (nodeAtOffset != null && 
+                    if (nodeAtOffset != null &&
                         !programState.MethodExceptionHandlers
                                      .FinallyOffsetToFinallyHandler
                                      .ContainsKey(nextInstruction.Offset) &&
@@ -195,7 +194,7 @@ namespace Cilsil.Services
                         s.Predecessors.Add(n);
                         todo.Enqueue(s);
                     }
-                    if (n.ExceptionNodes.Count > 0 && 
+                    if (n.ExceptionNodes.Count > 0 &&
                         n.ExceptionNodes[0] != programState.ProcDesc.ExceptionSinkNode)
                     {
                         todo.Enqueue(n.ExceptionNodes[0]);

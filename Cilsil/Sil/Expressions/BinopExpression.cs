@@ -51,11 +51,11 @@ namespace Cilsil.Sil.Expressions
         /// <returns>
         ///   <c>true</c> if is a null check; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsNullCheck() => 
+        public bool IsNullCheck() =>
             (Operator == BinopKind.Ne || Operator == BinopKind.Eq) &&
             Right is ConstExpression constExpr &&
             constExpr.Equals(new ConstExpression(new IntRepresentation(0, false, true)));
-        
+
         /// <summary>
         /// Converts to string.
         /// </summary>

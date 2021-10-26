@@ -1,5 +1,4 @@
-﻿using Cilsil.Sil;
-using Mono.Cecil.Cil;
+﻿using Mono.Cecil.Cil;
 
 namespace Cilsil.Utils
 {
@@ -36,8 +35,8 @@ namespace Cilsil.Utils
         /// <param name="exceptionHandler">The exception handler.</param>
         /// <param name="nextCatchBlock">The next catch clause.</param>
         /// <param name="finallyBlock">The finally block.</param>
-        public ExceptionHandlerNode(ExceptionHandler exceptionHandler,  
-                                    ExceptionHandlerNode nextCatchBlock = null, 
+        public ExceptionHandlerNode(ExceptionHandler exceptionHandler,
+                                    ExceptionHandlerNode nextCatchBlock = null,
                                     ExceptionHandler finallyBlock = null)
         {
             ExceptionHandler = exceptionHandler;

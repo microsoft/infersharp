@@ -51,11 +51,11 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various error types expected to be produced by Infer in the tests.
         /// </summary>
-        public enum InferError 
-        { 
-            None, 
-            NULL_DEREFERENCE, 
-            DANGLING_POINTER_DEREFERENCE, 
+        public enum InferError
+        {
+            None,
+            NULL_DEREFERENCE,
+            DANGLING_POINTER_DEREFERENCE,
             DOTNET_RESOURCE_LEAK,
             THREAD_SAFETY_VIOLATION
         }

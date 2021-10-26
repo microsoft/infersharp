@@ -115,7 +115,7 @@ namespace Cilsil.Cil.Parsers
             if (RememberNodeOffset)
             {
                 state.SaveNodeOffset(node,
-                                     PreviousProgramStack, 
+                                     PreviousProgramStack,
                                      state.PreviousNode.BlockEndOffset);
                 RememberNodeOffset = false;
             }
@@ -145,7 +145,7 @@ namespace Cilsil.Cil.Parsers
 
         private static LvarExpression GetHandlerCatchVar(ProgramState state,
                                                          ExceptionHandler handler) =>
-            new LvarExpression(new LocalVariable(Identifier.CatchVarIdentifier + 
+            new LvarExpression(new LocalVariable(Identifier.CatchVarIdentifier +
                                                    handler.HandlerStart.Offset.ToString(),
                                                  state.Method));
 
@@ -159,7 +159,7 @@ namespace Cilsil.Cil.Parsers
         /// created.</param>
         /// <returns>The created entry node, as well as the identifier in which the exception is 
         /// stored.</returns>
-        private static (CfgNode, Identifier) CreateExceptionEntryNode(ProgramState state, 
+        private static (CfgNode, Identifier) CreateExceptionEntryNode(ProgramState state,
                                                                       ExceptionHandler handler)
         {
             var handlerStartLocation = GetHandlerStartLocation(state, handler);
@@ -183,11 +183,11 @@ namespace Cilsil.Cil.Parsers
                                              returnType,
                                              new ConstExpression(
                                                  ProcedureName.BuiltIn__unwrap_exception),
-                                             new List<Call.CallArg> 
-                                             { 
+                                             new List<Call.CallArg>
+                                             {
                                                  new Call.CallArg(
-                                                     new VarExpression(returnIdentifier), 
-                                                     returnType) 
+                                                     new VarExpression(returnIdentifier),
+                                                     returnType)
                                              },
                                              new Call.CallFlags(),
                                              handlerStartLocation);
@@ -242,9 +242,9 @@ namespace Cilsil.Cil.Parsers
                         new LvarExpression(new LocalVariable(state.GetSyntheticVariableName(),
                                                              state.Method));
                     var storeIntoSyntheticVariable = new Store(
-                        syntheticExceptionVariable, 
+                        syntheticExceptionVariable,
                         new VarExpression(exceptionIdentifier),
-                        exceptionType, 
+                        exceptionType,
                         handlerStartLocation);
                     node.Instructions.Add(storeIntoSyntheticVariable);
                     (var entryNode, _) = GetHandlerEntryNode(state, handler);
@@ -265,8 +265,8 @@ namespace Cilsil.Cil.Parsers
             return (node, syntheticExceptionVariable);
         }
 
-        protected static void CreateCatchHandlerEntryBlock(ProgramState state, 
-                                                           ExceptionHandlerNode handlerNode, 
+        protected static void CreateCatchHandlerEntryBlock(ProgramState state,
+                                                           ExceptionHandlerNode handlerNode,
                                                            CfgNode handlerEntryPredecessor,
                                                            Identifier exceptionIdentifier)
         {
@@ -297,7 +297,7 @@ namespace Cilsil.Cil.Parsers
             {
                 // Continues translation with catch handler's first instruction from
                 // the handler's catch variable load node.
-                CreateCatchHandlerEntryBlock(state, 
+                CreateCatchHandlerEntryBlock(state,
                                              handlerNode.NextCatchBlock,
                                              falseBranch,
                                              exceptionIdentifier);
@@ -347,7 +347,7 @@ namespace Cilsil.Cil.Parsers
         {
             if (!state.ExceptionHandlerToCatchVarNode.ContainsKey(handler))
             {
-                state.ExceptionHandlerToCatchVarNode[handler] = 
+                state.ExceptionHandlerToCatchVarNode[handler] =
                     CreateLoadCatchVarNode(state, handler);
             }
             return state.ExceptionHandlerToCatchVarNode[handler];
@@ -377,13 +377,13 @@ namespace Cilsil.Cil.Parsers
         /// node.</param>
         /// <returns>The exception entry node, as well as the identifier for the unwrapped 
         /// exception.</returns>
-        protected static (CfgNode, Identifier) GetHandlerEntryNode(ProgramState state, 
+        protected static (CfgNode, Identifier) GetHandlerEntryNode(ProgramState state,
                                                                    ExceptionHandler handler,
                                                                    bool createCopy = true)
         {
-            if (!state.ExceptionHandlerSetToEntryNode.ContainsKey(handler)) 
+            if (!state.ExceptionHandlerSetToEntryNode.ContainsKey(handler))
             {
-                state.ExceptionHandlerSetToEntryNode[handler] = CreateExceptionEntryNode(state, 
+                state.ExceptionHandlerSetToEntryNode[handler] = CreateExceptionEntryNode(state,
                                                                                          handler);
             }
             else
@@ -402,11 +402,11 @@ namespace Cilsil.Cil.Parsers
             return state.ExceptionHandlerSetToEntryNode[handler];
         }
 
-        protected static CfgNode CreateFinallyExceptionBranchNode(ProgramState state, 
+        protected static CfgNode CreateFinallyExceptionBranchNode(ProgramState state,
                                                                   ExceptionHandler handler)
         {
-            var node = new StatementNode(GetHandlerStartLocation(state, handler), 
-                                         StatementNode.StatementNodeKind.FinallyBranch, 
+            var node = new StatementNode(GetHandlerStartLocation(state, handler),
+                                         StatementNode.StatementNodeKind.FinallyBranch,
                                          state.ProcDesc);
             state.Cfg.RegisterNode(node);
             return node;
@@ -492,9 +492,9 @@ namespace Cilsil.Cil.Parsers
                                                state.ProcDesc);
 
 
-            pruneTrueNode.Instructions.AddRange(new List<SilInstruction> 
-            { 
-                isInstCall, pruneTrueInstruction, setCatchVarInstruction 
+            pruneTrueNode.Instructions.AddRange(new List<SilInstruction>
+            {
+                isInstCall, pruneTrueInstruction, setCatchVarInstruction
             });
 
             pruneFalseNode.Instructions.AddRange(new List<SilInstruction>
@@ -568,8 +568,8 @@ namespace Cilsil.Cil.Parsers
             var args = new List<Call.CallArg>
             {
                 new Call.CallArg(
-                    new SizeofExpression(type.StripPointer(), 
-                                         SizeofExpression.SizeofExpressionKind.exact), 
+                    new SizeofExpression(type.StripPointer(),
+                                         SizeofExpression.SizeofExpressionKind.exact),
                     type)
             };
 
@@ -608,7 +608,7 @@ namespace Cilsil.Cil.Parsers
                          {
                                      new Call.CallArg(
                                          new SizeofExpression(
-                                             type.StripPointer(), 
+                                             type.StripPointer(),
                                              SizeofExpression.SizeofExpressionKind.exact),
                                          type)
                          },
@@ -818,8 +818,8 @@ namespace Cilsil.Cil.Parsers
         protected CfgNode AddMethodBodyInstructionsToCfg(ProgramState state,
                                                          params SilInstruction[] instructions)
         {
-            if (state.AppendToPreviousNode && 
-                !(state.PreviousNode is PruneNode) && 
+            if (state.AppendToPreviousNode &&
+                !(state.PreviousNode is PruneNode) &&
                 state.CurrentLocation == state.PreviousNode.Location)
             {
                 state.PreviousNode.Instructions.AddRange(instructions);

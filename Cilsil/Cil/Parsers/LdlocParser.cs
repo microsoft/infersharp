@@ -76,7 +76,7 @@ namespace Cilsil.Cil.Parsers
                                                                variableType,
                                                                variableExpression));
             }
-            else if(state.VariableIndexToNullCheck.ContainsKey(index))
+            else if (state.VariableIndexToNullCheck.ContainsKey(index))
             {
                 state.PushExpr(state.VariableIndexToNullCheck[index].expr,
                                state.VariableIndexToNullCheck[index].type);
