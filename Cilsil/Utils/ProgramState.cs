@@ -178,9 +178,11 @@ namespace Cilsil.Utils
         /// </summary>
         public MethodExceptionHandlers MethodExceptionHandlers;
 
+        /// <summary>
+        /// <c>true</c> if the current translation of finally is exceptional; <c>false</c> 
+        /// otherwise. 
+        /// </summary>
         public bool FinallyExceptionalTranslation;
-
-        public Dictionary<Instruction, Instruction> EndFinallyToTarget;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProgramState"/> class.
@@ -218,7 +220,6 @@ namespace Cilsil.Utils
             LeaveToExceptionEntryNode = new Dictionary<Instruction, (CfgNode, Identifier)>();
 
             FinallyExceptionalTranslation = false;
-            EndFinallyToTarget = new Dictionary<Instruction, Instruction>();
 
             IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;
@@ -447,6 +448,7 @@ namespace Cilsil.Utils
                     PreviousStack = ProgramStack.Clone(),
                     NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
                     FinallyExceptionalTranslation = FinallyExceptionalTranslation,
+                    EndfinallyControlFlow = EndfinallyControlFlow,
                 });
         }
 
@@ -462,6 +464,7 @@ namespace Cilsil.Utils
             ProgramStack = snapshot.PreviousStack;
             NextAvailableTemporaryVariableId = snapshot.NextAvailableTemporaryVariableId;
             FinallyExceptionalTranslation = snapshot.FinallyExceptionalTranslation;
+            EndfinallyControlFlow = snapshot.EndfinallyControlFlow;
 
             var currentSequencePoint =
                 Method.DebugInformation.GetSequencePoint(CurrentInstruction);
@@ -515,7 +518,16 @@ namespace Cilsil.Utils
             /// </summary>
             public int NextAvailableTemporaryVariableId;
 
+            /// <summary>
+            /// <c>true</c> if translation of the finally block from the current state should be
+            /// exceptional; otherwise, <c>false</c>.
+            /// </summary>
             public bool FinallyExceptionalTranslation;
+
+            /// <summary>
+            /// The instruction to route control flow after the endfinally block.
+            /// </summary>
+            public Instruction EndfinallyControlFlow;
         }
     }
 }
