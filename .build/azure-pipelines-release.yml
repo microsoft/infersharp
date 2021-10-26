@@ -7,15 +7,27 @@ steps:
 - script: sudo apt-get update -y
   displayName: 'Initialize'
 
+- script: ls
+  displayName: 'Show files (TMP)'
+
+- script: pwd
+  displayName: 'Show current dir (TMP)'
+
 - task: Docker@2
   displayName: 'Build and test'
   inputs:
     command: build
 
+- script: ls
+  displayName: 'Show files (TMP)'
+
+- script: pwd
+  displayName: 'Show current dir (TMP)'
+
 - task: EsrpCodeSigning@1
   inputs:
     ConnectedServiceName: 'InferSharp ESRP CodeSigning'
-    FolderPath: 'Cilsil\'
+    FolderPath: 'infersharp/Cilsil/'
     Pattern: '*.dll,*.exe'
     signConfigType: 'inlineSignParams'
     inlineOperation: |
