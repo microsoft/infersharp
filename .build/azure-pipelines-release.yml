@@ -13,15 +13,15 @@ steps:
 - script: pwd
   displayName: 'Show current dir (TMP)'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: '**/*.csproj'
-
 - task: UseDotNet@2
   inputs:
     packageType: 'runtime'
     version: '5.x'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'dotnet build Infersharp.sln'
 
 - task: Bash@3
   inputs:
