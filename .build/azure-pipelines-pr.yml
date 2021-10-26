@@ -1,4 +1,4 @@
-name: "InferSharp-PR"
+name: "InferSharp-Release"
 
 pool:
   vmImage: 'ubuntu-16.04'
@@ -11,3 +11,40 @@ steps:
   displayName: 'Build and test'
   inputs:
     command: build
+
+- task: EsrpCodeSigning@1
+  inputs:
+    ConnectedServiceName: 'InferSharp ESRP CodeSigning'
+    FolderPath: 'Cilsil\'
+    Pattern: '*.dll,*.exe'
+    signConfigType: 'inlineSignParams'
+    inlineOperation: |
+      ​​​​​​​​​"SigningInfo" : {
+        "Operations" : [
+          {
+          "KeyCode" : "CP-401405",
+          "OperationCode" : "NuGetSign",
+          "Parameters" : {},
+          "ToolName" : "sign",
+          "ToolVersion" : "1.0"
+          },
+          {
+          "KeyCode" : "CP-401405",
+          "OperationCode" : "NuGetVerify",
+          "Parameters" : {},
+          "ToolName" : "sign",
+          "ToolVersion" : "1.0"
+          }
+        ]
+      }
+    SessionTimeout: '60'
+    MaxConcurrency: '50'
+    MaxRetryAttempts: '5'
+    batchSignPolicyFile: 
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
