@@ -19,24 +19,22 @@ steps:
     Pattern: '*.dll,*.exe'
     signConfigType: 'inlineSignParams'
     inlineOperation: |
-      ​​​​​​​​​"SigningInfo" : {
-        "Operations" : [
-          {
+      [
+        {
           "KeyCode" : "CP-401405",
           "OperationCode" : "NuGetSign",
           "Parameters" : {},
           "ToolName" : "sign",
           "ToolVersion" : "1.0"
-          },
-          {
+        },
+        {
           "KeyCode" : "CP-401405",
           "OperationCode" : "NuGetVerify",
           "Parameters" : {},
           "ToolName" : "sign",
           "ToolVersion" : "1.0"
-          }
-        ]
-      }
+        }
+      ]
     SessionTimeout: '60'
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
