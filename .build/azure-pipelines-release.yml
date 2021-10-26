@@ -13,23 +13,28 @@ steps:
     version: '5.x'
 
 - task: Bash@3
-  displayName: "Build Infersharp.sln"
-  inputs:
-    targetType: 'inline'
-    script: 'dotnet build --configuration Release Infersharp.sln'
-
-- task: Bash@3
   displayName: "Build C# Models"
   inputs:
     targetType: 'inline'
     script: './build_csharp_models.sh'
+
+
+- task: Bash@3
+  displayName: "Build Infersharp Release"
+  inputs:
+    targetType: 'inline'
+    script: |
+      dotnet publish -c Release Cilsil/Cilsil.csproj -r ubuntu.16.10-x64
+
+      dotnet build Examples/Examples/Examples.csproj
+
 - task: Bash@3
   inputs:
     targetType: 'inline'
     script: |
       mkdir infersharp-release
       
-      cp -r Examples infersharp-release/Examples
+      cp -r Examples/Examples/bin/Debug/net5.0/ infersharp-release/Examples
       
       cp run_infersharp.sh infersharp-release/
       
@@ -39,13 +44,17 @@ steps:
       
       cd ..
       
-      cp Cilsil/bin/Release/net5.0/*.dll infersharp-release/Cilsil/
+      cp -r Cilsil/bin/Release/net5.0/ubuntu.16.10-x64.publish/ infersharp-release/Cilsil/
+
+      cp .build/NOTICE.txt infersharp-release/
+
+      cp LICENSE infersharp-release/
 
 
 - task: EsrpCodeSigning@1
   inputs:
     ConnectedServiceName: 'InferSharp ESRP CodeSigning'
-    FolderPath: 'infersharp-release/'
+    FolderPath: 'infersharp-release/Cilsil'
     Pattern: '*.dll,*.exe'
     signConfigType: 'inlineSignParams'
     inlineOperation: |
