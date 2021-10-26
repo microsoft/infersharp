@@ -178,6 +178,10 @@ namespace Cilsil.Utils
         /// </summary>
         public MethodExceptionHandlers MethodExceptionHandlers;
 
+        public bool FinallyExceptionalTranslation;
+
+        public Dictionary<Instruction, Instruction> EndFinallyToTarget;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProgramState"/> class.
         /// </summary>
@@ -212,6 +216,9 @@ namespace Cilsil.Utils
             ExceptionHandlerSetToEntryNode = new Dictionary<ExceptionHandler, 
                                                             (CfgNode node, Identifier id)>();
             LeaveToExceptionEntryNode = new Dictionary<Instruction, (CfgNode, Identifier)>();
+
+            FinallyExceptionalTranslation = false;
+            EndFinallyToTarget = new Dictionary<Instruction, Instruction>();
 
             IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;
@@ -439,6 +446,7 @@ namespace Cilsil.Utils
                     PreviousNode = node ?? PreviousNode,
                     PreviousStack = ProgramStack.Clone(),
                     NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
+                    FinallyExceptionalTranslation = FinallyExceptionalTranslation,
                 });
         }
 
@@ -453,6 +461,7 @@ namespace Cilsil.Utils
             CurrentInstruction = snapshot.Instruction;
             ProgramStack = snapshot.PreviousStack;
             NextAvailableTemporaryVariableId = snapshot.NextAvailableTemporaryVariableId;
+            FinallyExceptionalTranslation = snapshot.FinallyExceptionalTranslation;
 
             var currentSequencePoint =
                 Method.DebugInformation.GetSequencePoint(CurrentInstruction);
@@ -505,6 +514,8 @@ namespace Cilsil.Utils
             /// The next available integer identifier for temporary variables at this state.
             /// </summary>
             public int NextAvailableTemporaryVariableId;
+
+            public bool FinallyExceptionalTranslation;
         }
     }
 }
