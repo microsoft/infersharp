@@ -7,43 +7,45 @@ steps:
 - script: sudo apt-get update -y
   displayName: 'Initialize'
 
-- script: ls
-  displayName: 'Show files (TMP)'
-
-- script: pwd
-  displayName: 'Show current dir (TMP)'
-
 - task: UseDotNet@2
   inputs:
     packageType: 'runtime'
     version: '5.x'
 
 - task: Bash@3
+  displayName: "Build Infersharp.sln"
   inputs:
     targetType: 'inline'
-    script: 'dotnet build Infersharp.sln'
+    script: 'dotnet build --configuration Release Infersharp.sln'
 
 - task: Bash@3
+  displayName: "Build C# Models"
   inputs:
     targetType: 'inline'
     script: './build_csharp_models.sh'
-
-- task: Docker@2
-  displayName: 'Build and test'
-  enabled: false
+- task: Bash@3
   inputs:
-    command: build
+    targetType: 'inline'
+    script: |
+      mkdir infersharp-release
+      
+      cp -r Examples infersharp-release/Examples
+      
+      cp run_infersharp.sh infersharp-release/
+      
+      cd infersharp-release
+      
+      mkdir Cilsil
+      
+      cd ..
+      
+      cp Cilsil/bin/Release/net5.0/*.dll infersharp-release/Cilsil/
 
-- script: ls
-  displayName: 'Show files (TMP)'
-
-- script: pwd
-  displayName: 'Show current dir (TMP)'
 
 - task: EsrpCodeSigning@1
   inputs:
     ConnectedServiceName: 'InferSharp ESRP CodeSigning'
-    FolderPath: 'Cilsil/'
+    FolderPath: 'infersharp-release/'
     Pattern: '*.dll,*.exe'
     signConfigType: 'inlineSignParams'
     inlineOperation: |
