@@ -60,4 +60,4 @@ echo -e "\e[1;33mYou may see 'Unable to parse instruction xxx' above. This is ex
 echo -e "Code translation completed. Analyzing...\n"
 $parent_path/infer/lib/infer/infer/bin/infer capture
 mkdir infer-out/captured 
-$parent_path/infer/lib/infer/infer/bin/infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') $issues_cmd analyzejson --debug --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
+$parent_path/infer/lib/infer/infer/bin/infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') $issues_cmd analyzejson --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json

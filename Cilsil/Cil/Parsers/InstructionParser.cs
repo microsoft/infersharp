@@ -104,11 +104,448 @@ namespace Cilsil.Cil.Parsers
         {
             state.Cfg.RegisterNode(node);
             state.PreviousNode.Successors.Add(node);
+            node.BlockEndOffset = state.MethodExceptionHandlers
+                                       .GetBlockEndOffsetFromOffset(
+                                            state.CurrentInstruction.Offset);
+            if (state.MethodExceptionHandlers.GetExceptionHandlerAtInstruction(
+                    state.CurrentInstruction) != null)
+            {
+                state.NodesToLinkWithExceptionBlock.Add(node);
+            }
             if (RememberNodeOffset)
             {
-                state.SaveNodeOffset(node, PreviousProgramStack);
+                state.SaveNodeOffset(node,
+                                     PreviousProgramStack,
+                                     state.PreviousNode.BlockEndOffset);
                 RememberNodeOffset = false;
             }
+        }
+
+        protected static Location GetHandlerStartLocation(ProgramState state,
+                                                          ExceptionHandler handler)
+        {
+            var handlerLocation = Location.FromSequencePoint(
+                state.Method.DebugInformation.GetSequencePoint(handler.HandlerStart));
+            var methodBodyStartLocation = Location.FromSequencePoint(
+                state.Method.DebugInformation.GetSequencePoint(
+                    state.Method.Body.Instructions.First()));
+            return handlerLocation.Line < 10000000 ? handlerLocation : methodBodyStartLocation;
+        }
+
+        protected static Location GetHandlerEndLocation(ProgramState state,
+                                                        ExceptionHandler handler)
+        {
+            var handlerLocation = Location.FromSequencePoint(
+                state.Method.DebugInformation.GetSequencePoint(handler.HandlerEnd.Previous));
+            var methodBodyStartLocation = Location.FromSequencePoint(
+                state.Method.DebugInformation.GetSequencePoint(
+                    state.Method.Body.Instructions.First()));
+            return handlerLocation.Line < 10000000 ? handlerLocation : methodBodyStartLocation;
+        }
+
+        private static LvarExpression GetHandlerCatchVar(ProgramState state,
+                                                         ExceptionHandler handler) =>
+            new LvarExpression(new LocalVariable(Identifier.CatchVarIdentifier +
+                                                   handler.HandlerStart.Offset.ToString(),
+                                                 state.Method));
+
+        /// <summary>
+        /// Creates an entry node for representing exceptional control flow into an exception
+        /// handler; in it, the return value is nullified and the unwrap exception function is
+        /// applied to it, which causes the exception to be stored in a catch variable.
+        /// </summary>
+        /// <param name="state">The state.</param>
+        /// <param name="handler">The exception handler for which the node is being 
+        /// created.</param>
+        /// <returns>The created entry node, as well as the identifier in which the exception is 
+        /// stored.</returns>
+        private static (CfgNode, Identifier) CreateExceptionEntryNode(ProgramState state,
+                                                                      ExceptionHandler handler)
+        {
+            var handlerStartLocation = GetHandlerStartLocation(state, handler);
+            var returnIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            var returnExpression = new LvarExpression(
+                new LocalVariable(Identifier.ReturnIdentifier, state.Method));
+            var returnType = Typ.FromTypeReference(state.Method.ReturnType);
+
+            var getReturnValue = new Load(returnIdentifier,
+                                          returnExpression,
+                                          returnType,
+                                          handlerStartLocation);
+            var deactivateException = new Store(returnExpression,
+                                                new ConstExpression(
+                                                    new IntRepresentation(0, false, true)),
+                                                returnType,
+                                                handlerStartLocation);
+
+            var exceptionIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            var unwrapReturnValue = new Call(exceptionIdentifier,
+                                             returnType,
+                                             new ConstExpression(
+                                                 ProcedureName.BuiltIn__unwrap_exception),
+                                             new List<Call.CallArg>
+                                             {
+                                                 new Call.CallArg(
+                                                     new VarExpression(returnIdentifier),
+                                                     returnType)
+                                             },
+                                             new Call.CallFlags(),
+                                             handlerStartLocation);
+
+            var node = new StatementNode(handlerStartLocation,
+                                         StatementNode.StatementNodeKind.ExceptionHandler,
+                                         state.ProcDesc);
+
+            node.Instructions = new List<SilInstruction> { getReturnValue,
+                                                           deactivateException,
+                                                           unwrapReturnValue };
+            state.Cfg.RegisterNode(node);
+            return (node, exceptionIdentifier);
+        }
+
+        /// TODO: Need to add is_csharp to Pvar.ml to parse CatchVar accordingly.
+        /// <summary>
+        /// Helper method for creating a component of the entry block to exception-handling blocks,
+        /// in which the thrown exception stored in the CatchVar is handled.
+        /// </summary>
+        /// <param name="state">The program state.</param>
+        /// <param name="handler">The exception handler for which the node is being
+        /// created.</param>
+        /// <returns>The node in which the caught exception variable is loaded, as well as the
+        /// synthetic exception variable created, if the handler is finally.</returns>
+        private static (CfgNode, LvarExpression) CreateLoadCatchVarNode(ProgramState state,
+                                                                        ExceptionHandler handler)
+        {
+            LvarExpression syntheticExceptionVariable = null;
+            var handlerStartLocation = GetHandlerStartLocation(state, handler);
+            var exceptionIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            var exceptionType = new Tptr(Tptr.PtrKind.Pk_pointer, new Tstruct("System.Object"));
+
+            var catchVarLoad = new Load(exceptionIdentifier,
+                                        GetHandlerCatchVar(state, handler),
+                                        exceptionType,
+                                        handlerStartLocation);
+
+            var node = new StatementNode(location: handlerStartLocation,
+                                         kind: StatementNode.StatementNodeKind.MethodBody,
+                                         proc: state.ProcDesc);
+            node.Instructions.Add(catchVarLoad);
+            switch (handler.HandlerType)
+            {
+                case ExceptionHandlerType.Catch:
+                    state.AppendToPreviousNode = true;
+                    break;
+                case ExceptionHandlerType.Finally:
+                    // In this case, the exception catch variable is stored into a synthetic
+                    // variable we create here.
+                    syntheticExceptionVariable =
+                        new LvarExpression(new LocalVariable(state.GetSyntheticVariableName(),
+                                                             state.Method));
+                    var storeIntoSyntheticVariable = new Store(
+                        syntheticExceptionVariable,
+                        new VarExpression(exceptionIdentifier),
+                        exceptionType,
+                        handlerStartLocation);
+                    node.Instructions.Add(storeIntoSyntheticVariable);
+                    (var entryNode, _) = GetHandlerEntryNode(state, handler);
+                    var finallyBranchNode = CreateFinallyExceptionBranchNode(state, handler);
+                    entryNode.Successors.Add(finallyBranchNode);
+                    finallyBranchNode.Successors.Add(node);
+
+                    node.ExceptionNodes.Add(entryNode);
+
+                    state.FinallyExceptionalTranslation = true;
+                    state.PushInstruction(handler.HandlerStart, node);
+                    state.FinallyExceptionalTranslation = false;
+                    break;
+                default:
+                    return (null, null);
+            }
+            state.Cfg.RegisterNode(node);
+            return (node, syntheticExceptionVariable);
+        }
+
+        protected static void CreateCatchHandlerEntryBlock(ProgramState state,
+                                                           ExceptionHandlerNode handlerNode,
+                                                           CfgNode handlerEntryPredecessor,
+                                                           Identifier exceptionIdentifier)
+        {
+            (var trueBranch, var falseBranch) = CreateExceptionTypeCheckBranchNodes(
+                state, handlerNode.ExceptionHandler, exceptionIdentifier);
+            handlerEntryPredecessor.Successors.Add(trueBranch);
+            handlerEntryPredecessor.Successors.Add(falseBranch);
+
+            if (!state.ExceptionHandlerToCatchVarNode.ContainsKey(handlerNode.ExceptionHandler))
+            {
+                state.ExceptionHandlerToCatchVarNode[handlerNode.ExceptionHandler] =
+                    CreateLoadCatchVarNode(state, handlerNode.ExceptionHandler);
+                // The CIL specification dictates that the exception object is on top of
+                // the stack when the catch handler is entered; the first instruction of
+                // the catch handler will handle the object pushed onto the stack.
+                state.PushExpr(new VarExpression(exceptionIdentifier),
+                               new Tptr(Tptr.PtrKind.Pk_pointer,
+                                        new Tstruct("System.Object")));
+                state.PushInstruction(
+                    handlerNode.ExceptionHandler.HandlerStart,
+                    state.ExceptionHandlerToCatchVarNode[handlerNode.ExceptionHandler].node);
+            }
+            (var loadCatchVarNode, _) = GetHandlerCatchVarNode(
+                state, handlerNode.ExceptionHandler);
+            trueBranch.Successors.Add(loadCatchVarNode);
+
+            if (handlerNode.NextCatchBlock != null)
+            {
+                // Continues translation with catch handler's first instruction from
+                // the handler's catch variable load node.
+                CreateCatchHandlerEntryBlock(state,
+                                             handlerNode.NextCatchBlock,
+                                             falseBranch,
+                                             exceptionIdentifier);
+            }
+            // Last catch handler of set; need to route control flow through the false
+            // exception type-matching node.
+            else
+            {
+                if (handlerNode.FinallyBlock != null)
+                {
+                    var finallyBranchNode = CreateFinallyExceptionBranchNode(
+                        state, handlerNode.ExceptionHandler);
+                    falseBranch.Successors
+                               .Add(finallyBranchNode);
+                    (var finallyLoadCatchVar, _) = GetHandlerCatchVarNode(
+                        state, handlerNode.FinallyBlock);
+                    finallyBranchNode.Successors.Add(finallyLoadCatchVar);
+                }
+                else
+                {
+                    var returnVariable = new LvarExpression(
+                        new LocalVariable(Identifier.ReturnIdentifier, state.Method));
+                    var retType = state.Method.ReturnType.GetElementType();
+                    var retInstr = new Store(
+                        returnVariable,
+                        new ExnExpression(new VarExpression(exceptionIdentifier)),
+                        Typ.FromTypeReference(retType),
+                        GetHandlerStartLocation(state,
+                                                handlerNode.ExceptionHandler));
+                    falseBranch.Instructions
+                               .Add(retInstr);
+                    falseBranch.Successors
+                               .Add(state.ProcDesc.ExceptionSinkNode);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the node in which the exception stored in the exception handler's catch variable
+        /// is loaded. Part of exceptional control flow entry into the handler block.
+        /// </summary>
+        /// <param name="handler">The exception handler.</param>
+        /// <param name="state">The state.</param>
+        /// <returns>The node.</returns>
+        protected static (CfgNode, LvarExpression) GetHandlerCatchVarNode(ProgramState state,
+                                                                          ExceptionHandler handler)
+        {
+            if (!state.ExceptionHandlerToCatchVarNode.ContainsKey(handler))
+            {
+                state.ExceptionHandlerToCatchVarNode[handler] =
+                    CreateLoadCatchVarNode(state, handler);
+            }
+            return state.ExceptionHandlerToCatchVarNode[handler];
+        }
+
+        protected static CfgNode CreateFinallyExceptionalEntryBlock(ProgramState state,
+                                                                    ExceptionHandler handler)
+        {
+            (var entryNode, _) = GetHandlerEntryNode(state, handler);
+            var finallyBranchNode = CreateFinallyExceptionBranchNode(state, handler);
+            (var loadCatchVarNode, _) = GetHandlerCatchVarNode(state, handler);
+            entryNode.Successors.Add(finallyBranchNode);
+            finallyBranchNode.Successors.Add(loadCatchVarNode);
+            return entryNode;
+        }
+
+        /// <summary>
+        /// Gets the entry node for either the set of catch handlers or the finally handler. There 
+        /// should only be one exception identifier per catch set or finally handler, with the
+        /// nodes being copy of that created for the first of the set. When this method is invoked 
+        /// within the translation of any catch handler, the argument should reference
+        /// the first of the set of handlers). 
+        /// </summary>
+        /// <param name="state">The state.</param>
+        /// <param name="handler">The handler.</param>
+        /// <param name="createCopy"> If <c>true</c>, creates a copy of the handler entry 
+        /// node.</param>
+        /// <returns>The exception entry node, as well as the identifier for the unwrapped 
+        /// exception.</returns>
+        protected static (CfgNode, Identifier) GetHandlerEntryNode(ProgramState state,
+                                                                   ExceptionHandler handler,
+                                                                   bool createCopy = true)
+        {
+            if (!state.ExceptionHandlerSetToEntryNode.ContainsKey(handler))
+            {
+                state.ExceptionHandlerSetToEntryNode[handler] = CreateExceptionEntryNode(state,
+                                                                                         handler);
+            }
+            else
+            {
+                if (createCopy)
+                {
+                    var copy = new StatementNode(state.CurrentLocation,
+                                                 StatementNode.StatementNodeKind.ExceptionHandler,
+                                                 state.ProcDesc);
+                    copy.Instructions =
+                        state.ExceptionHandlerSetToEntryNode[handler].node.Instructions;
+                    state.Cfg.RegisterNode(copy);
+                    return (copy, state.ExceptionHandlerSetToEntryNode[handler].id);
+                }
+            }
+            return state.ExceptionHandlerSetToEntryNode[handler];
+        }
+
+        protected static CfgNode CreateFinallyExceptionBranchNode(ProgramState state,
+                                                                  ExceptionHandler handler)
+        {
+            var node = new StatementNode(GetHandlerStartLocation(state, handler),
+                                         StatementNode.StatementNodeKind.FinallyBranch,
+                                         state.ProcDesc);
+            state.Cfg.RegisterNode(node);
+            return node;
+        }
+
+        protected static CfgNode CreateFinallyExceptionExitNode(ProgramState state,
+                                                                ExceptionHandler handler)
+        {
+            (_, var syntheticExceptionVariable) =
+                GetHandlerCatchVarNode(state, handler);
+            var exceptionIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            var exceptionType = new Tptr(Tptr.PtrKind.Pk_pointer,
+                                         new Tstruct("System.Object"));
+            var catchVarLoad = new Load(exceptionIdentifier,
+                                        syntheticExceptionVariable,
+                                        exceptionType,
+                                        GetHandlerEndLocation(state, handler));
+
+            var exceptionReturnNode = CreateExceptionReturnNode(
+                state,
+                new VarExpression(exceptionIdentifier),
+                GetHandlerEndLocation(state, handler));
+            exceptionReturnNode.Instructions.Insert(0, catchVarLoad);
+            state.Cfg.RegisterNode(exceptionReturnNode);
+            state.PreviousNode.Successors.Add(exceptionReturnNode);
+            return exceptionReturnNode;
+        }
+
+        protected static (CfgNode, CfgNode) CreateExceptionTypeCheckBranchNodes(
+            ProgramState state, ExceptionHandler handler, Identifier exceptionIdentifier)
+        {
+
+            var handlerStartLocation = GetHandlerStartLocation(state, handler);
+            var exceptionExpression = new VarExpression(exceptionIdentifier);
+            var isInstIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            var isInstArgs = new List<Call.CallArg>
+                    {
+                        new Call.CallArg(exceptionExpression,
+                                         Typ.FromTypeReference(handler.CatchType)),
+                        new Call.CallArg(
+                            new SizeofExpression(
+                                Typ.FromTypeReferenceNoPointer(handler.CatchType),
+                                SizeofExpression.SizeofExpressionKind.exact),
+                            new Tvoid())
+                    };
+            // We don't mark the function output as an isinst output, as there is no load or store
+            // of it.
+            var isInstCall = new Call(isInstIdentifier,
+                                      new Tint(Tint.IntKind.IBool),
+                                      new ConstExpression(ProcedureName.BuiltIn__instanceof),
+                                      isInstArgs,
+                                      new Call.CallFlags(),
+                                      handlerStartLocation);
+
+            var isInstOutputExpression = new VarExpression(isInstIdentifier);
+            var pruneTrueInstruction = new Prune(isInstOutputExpression,
+                                                 true,
+                                                 Prune.IfKind.Ik_switch,
+                                                 handlerStartLocation);
+
+            var pruneFalseInstruction = new Prune(new UnopExpression(UnopExpression.UnopKind.LNot,
+                                                                     isInstOutputExpression,
+                                                                     null),
+                                                  false,
+                                                  Prune.IfKind.Ik_switch,
+                                                  handlerStartLocation);
+
+            var setCatchVarInstruction = new Store(GetHandlerCatchVar(state, handler),
+                                                   exceptionExpression,
+                                                   Typ.FromTypeReference(state.Method.ReturnType),
+                                                   handlerStartLocation);
+
+            var pruneTrueNode = new PruneNode(handlerStartLocation,
+                                              true,
+                                              PruneNode.PruneNodeKind.ExceptionHandler,
+                                              Prune.IfKind.Ik_switch,
+                                              state.ProcDesc);
+
+            var pruneFalseNode = new PruneNode(handlerStartLocation,
+                                               false,
+                                               PruneNode.PruneNodeKind.ExceptionHandler,
+                                               Prune.IfKind.Ik_switch,
+                                               state.ProcDesc);
+
+
+            pruneTrueNode.Instructions.AddRange(new List<SilInstruction>
+            {
+                isInstCall, pruneTrueInstruction, setCatchVarInstruction
+            });
+
+            pruneFalseNode.Instructions.AddRange(new List<SilInstruction>
+            {
+                isInstCall, pruneFalseInstruction
+            });
+            pruneTrueNode.BlockEndOffset = state.MethodExceptionHandlers
+                                                  .GetBlockEndOffsetFromOffset(
+                                                       state.CurrentInstruction.Offset);
+            pruneFalseNode.BlockEndOffset = state.MethodExceptionHandlers
+                                                   .GetBlockEndOffsetFromOffset(
+                                                        state.CurrentInstruction.Offset);
+            state.Cfg.RegisterNode(pruneTrueNode);
+            state.Cfg.RegisterNode(pruneFalseNode);
+            return (pruneTrueNode, pruneFalseNode);
+        }
+
+        /// <summary>
+        /// Creates a node for returning an exceptional value; does not register the node in the
+        /// CFG.
+        /// </summary>
+        /// <param name="state">The state.</param>
+        /// <param name="returnValue">The exceptional value to be returned.</param>
+        /// <param name="location">The location.</param>
+        /// <returns></returns>
+        protected static CfgNode CreateExceptionReturnNode(ProgramState state,
+                                                           Expression returnValue,
+                                                           Location location)
+        {
+            var retType = state.Method.ReturnType.GetElementType();
+            var retNode = new StatementNode(location,
+                                            StatementNode.StatementNodeKind.ReturnStmt,
+                                            state.ProcDesc);
+            var returnVariable = new LvarExpression(new LocalVariable(Identifier.ReturnIdentifier,
+                                                    state.Method));
+            var retInstr = new Store(returnVariable,
+                                     new ExnExpression(returnValue),
+                                     Typ.FromTypeReference(retType),
+                                     location);
+            retNode.Instructions.Add(retInstr);
+            retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
+            return retNode;
+        }
+
+        protected static void CreateExceptionalEdges(ProgramState state, CfgNode entryNode)
+        {
+            foreach (var node in state.NodesToLinkWithExceptionBlock)
+            {
+                node.ExceptionNodes.Add(entryNode);
+            }
+            state.NodesToLinkWithExceptionBlock = new List<CfgNode>();
         }
 
         /// <summary>
@@ -131,8 +568,8 @@ namespace Cilsil.Cil.Parsers
             var args = new List<Call.CallArg>
             {
                 new Call.CallArg(
-                    new SizeofExpression(type.StripPointer(), 
-                                         SizeofExpression.SizeofExpressionKind.exact), 
+                    new SizeofExpression(type.StripPointer(),
+                                         SizeofExpression.SizeofExpressionKind.exact),
                     type)
             };
 
@@ -171,7 +608,7 @@ namespace Cilsil.Cil.Parsers
                          {
                                      new Call.CallArg(
                                          new SizeofExpression(
-                                             type.StripPointer(), 
+                                             type.StripPointer(),
                                              SizeofExpression.SizeofExpressionKind.exact),
                                          type)
                          },
@@ -282,8 +719,8 @@ namespace Cilsil.Cil.Parsers
         /// <param name="state">The program state for the SIL instruction.</param>
         /// <returns>SIL instruction representing the dereference.</returns>
         protected static Load CreateDereference(VarExpression objectToDereference,
-                                          Typ type,
-                                          ProgramState state)
+                                                Typ type,
+                                                ProgramState state)
         {
             var noId = state.GetIdentifier(Identifier.IdentKind.None);
             return new Load(identifierAssignedTo: noId,
@@ -381,7 +818,9 @@ namespace Cilsil.Cil.Parsers
         protected CfgNode AddMethodBodyInstructionsToCfg(ProgramState state,
                                                          params SilInstruction[] instructions)
         {
-            if (state.AppendToPreviousNode)
+            if (state.AppendToPreviousNode &&
+                !(state.PreviousNode is PruneNode) &&
+                state.CurrentLocation == state.PreviousNode.Location)
             {
                 state.PreviousNode.Instructions.AddRange(instructions);
                 state.AppendToPreviousNode = false;

@@ -76,12 +76,23 @@ namespace Cilsil.Utils
         /// been translated) to the CFG node containing the translated SIL instruction as well as 
         /// the program stack immediately prior to the translation of that CIL instruction.
         /// </summary>
-        public Dictionary<int, List<(CfgNode Node, ProgramStack Stack)>> OffsetToNode { get; }
+        public Dictionary<int, List<(CfgNode Node,
+                                    ProgramStack Stack,
+                                    int PredecessorBlockEndOffset)>> OffsetToNode
+        { get; }
 
         /// <summary>
         /// Maps a variable index to a boxed variable type, if there is one stored at the location.
         /// </summary>
         public Dictionary<int, BoxedValueType> VariableIndexToBoxedValueType { get; }
+
+        /// <summary>
+        /// Maps a variable index to the null check expression, if there is one stored at the 
+        /// location.
+        /// </summary>
+        public Dictionary<int,
+                          (BinopExpression expr, Typ type)> VariableIndexToNullCheck
+        { get; }
 
         /// <summary>
         /// Tracks indices at which the expression stored is produced from the translation of the
@@ -113,6 +124,69 @@ namespace Cilsil.Utils
         private int NextAvailableTemporaryVariableId;
 
         /// <summary>
+        /// The next available integer identifier for synthetic variables. See 
+        /// <see cref="Identifier.SyntheticIdentifier"/> for more information.
+        /// </summary>
+        private int NextAvailableSyntheticVariableId;
+
+        /// <summary>
+        /// List of nodes to link to an exception block when a leave instruction is encountered. If
+        /// the translation state is not in a try or catch block, translated body nodes don't need 
+        /// to be recorded.
+        /// </summary>
+        public List<CfgNode> NodesToLinkWithExceptionBlock;
+
+        /// <summary>
+        /// <c>true</c> if the top instruction is in a try or catch block; <c>false</c> otherwise. 
+        /// </summary>
+        public bool InstructionInTryOrCatch;
+
+        /// <summary>
+        /// Maps each exception handler to the node in which its catch variable is loaded as well
+        /// as the associated synthetic variable into which the exception catch variable is stored,
+        /// in case of finally handler (null otherwise).
+        /// </summary>
+        public Dictionary<ExceptionHandler,
+                         (CfgNode node, LvarExpression variable)> ExceptionHandlerToCatchVarNode;
+
+        /// <summary>
+        /// The exception handler to its entry node as well as pthe identifier for the unwrapped 
+        /// exception.
+        /// </summary>
+        public Dictionary<ExceptionHandler,
+                          (CfgNode node, Identifier id)> ExceptionHandlerSetToEntryNode;
+
+        /// <summary>
+        /// Maps finally handler to the exceptional exit node created for it, if it has been
+        /// created yet.
+        /// </summary>
+        public Dictionary<ExceptionHandler, CfgNode> FinallyHandlerToExceptionExit;
+
+        /// <summary>
+        /// The instruction through which control flow should be routed when endfinally is
+        /// encountered; this is set as the leave target when a non-exceptional entry into a
+        /// finally block is created.
+        /// </summary>
+        public Instruction EndfinallyControlFlow;
+
+        /// <summary>
+        /// Maps a leave instruction offset to the exceptional entry node created for it, as well
+        /// as the associated identifier for the unwrapped exception.
+        /// </summary>
+        public Dictionary<Instruction, (CfgNode, Identifier)> LeaveToExceptionEntryNode;
+
+        /// <summary>
+        /// Contains information about the program's exception handlers.
+        /// </summary>
+        public MethodExceptionHandlers MethodExceptionHandlers;
+
+        /// <summary>
+        /// <c>true</c> if the current translation of finally is exceptional; <c>false</c> 
+        /// otherwise. 
+        /// </summary>
+        public bool FinallyExceptionalTranslation;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ProgramState"/> class.
         /// </summary>
         /// <param name="method">The method being translated.</param>
@@ -127,15 +201,31 @@ namespace Cilsil.Utils
             PreviousNode = ProcDesc.StartNode;
 
             CurrentLocation = Location.FromSequencePoint(
-                                        method.DebugInformation.SequencePoints.FirstOrDefault());
+                method.DebugInformation.SequencePoints.FirstOrDefault());
 
             InstructionsStack = new Stack<TranslationSnapshot>();
             ParsedInstructions = new List<Instruction>();
 
-            OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack)>>();
+            MethodExceptionHandlers = new MethodExceptionHandlers(method.Body);
+            NodesToLinkWithExceptionBlock = new List<CfgNode>();
+            InstructionInTryOrCatch = false;
+
+            OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack, int)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
+            VariableIndexToNullCheck = new Dictionary<int, (BinopExpression, Typ)>();
+
+            ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler,
+                                                            (CfgNode, LvarExpression)>();
+            FinallyHandlerToExceptionExit = new Dictionary<ExceptionHandler, CfgNode>();
+            ExceptionHandlerSetToEntryNode = new Dictionary<ExceptionHandler,
+                                                            (CfgNode node, Identifier id)>();
+            LeaveToExceptionEntryNode = new Dictionary<Instruction, (CfgNode, Identifier)>();
+
+            FinallyExceptionalTranslation = false;
+
             IndicesWithIsInstReturnType = new HashSet<int>();
             NextAvailableTemporaryVariableId = 0;
+            NextAvailableSyntheticVariableId = 0;
         }
 
         /// <summary>
@@ -144,12 +234,34 @@ namespace Cilsil.Utils
         /// </summary>
         /// <remarks>The node is saved for the current offset along with the current stack 
         /// state.</remarks>
-        public void SaveNodeOffset(CfgNode node, ProgramStack previousStack)
+        public void SaveNodeOffset(CfgNode node,
+                                   ProgramStack previousStack,
+                                   int previousNodeHandlerEndOffset)
         {
-            OffsetToNode
-                .GetOrCreateValue(CurrentInstruction.Offset,
-                                  new List<(CfgNode Node, ProgramStack Stack)>())
-                .Add((node, previousStack));
+            // If not a catch block, where the stack is expected to contain the thrown exception,
+            // and the previous node is from a different handler block, we empty the saved stack,
+            // as there should not be anything on the stack when transferring control between
+            // different handler blocks.
+            if (!MethodExceptionHandlers.CatchOffsetToCatchHandler
+                                        .ContainsKey(CurrentInstruction.Offset) &&
+                node.BlockEndOffset != PreviousNode.BlockEndOffset)
+            {
+                OffsetToNode
+                    .GetOrCreateValue(CurrentInstruction.Offset,
+                                      new List<(CfgNode Node, ProgramStack Stack, int)>())
+                    .Add((node,
+                          new ProgramStack(),
+                          previousNodeHandlerEndOffset));
+            }
+            else
+            {
+                OffsetToNode
+                    .GetOrCreateValue(CurrentInstruction.Offset,
+                                      new List<(CfgNode Node, ProgramStack Stack, int)>())
+                    .Add((node,
+                          previousStack,
+                          previousNodeHandlerEndOffset));
+            }
         }
 
         /// <summary>
@@ -161,7 +273,9 @@ namespace Cilsil.Utils
         /// <remarks>For a node to be reusable for a particular offset, the corresponding program 
         /// stack must be a list subset (i.e. guarantees it has the necessary stack instructions 
         /// required at that state).</remarks>
-        public (CfgNode, bool) GetOffsetNode(int offset)
+        public (CfgNode, bool) GetOffsetNode(
+            int offset,
+            int predecessorHandlerBlockEndOffset = MethodExceptionHandlers.DefaultHandlerEndOffset)
         {
             if (OffsetToNode.ContainsKey(offset))
             {
@@ -178,7 +292,10 @@ namespace Cilsil.Utils
                     // This prevents this issue by making sure that the stack is exactly the same 
                     // before we try to reuse it.
                     return (OffsetToNode[offset]
-                            .FirstOrDefault(entry => entry.Stack.IsSubStackOf(ProgramStack))
+                            .FirstOrDefault(
+                                entry => entry.Stack.IsSubStackOf(ProgramStack) &&
+                                    entry.PredecessorBlockEndOffset ==
+                                    predecessorHandlerBlockEndOffset)
                             .Node, false);
                 }
             }
@@ -201,7 +318,12 @@ namespace Cilsil.Utils
         public Load PushAndLoad(Expression expression, Typ type)
         {
             var freshIdentifier = GetIdentifier(Identifier.IdentKind.Normal);
-            PushExpr(new VarExpression(freshIdentifier), type);
+            var isThis = false;
+            if (expression is LvarExpression variable && variable.Pvar.PvName == "this")
+            {
+                isThis = true;
+            }
+            PushExpr(new VarExpression(freshIdentifier, isThis), type);
             return new Load(freshIdentifier, expression, type, CurrentLocation);
         }
 
@@ -219,6 +341,13 @@ namespace Cilsil.Utils
                 Name = name ?? Identifier.StandardNames[kind],
                 Stamp = NextAvailableTemporaryVariableId++
             };
+
+        /// <summary>
+        /// Retrieves a fresh synthetic variable name.
+        /// </summary>
+        /// <returns>The name.</returns>
+        public string GetSyntheticVariableName() =>
+            Identifier.SyntheticIdentifier + NextAvailableSyntheticVariableId++;
 
         /// <summary>
         /// Pushes an expression and its type onto the stack.
@@ -271,7 +400,7 @@ namespace Cilsil.Utils
         {
             (var right, var rightExpressionType) = Pop();
             (var left, var leftExpressionType) = Pop();
-
+            var binopOutputType = rightExpressionType;
             // In this case, the expression is a boolean comparison on the expression produced from
             // an isinst translation, which itself is already a boolean value; we simply return
             // this value.
@@ -279,8 +408,25 @@ namespace Cilsil.Utils
             {
                 return (left, leftExpressionType);
             }
+            // Object-null checks are represented in CIL using Gt. In this case, binop kind should
+            // be updated to Ne.
+            if (binopKind == BinopExpression.BinopKind.Gt &&
+                right.Equals(new ConstExpression(new IntRepresentation(0, false, true))))
+            {
+                binopKind = BinopExpression.BinopKind.Ne;
+            }
 
-            return (new BinopExpression(binopKind, left, right), rightExpressionType);
+            if (binopKind == BinopExpression.BinopKind.Lt ||
+                binopKind == BinopExpression.BinopKind.Gt ||
+                binopKind == BinopExpression.BinopKind.Le ||
+                binopKind == BinopExpression.BinopKind.Ge ||
+                binopKind == BinopExpression.BinopKind.Eq ||
+                binopKind == BinopExpression.BinopKind.Ne)
+            {
+                binopOutputType = new Tint(Tint.IntKind.IBool);
+            }
+
+            return (new BinopExpression(binopKind, left, right), binopOutputType);
         }
 
         /// <summary>
@@ -291,15 +437,22 @@ namespace Cilsil.Utils
         /// which to continue the translation from when translating the instruction. See 
         /// <see cref="PreviousNode"/> for more info. If this is not provided or is null, 
         /// <see cref="PreviousNode"/> is not updated.</param>
-        public void PushInstruction(Instruction instruction, CfgNode node = null) =>
+        public void PushInstruction(Instruction instruction, CfgNode node = null)
+        {
+            // Control flow can enter a try-block either by jump to the first instruction or
+            // fall-through from the previous one; we start to save the nodes if control flow
+            // transitions from unhandled code to handled code. 
             InstructionsStack.Push(
                 new TranslationSnapshot
                 {
                     Instruction = instruction,
                     PreviousNode = node ?? PreviousNode,
                     PreviousStack = ProgramStack.Clone(),
-                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId
+                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
+                    FinallyExceptionalTranslation = FinallyExceptionalTranslation,
+                    EndfinallyControlFlow = EndfinallyControlFlow,
                 });
+        }
 
         /// <summary>
         /// Pops an instruction to be parsed.
@@ -312,10 +465,13 @@ namespace Cilsil.Utils
             CurrentInstruction = snapshot.Instruction;
             ProgramStack = snapshot.PreviousStack;
             NextAvailableTemporaryVariableId = snapshot.NextAvailableTemporaryVariableId;
+            FinallyExceptionalTranslation = snapshot.FinallyExceptionalTranslation;
+            EndfinallyControlFlow = snapshot.EndfinallyControlFlow;
 
             var currentSequencePoint =
                 Method.DebugInformation.GetSequencePoint(CurrentInstruction);
-            if (currentSequencePoint != null)
+            // Line number is sometimes extremely high, for example with branching instructions.
+            if (currentSequencePoint != null && currentSequencePoint.StartLine < 10000000)
             {
                 var newLocation = Location.FromSequencePoint(currentSequencePoint);
                 CurrentLocation = newLocation;
@@ -364,6 +520,16 @@ namespace Cilsil.Utils
             /// </summary>
             public int NextAvailableTemporaryVariableId;
 
+            /// <summary>
+            /// <c>true</c> if translation of the finally block from the current state should be
+            /// exceptional; otherwise, <c>false</c>.
+            /// </summary>
+            public bool FinallyExceptionalTranslation;
+
+            /// <summary>
+            /// The instruction to route control flow after the endfinally block.
+            /// </summary>
+            public Instruction EndfinallyControlFlow;
         }
     }
 }

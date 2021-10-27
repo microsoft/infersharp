@@ -1,35 +1,30 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
 namespace Cilsil.Sil.Expressions
 {
     /// <summary>
-    /// A temporary variable, which does not correspond to an actual variable of the program (and
-    /// which is thus not a heap location).
+    /// An expression representing an exception variable.
     /// </summary>
-    internal class VarExpression : Expression
+    [JsonObject]
+    public class ExnExpression : Expression
     {
         /// <summary>
-        /// The identifier by which to distinguish the variable.
+        /// The expression that has exception.
         /// </summary>
-        public Identifier Identifier { get; }
+        [JsonProperty]
+        public Expression Expression { get; }
 
         /// <summary>
-        /// If <c>true</c>, this expression is from the load of "this"; otherwise, <c>false</c>.
+        /// Initializes a new instance of the <see cref="ExnExpression"/> class.
         /// </summary>
-        public readonly bool FromThis;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VarExpression"/> class.
-        /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <param name="fromThis">If <c>true</c>, this variable references "this".</param>
-        public VarExpression(Identifier id, bool fromThis = false)
+        /// <param name="expression">The expression that has exception.</param>
+        public ExnExpression(Expression expression)
         {
-            Identifier = id;
-            FromThis = fromThis;
+            Expression = expression;
         }
 
         /// <summary>
@@ -38,29 +33,30 @@ namespace Cilsil.Sil.Expressions
         /// <returns>
         /// A <see cref="string" /> that represents this instance.
         /// </returns>
-        public override string ToString() => Identifier.ToString();
+        public override string ToString() => $"EXN {Expression}";
 
         /// <summary>
         /// Determines whether the specified <see cref="object" />, is equal to this 
         /// instance.
         /// </summary>
-        /// <param name="obj">The <see cref="object" /> to compare with this
+        /// <param name="obj">The <see cref="object" /> to compare with this 
         /// instance.</param>
         /// <returns>
         ///   <c>true</c> if the specified <see cref="object" /> is equal to this instance; 
         ///   otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj) => obj is VarExpression expression
-            && EqualityComparer<Identifier>.Default.Equals(Identifier, expression.Identifier);
+        public override bool Equals(object obj) =>
+            obj is ExnExpression expression &&
+            EqualityComparer<Expression>.Default.Equals(Expression, expression.Expression);
 
         /// <summary>
         /// Returns a hash code for this instance.
         /// </summary>
         /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data
+        /// A hash code for this instance, suitable for use in hashing algorithms and data 
         /// structures like a hash table. 
         /// </returns>
-        public override int GetHashCode() => HashCode.Combine(Identifier);
+        public override int GetHashCode() => HashCode.Combine(Expression);
 
         /// <summary>
         /// Implements the operator ==.
@@ -70,8 +66,8 @@ namespace Cilsil.Sil.Expressions
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        public static bool operator ==(VarExpression left, VarExpression right) =>
-            EqualityComparer<VarExpression>.Default.Equals(left, right);
+        public static bool operator ==(ExnExpression left, ExnExpression right) =>
+            EqualityComparer<ExnExpression>.Default.Equals(left, right);
 
         /// <summary>
         /// Implements the operator !=.
@@ -81,7 +77,7 @@ namespace Cilsil.Sil.Expressions
         /// <returns>
         /// The result of the operator.
         /// </returns>
-        public static bool operator !=(VarExpression left, VarExpression right) =>
+        public static bool operator !=(ExnExpression left, ExnExpression right) =>
             !(left == right);
     }
 }
