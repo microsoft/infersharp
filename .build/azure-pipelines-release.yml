@@ -44,7 +44,7 @@ steps:
       
       cd ..
       
-      cp -r Cilsil/bin/Release/net5.0/ubuntu.16.10-x64.publish/ infersharp-release/Cilsil/
+      cp -r Cilsil/bin/Release/net5.0/ubuntu.16.10-x64/publish/ infersharp-release/Cilsil/
 
       cp .build/NOTICE.txt infersharp-release/
 
