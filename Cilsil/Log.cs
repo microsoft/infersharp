@@ -10,10 +10,33 @@ using System.Linq;
 namespace Cilsil
 {
     /// <summary>
+    /// Log level used for controlling console output.
+    /// </summary>
+    public enum LogLevel {
+        /// <summary>
+        /// Allows all warnings and errors related to translation.
+        /// </summary>
+        Debug,
+
+        /// <summary>
+        /// Production log level omits warnings and errors related to translation,
+        /// but keeps warnings and errors related to user input, etc.
+        /// </summary>
+        Production
+    }
+
+    /// <summary>
     /// TODO: use https://nlog-project.org or log4net instead of this class.
     /// </summary>
     public static class Log
     {
+        static LogLevel logLevel = LogLevel.Production;
+
+        /// <summary>
+        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// </summary>
+        public static void SetLogLevel (LogLevel level) => logLevel = level;
+
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
@@ -52,10 +75,10 @@ namespace Cilsil
         /// </summary>
         public static void PrintAllUnknownInstruction()
         {
-            WriteLine("Unknown instructions:");
+            DebugWriteLine("Unknown instructions:");
             foreach (var instr in UnknownInstructions.OrderBy(kv => kv.Value))
             {
-                WriteLine($"{instr.Key}: {instr.Value}");
+                DebugWriteLine($"{instr.Key}: {instr.Value}");
             }
         }
 
@@ -96,6 +119,17 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
+        public static void DebugWriteLine(string s)
+        {
+            if (logLevel == LogLevel.Debug)
+            {
+                Console.WriteLine(s);
+            }
+        }
+
+        /// <summary>
+        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// </summary>
         public static void WriteLine(string s, ConsoleColor c)
         {
             var prevColor = Console.ForegroundColor;
@@ -128,7 +162,29 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
+        public static void DebugWriteError(string s)
+        {
+            if (logLevel == LogLevel.Debug)
+            {
+                WriteLine(s, ConsoleColor.Red);
+            }
+        }
+
+        /// <summary>
+        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// </summary>
         public static void WriteWarning(string s) => WriteLine(s, ConsoleColor.Yellow);
+
+        /// <summary>
+        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// </summary>
+        public static void DebugWriteWarning(string s)
+        {
+            if (logLevel == LogLevel.Debug)
+            {
+                WriteLine(s, ConsoleColor.Red);
+            }
+        }
 
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
@@ -137,8 +193,8 @@ namespace Cilsil
                                             Instruction instruction,
                                             ProgramState state)
         {
-            WriteError($"Unable to complete translation of {instruction?.ToString()}:");
-            WriteError(state.GetStateDebugInformation(invalidObject));
+            DebugWriteError($"Unable to complete translation of {instruction?.ToString()}:");
+            DebugWriteError(state.GetStateDebugInformation(invalidObject));
         }
 
         private static int ComputePercent(double n, double total) =>
