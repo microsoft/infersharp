@@ -182,7 +182,7 @@ namespace Cilsil
         {
             if (logLevel == LogLevel.Debug)
             {
-                WriteLine(s, ConsoleColor.Red);
+                WriteLine(s, ConsoleColor.Yellow);
             }
         }
 
