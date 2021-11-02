@@ -118,7 +118,7 @@ namespace Cilsil.Services
                     }
                     else if (unhandledExceptionCase)
                     {
-                        Log.WriteError($"Unhandled exception-handling.");
+                        Log.WriteWarning($"Unhandled exception-handling.");
                         Log.RecordUnknownInstruction("unhandled-exception");
                         Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                    nextInstruction.RemainingInstructionCount());
@@ -128,7 +128,7 @@ namespace Cilsil.Services
                     else if (excessiveVisits)
                     {
                         TimeoutMethodCount++;
-                        Log.WriteError("Translation timeout.");
+                        Log.WriteWarning("Translation timeout.");
                         Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                    nextInstruction.RemainingInstructionCount());
                         translationUnfinished = true;

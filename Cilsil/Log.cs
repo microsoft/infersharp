@@ -14,6 +14,13 @@ namespace Cilsil
     /// </summary>
     public static class Log
     {
+        private static bool debugMode = false;
+
+        /// <summary>
+        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// </summary>
+        public static void SetDebugMode (bool isDebugMode) => debugMode = isDebugMode;
+
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
@@ -52,10 +59,13 @@ namespace Cilsil
         /// </summary>
         public static void PrintAllUnknownInstruction()
         {
-            WriteLine("Unknown instructions:");
-            foreach (var instr in UnknownInstructions.OrderBy(kv => kv.Value))
+            if (debugMode)
             {
-                WriteLine($"{instr.Key}: {instr.Value}");
+                WriteLine("Unknown instructions:");
+                foreach (var instr in UnknownInstructions.OrderBy(kv => kv.Value))
+                {
+                    WriteLine($"{instr.Key}: {instr.Value}");
+                }
             }
         }
 
@@ -128,7 +138,13 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteWarning(string s) => WriteLine(s, ConsoleColor.Yellow);
+        public static void WriteWarning(string s)
+        {
+            if (debugMode)
+            {
+                WriteLine(s, ConsoleColor.Yellow);
+            }
+        }
 
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
