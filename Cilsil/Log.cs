@@ -133,7 +133,13 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteError(string s) => WriteLine(s, ConsoleColor.Red);
+        public static void WriteError(string s) 
+        {
+            if (debugMode)
+            {
+                WriteLine(s, ConsoleColor.Red);
+            }
+        }
 
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
