@@ -64,8 +64,8 @@ namespace Cilsil.Cil.Parsers
                     }
                     else
                     {
-                        Log.DebugWriteError("Unexpected or unhandled pointer type " +
-                                       $"{pointerType.GetType()} on stack.");
+                        Log.WriteError("Unexpected or unhandled pointer type " +
+                                       $"{pointerType.GetType()} on stack.", debug: true);
                         return false;
                     }
 

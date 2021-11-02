@@ -50,7 +50,7 @@ namespace Cilsil.Services
             {
                 ComputeMethodCfg(method);
             }
-            Log.DebugWriteError("Timed out methods: " + TimeoutMethodCount);
+            Log.WriteError("Timed out methods: " + TimeoutMethodCount, debug: true);
             return new CfgParserResult(Cfg, Methods);
         }
 
@@ -78,7 +78,7 @@ namespace Cilsil.Services
             var methodName = method.GetCompatibleFullName();
             if (Cfg.Procs.ContainsKey(methodName))
             {
-                Log.DebugWriteWarning($"Method with duplicate full name found: {methodName }");
+                Log.WriteWarning($"Method with duplicate full name found: {methodName }", debug: true);
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace Cilsil.Services
                     }
                     else if (unhandledExceptionCase)
                     {
-                        Log.DebugWriteError($"Unhandled exception-handling.");
+                        Log.WriteError($"Unhandled exception-handling.", debug: true);
                         Log.RecordUnknownInstruction("unhandled-exception");
                         Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                    nextInstruction.RemainingInstructionCount());
@@ -128,7 +128,7 @@ namespace Cilsil.Services
                     else if (excessiveVisits)
                     {
                         TimeoutMethodCount++;
-                        Log.DebugWriteError("Translation timeout.");
+                        Log.WriteError("Translation timeout.", debug: true);
                         Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                    nextInstruction.RemainingInstructionCount());
                         translationUnfinished = true;

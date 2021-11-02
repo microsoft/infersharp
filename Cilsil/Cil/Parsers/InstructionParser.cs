@@ -90,7 +90,7 @@ namespace Cilsil.Cil.Parsers
                     return true;
                 }
             }
-            Log.DebugWriteError($"Unable to parse instruction {instruction.OpCode.Code}");
+            Log.WriteError($"Unable to parse instruction {instruction.OpCode.Code}", debug: true);
             Log.RecordUnknownInstruction(instruction.OpCode.Code.ToString());
             return false;
         }

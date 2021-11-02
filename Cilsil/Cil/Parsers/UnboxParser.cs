@@ -111,13 +111,13 @@ namespace Cilsil.Cil.Parsers
                     case Tfloat.FloatKind.FLongDouble:
                         return new ConstExpression(0F);
                     default:
-                        Log.DebugWriteError("Unhandled initobj SIL float or double type.");
+                        Log.WriteError("Unhandled initobj SIL float or double type.", debug: true);
                         return null;
                 }
             }
             else
             {
-                Log.DebugWriteError($"Unable to produce default value for type {silType}");
+                Log.WriteError($"Unable to produce default value for type {silType}", debug: true);
                 return null;
             }
         }

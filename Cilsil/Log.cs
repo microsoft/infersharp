@@ -75,10 +75,10 @@ namespace Cilsil
         /// </summary>
         public static void PrintAllUnknownInstruction()
         {
-            DebugWriteLine("Unknown instructions:");
+            WriteLine("Unknown instructions:", debug: true);
             foreach (var instr in UnknownInstructions.OrderBy(kv => kv.Value))
             {
-                DebugWriteLine($"{instr.Key}: {instr.Value}");
+                WriteLine($"{instr.Key}: {instr.Value}", debug: true);
             }
         }
 
@@ -114,14 +114,9 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteLine(string s) => Console.WriteLine(s);
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void DebugWriteLine(string s)
+        public static void WriteLine(string s, bool debug = false)
         {
-            if (logLevel == LogLevel.Debug)
+            if (logLevel == LogLevel.Debug || !debug)
             {
                 Console.WriteLine(s);
             }
@@ -130,12 +125,15 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteLine(string s, ConsoleColor c)
+        public static void WriteLine(string s, ConsoleColor c, bool debug = false)
         {
-            var prevColor = Console.ForegroundColor;
-            Console.ForegroundColor = c;
-            Console.WriteLine(s);
-            Console.ForegroundColor = prevColor;
+            if (logLevel == LogLevel.Debug || !debug)
+            {
+                var prevColor = Console.ForegroundColor;
+                Console.ForegroundColor = c;
+                Console.WriteLine(s);
+                Console.ForegroundColor = prevColor;
+            }
         }
 
         /// <summary>
@@ -157,14 +155,9 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteError(string s) => WriteLine(s, ConsoleColor.Red);
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void DebugWriteError(string s)
+        public static void WriteError(string s, bool debug = false) 
         {
-            if (logLevel == LogLevel.Debug)
+            if (logLevel == LogLevel.Debug || !debug)
             {
                 WriteLine(s, ConsoleColor.Red);
             }
@@ -173,14 +166,9 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteWarning(string s) => WriteLine(s, ConsoleColor.Yellow);
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void DebugWriteWarning(string s)
+        public static void WriteWarning(string s, bool debug = false) 
         {
-            if (logLevel == LogLevel.Debug)
+            if (logLevel == LogLevel.Debug || !debug) 
             {
                 WriteLine(s, ConsoleColor.Yellow);
             }
@@ -193,8 +181,8 @@ namespace Cilsil
                                             Instruction instruction,
                                             ProgramState state)
         {
-            DebugWriteError($"Unable to complete translation of {instruction?.ToString()}:");
-            DebugWriteError(state.GetStateDebugInformation(invalidObject));
+            WriteError($"Unable to complete translation of {instruction?.ToString()}:", debug: true);
+            WriteError(state.GetStateDebugInformation(invalidObject), debug: true);
         }
 
         private static int ComputePercent(double n, double total) =>
