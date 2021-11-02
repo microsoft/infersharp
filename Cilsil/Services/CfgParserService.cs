@@ -50,7 +50,7 @@ namespace Cilsil.Services
             {
                 ComputeMethodCfg(method);
             }
-            Log.WriteError("Timed out methods: " + TimeoutMethodCount);
+            Log.WriteWarning("Timed out methods: " + TimeoutMethodCount);
             return new CfgParserResult(Cfg, Methods);
         }
 

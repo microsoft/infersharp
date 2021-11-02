@@ -36,7 +36,7 @@ namespace Cilsil.Cil.Parsers
                     }
                     else
                     {
-                        Log.WriteParserError(instruction.Operand, instruction, state);
+                        Log.WriteParserWarning(instruction.Operand, instruction, state);
                         return false;
                     }
                     var arrayIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);

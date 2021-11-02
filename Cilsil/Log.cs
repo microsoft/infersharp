@@ -133,13 +133,7 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteError(string s) 
-        {
-            if (debugMode)
-            {
-                WriteLine(s, ConsoleColor.Red);
-            }
-        }
+        public static void WriteError(string s) => WriteLine(s, ConsoleColor.Red);
 
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
@@ -155,12 +149,12 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteParserError(object invalidObject,
+        public static void WriteParserWarning(object invalidObject,
                                             Instruction instruction,
                                             ProgramState state)
         {
-            WriteError($"Unable to complete translation of {instruction?.ToString()}:");
-            WriteError(state.GetStateDebugInformation(invalidObject));
+            WriteWarning($"Unable to complete translation of {instruction?.ToString()}:");
+            WriteWarning(state.GetStateDebugInformation(invalidObject));
         }
 
         private static int ComputePercent(double n, double total) =>

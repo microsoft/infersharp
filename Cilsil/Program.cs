@@ -174,7 +174,7 @@ namespace Cilsil
                 }
                 catch (FileNotFoundException e)
                 {
-                    Log.WriteLine($"Input DLL {e.FileName} not found.");
+                    Log.WriteError($"Input DLL {e.FileName} not found.");
                     continue;
                 }
             }
@@ -196,7 +196,7 @@ namespace Cilsil
                 }
                 else
                 {
-                    Log.WriteLine($"Input file {file} is not a cfg or tenv\n");
+                    Log.WriteError($"Input file {file} is not a cfg or tenv\n");
                 }
             }
         }
