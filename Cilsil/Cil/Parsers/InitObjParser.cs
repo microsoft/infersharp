@@ -28,7 +28,7 @@ namespace Cilsil.Cil.Parsers
                     if (!(pointerType is Address address))
                     {
                         Log.WriteError("Unexpected pointer type " +
-                                       $"{pointerType.GetType()} on stack.", debug: true);
+                                       $"{pointerType.GetType()} on stack.");
                         return false;
                     }
                     // Is null when operand refers to a struct which doesn't have fields (for
@@ -52,7 +52,7 @@ namespace Cilsil.Cil.Parsers
                         }
                         else
                         {
-                            Log.WriteError($"Unexpected initobj type {instruction.Operand}", debug: true);
+                            Log.WriteError($"Unexpected initobj type {instruction.Operand}");
                             return false;
                         }
                     }
@@ -76,7 +76,7 @@ namespace Cilsil.Cil.Parsers
                         }
                         catch (Exception e)
                         {
-                            Log.WriteError(e.Message, debug: true);
+                            Log.WriteError(e.Message);
                             return false;
                         }
                         // Stores the initialized struct into the given address.
@@ -209,19 +209,19 @@ namespace Cilsil.Cil.Parsers
                     case Tfloat.FloatKind.FLongDouble:
                         return new ConstExpression(0F);
                     default:
-                        Log.WriteError("Unhandled initobj SIL float or double type.", debug: true);
+                        Log.WriteError("Unhandled initobj SIL float or double type.");
                         return null;
                 }
             }
             else if (silType is Tptr pointer)
             {
                 Log.WriteError("Unhandled initobj tptr with underlying type " +
-                               $"{pointer.StripPointer()}", debug: true);
+                               $"{pointer.StripPointer()}");
                 return null;
             }
             else if (silType is Tvoid)
             {
-                Log.WriteError("Unexpected initobj void type.", debug: true);
+                Log.WriteError("Unexpected initobj void type.");
                 return null;
             }
             else if (type is TypeDefinition typeDefinition)
@@ -229,7 +229,7 @@ namespace Cilsil.Cil.Parsers
                 // Cannot compute default value in this case; BaseType must be non-null.
                 if (typeDefinition.BaseType == null)
                 {
-                    Log.WriteError($"Type with base type {typeDefinition.FullName} is null.", debug: true);
+                    Log.WriteError($"Type with base type {typeDefinition.FullName} is null.");
                     return null;
                 }
                 // An expression representing null, used for reference types.
@@ -247,13 +247,13 @@ namespace Cilsil.Cil.Parsers
                 }
                 else
                 {
-                    Log.WriteError($"Unhandled initobj silType: {silType}", debug: true);
+                    Log.WriteError($"Unhandled initobj silType: {silType}");
                     return null;
                 }
             }
             else
             {
-                Log.WriteError($"Unhandled initobj type: {type.FullName}", debug: true);
+                Log.WriteError($"Unhandled initobj type: {type.FullName}");
                 return null;
             }
         }

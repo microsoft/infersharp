@@ -80,7 +80,7 @@ namespace Cilsil.Cil.Parsers
                     else
                     {
                         Log.WriteError("Unexpected pointer type " +
-                                       $"{pointerType.GetType()} on stack.", debug: true);
+                                       $"{pointerType.GetType()} on stack.");
                         return false;
                     }
 

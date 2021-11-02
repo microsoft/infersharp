@@ -98,10 +98,7 @@ namespace Cilsil
                                      string dot = null,
                                      bool debug = false)
         {
-            if (debug)
-            {
-                Log.SetLogLevel(LogLevel.Debug);
-            }
+            Log.SetDebugMode(debug);
 
             (var cfg, var tenv) = ExecuteTranslation(paths, printprocs);
 

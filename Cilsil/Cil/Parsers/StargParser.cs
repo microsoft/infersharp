@@ -26,7 +26,7 @@ namespace Cilsil.Cil.Parsers
                     }
                     catch (System.InvalidCastException e)
                     {
-                        Log.WriteWarning(e.Message, debug: true);
+                        Log.WriteWarning(e.Message);
                         return false;
                     }
                     break;
