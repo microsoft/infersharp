@@ -5,17 +5,17 @@
 
 # Check if we have enough arguments.
 if [ "$#" -lt 1 ]; then
-    echo "run_infersharp.sh <dll_folder_path> [--enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation] -- requires 1 argument (dll_folder_path)"
+    echo "run_infersharp.sh <dll_folder_path> [--enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation --sarif] -- requires 1 argument (dll_folder_path)"
     exit
 fi
 
-issue_types=("--enable-issue-type NULL_DEREFERENCE" "--enable-issue-type DOTNET_RESOURCE_LEAK" "--enable-issue-type THREAD_SAFETY_VIOLATION")
+infer_args_list=("--enable-issue-type NULL_DEREFERENCE" "--enable-issue-type DOTNET_RESOURCE_LEAK" "--enable-issue-type THREAD_SAFETY_VIOLATION")
 
 # Clear issue types if specific issue is mentioned in arguments
 for v in "$@" 
 do
     if [[ $v == --enable* ]]; then
-        issue_types=()
+        infer_args_list=()
     fi
 done
 
@@ -25,21 +25,23 @@ if [ "$#" -gt 1 ]; then
     while [ $i -le $# ]
     do
         if [ ${!i} == "--enable-null-dereference" ]; then
-            issue_types+=("--enable-issue-type NULL_DEREFERENCE")
+            infer_args_list+=("--enable-issue-type NULL_DEREFERENCE")
         elif [ ${!i} == "--enable-dotnet-resource-leak" ]; then
-            issue_types+=("--enable-issue-type DOTNET_RESOURCE_LEAK")
+            infer_args_list+=("--enable-issue-type DOTNET_RESOURCE_LEAK")
         elif [ ${!i} == "--enable-thread-safety-violation" ]; then
-            issue_types+=("--enable-issue-type THREAD_SAFETY_VIOLATION")
+            infer_args_list+=("--enable-issue-type THREAD_SAFETY_VIOLATION")
+        elif [ ${!i} == "--sarif" ]; then
+            infer_args_list+=("--sarif")
         fi
         ((i++))
     done
 fi
 
 # Dynamically create the issue types
-issues_cmd=""
-for issue_type in "${issue_types[@]}"
+infer_args=""
+for infer_arg in "${infer_args_list[@]}"
 do
-    issues_cmd="$issues_cmd $issue_type"
+    infer_args="$infer_args $infer_arg"
 done
 
 echo "Processing {$1}"
@@ -59,4 +61,4 @@ echo -e "Code translation started..."
 echo -e "Code translation completed. Analyzing...\n"
 $parent_path/infer/lib/infer/infer/bin/infer capture
 mkdir infer-out/captured 
-$parent_path/infer/lib/infer/infer/bin/infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') $issues_cmd analyzejson --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
+$parent_path/infer/lib/infer/infer/bin/infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') $infer_args analyzejson --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
