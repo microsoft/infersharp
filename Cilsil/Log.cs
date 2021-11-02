@@ -155,7 +155,7 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteError(string s, bool debug = false) 
+        public static void WriteError(string s, bool debug = false)
         {
             if (logLevel == LogLevel.Debug || !debug)
             {
@@ -166,9 +166,9 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void WriteWarning(string s, bool debug = false) 
+        public static void WriteWarning(string s, bool debug = false)
         {
-            if (logLevel == LogLevel.Debug || !debug) 
+            if (logLevel == LogLevel.Debug || !debug)
             {
                 WriteLine(s, ConsoleColor.Yellow);
             }

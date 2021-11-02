@@ -47,7 +47,7 @@ namespace Cilsil.Extensions
             var tokens = methodReference.FullName.Split(" ");
             if (tokens.Length > 2)
             {
-                Log.WriteError($"More than two space-separated tokens in: {methodReference.FullName}", true);
+                Log.WriteError($"More than two space-separated tokens in: {methodReference.FullName}", debug: true);
             }
             return string.Join(" ", tokens.Skip(1));
         }
