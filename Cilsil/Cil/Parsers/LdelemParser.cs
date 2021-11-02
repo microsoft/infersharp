@@ -32,7 +32,7 @@ namespace Cilsil.Cil.Parsers
 
                     if (!(array is VarExpression arrayVar) || !(type.StripPointer() is Tarray))
                     {
-                        Log.WriteParserError(array, instruction, state);
+                        Log.WriteParserWarning(array, instruction, state);
                         return false;
                     }
                     // Type is either Tarray or a Tptr with a Tarray type underlying it.
@@ -48,7 +48,7 @@ namespace Cilsil.Cil.Parsers
                     }
                     else
                     {
-                        Log.WriteParserError(type, instruction, state);
+                        Log.WriteParserWarning(type, instruction, state);
                         return false;
                     }
 
