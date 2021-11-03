@@ -55,7 +55,7 @@ steps:
   inputs:
     ConnectedServiceName: 'InferSharp ESRP CodeSigning'
     FolderPath: 'infersharp-release/'
-    Pattern: 'Cilsil/*.dll'
+    Pattern: 'Cilsil.dll'
     signConfigType: 'inlineSignParams'
     inlineOperation: |
       [
