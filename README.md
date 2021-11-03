@@ -25,14 +25,16 @@ Infer# can be run as an Azure Pipelines [container job](https://docs.microsoft.c
 If the existing pipeline runs on Windows or running a multi-stage job is desired, refer to the example [here](/.build/azure-pipelines-example-multistage.yml).
 
 ### Docker Image
-Alternatively, use our Docker image:
 ```shell
-docker pull mcr.microsoft.com/infersharp:v1.1
+docker pull mcr.microsoft.com/infersharp:v1.2
 ```
 Start a container in interactive mode, then run the following command in the container:
 ```shell
 ./run_infersharp.sh Examples
 ```
+
+### Build from Source
+Use this [Dockerfile](/Dockerfile) to build images and binaries from source. It builds the latest code from microsoft/infersharp:main + facebook/infer:main by default.
 
 ## Troubleshooting
 Please refer to the [troubleshooting guide](TROUBLESHOOTING.md).
