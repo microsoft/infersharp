@@ -54,8 +54,8 @@ steps:
 - task: EsrpCodeSigning@1
   inputs:
     ConnectedServiceName: 'InferSharp ESRP CodeSigning'
-    FolderPath: 'infersharp-release/Cilsil'
-    Pattern: '*.dll,*.exe'
+    FolderPath: 'infersharp-release/'
+    Pattern: 'Cilsil/*.dll'
     signConfigType: 'inlineSignParams'
     inlineOperation: |
       [
