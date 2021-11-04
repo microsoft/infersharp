@@ -3,6 +3,7 @@
 using Cilsil.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,16 +11,28 @@ using System.Linq;
 namespace Cilsil
 {
     /// <summary>
-    /// TODO: use https://nlog-project.org or log4net instead of this class.
+    /// NLog instance and helper methods for logging to console.
     /// </summary>
     public static class Log
     {
-        private static bool debugMode = false;
+        /// <summary>
+        /// NLog logger instance
+        /// </summary>
+        public static Logger instance = LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
+        /// Dynamically enable or disable debug mode by keeping or removing the debugMode Nlog rule.
         /// </summary>
-        public static void SetDebugMode (bool isDebugMode) => debugMode = isDebugMode;
+        public static void SetDebugMode(bool isDebugMode)
+        {
+            if (!isDebugMode)
+            {
+                var config = LogManager.Configuration;
+                config.RemoveRuleByName("debugMode");
+                LogManager.Configuration = config;
+            }
+        }
+
 
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
@@ -59,13 +72,10 @@ namespace Cilsil
         /// </summary>
         public static void PrintAllUnknownInstruction()
         {
-            if (debugMode)
+            instance.Warn("Unknown instructions:");
+            foreach (var instr in UnknownInstructions.OrderBy(kv => kv.Value))
             {
-                WriteLine("Unknown instructions:");
-                foreach (var instr in UnknownInstructions.OrderBy(kv => kv.Value))
-                {
-                    WriteLine($"{instr.Key}: {instr.Value}");
-                }
+                instance.Warn($"{instr.Key}: {instr.Value}");
             }
         }
 
@@ -81,69 +91,16 @@ namespace Cilsil
             var failInstr = UnfinishedMethods.Sum(kv => kv.Value);
             var succInstr = totalInstr - failInstr;
 
-            WriteLine("Coverage Statistics:\n");
-            WriteLine($@"Method successfully translated: {succMethodCount} ({
+            instance.Info("Coverage Statistics:\n");
+            instance.Info($@"Method successfully translated: {succMethodCount} ({
                 ComputePercent(succMethodCount, totalMethodCount)}%)");
-            WriteLine($@"Method partially translated: {failMethodCount} ({
+            instance.Info($@"Method partially translated: {failMethodCount} ({
                 ComputePercent(failMethodCount, totalMethodCount)}%)");
-            WriteLine($@"Instructions translated: {succInstr} ({
+            instance.Info($@"Instructions translated: {succInstr} ({
                 ComputePercent(succInstr, totalInstr)}%)");
-            WriteLine($@"Instructions skipped: {failInstr} ({
+            instance.Info($@"Instructions skipped: {failInstr} ({
                 ComputePercent(failInstr, totalInstr)}%)");
-            WriteLine("======================================\n");
-        }
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void WriteLine() => Console.WriteLine();
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void WriteLine(string s) => Console.WriteLine(s);
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void WriteLine(string s, ConsoleColor c)
-        {
-            var prevColor = Console.ForegroundColor;
-            Console.ForegroundColor = c;
-            Console.WriteLine(s);
-            Console.ForegroundColor = prevColor;
-        }
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void Write(string s) => Console.Write(s);
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void Write(string s, ConsoleColor c)
-        {
-            var prevColor = Console.ForegroundColor;
-            Console.ForegroundColor = c;
-            Console.Write(s);
-            Console.ForegroundColor = prevColor;
-        }
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void WriteError(string s) => WriteLine(s, ConsoleColor.Red);
-
-        /// <summary>
-        /// TODO: use https://nlog-project.org or log4net instead of this class.
-        /// </summary>
-        public static void WriteWarning(string s)
-        {
-            if (debugMode)
-            {
-                WriteLine(s, ConsoleColor.Yellow);
-            }
+            instance.Info("======================================\n");
         }
 
         /// <summary>
@@ -153,8 +110,8 @@ namespace Cilsil
                                             Instruction instruction,
                                             ProgramState state)
         {
-            WriteWarning($"Unable to complete translation of {instruction?.ToString()}:");
-            WriteWarning(state.GetStateDebugInformation(invalidObject));
+            instance.Warn($"Unable to complete translation of {instruction?.ToString()}:");
+            instance.Warn(state.GetStateDebugInformation(invalidObject));
         }
 
         private static int ComputePercent(double n, double total) =>

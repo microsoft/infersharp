@@ -36,7 +36,7 @@ namespace Cilsil.Cil.Parsers
                     }
                     catch (System.InvalidCastException e)
                     {
-                        Log.WriteWarning(e.Message);
+                        Log.instance.Warn(e.Message);
                         return false;
                     }
                     break;
@@ -47,7 +47,7 @@ namespace Cilsil.Cil.Parsers
                     }
                     catch (System.InvalidCastException e)
                     {
-                        Log.WriteWarning(e.Message);
+                        Log.instance.Warn(e.Message);
                         return false;
                     }
                     break;

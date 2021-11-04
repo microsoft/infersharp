@@ -109,7 +109,7 @@ namespace Cilsil
             if (!string.IsNullOrWhiteSpace(dot))
             {
                 var fullDotPath = Path.GetFullPath(dot);
-                Log.WriteLine($"Dot file generated at {fullDotPath}");
+                Log.instance.Info($"Dot file generated at {fullDotPath}");
                 cfg.GenerateDotFile(fullDotPath);
             }
         }
@@ -147,7 +147,7 @@ namespace Cilsil
             }
 
             Log.PrintAllUnknownInstruction();
-            Log.WriteLine();
+            Log.instance.Info("");
             Log.PrintCoverageStats(result.GetResult<CfgParserResult>().Methods);
 
             return (cfg, tenv);
@@ -174,7 +174,7 @@ namespace Cilsil
                 }
                 catch (FileNotFoundException e)
                 {
-                    Log.WriteError($"Input DLL {e.FileName} not found.");
+                    Log.instance.Error($"Input DLL {e.FileName} not found.");
                     continue;
                 }
             }
@@ -192,11 +192,11 @@ namespace Cilsil
                 }
                 else if (TypeEnvironment.FromJson(jsonText) is TypeEnvironment tenv)
                 {
-                    Log.WriteLine(tenv.ToString());
+                    Log.instance.Info(tenv.ToString());
                 }
                 else
                 {
-                    Log.WriteError($"Input file {file} is not a cfg or tenv\n");
+                    Log.instance.Error($"Input file {file} is not a cfg or tenv\n");
                 }
             }
         }
@@ -204,7 +204,7 @@ namespace Cilsil
         private static void PrintCfg(Cfg cfg, string procs = null)
         {
             var procsToPrint = procs?.Split(",");
-            Log.WriteLine(cfg.ToString(procsToPrint));
+            Log.instance.Info(cfg.ToString(procsToPrint));
         }
     }
 }
