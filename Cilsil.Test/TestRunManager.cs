@@ -189,7 +189,8 @@ namespace Cilsil.Test
             Directory.CreateDirectory(Path.Combine(InferOutFolder, "captured"));
             RunCommand(
                 "infer",
-                $"analyzejson --debug --cfg-json {cfgJson} --tenv-json {tenvJson}",
+                $"analyzejson --debug --cfg-json {cfgJson} "
+                + $"--tenv-json {tenvJson} --no-biabduction --pulse",
                 out stdout,
                 out stderr);
             Trace.TraceError($"\nInfer stderr: \n{stderr}");
