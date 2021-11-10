@@ -38,7 +38,7 @@ steps:
       
       cp run_infersharp.sh infersharp-release/
       
-      mv -r Cilsil/bin/Release/net5.0/ubuntu.16.10-x64/publish infersharp-release/Cilsil
+      mv Cilsil/bin/Release/net5.0/ubuntu.16.10-x64/publish infersharp-release/Cilsil
 
       cp .build/NOTICE.txt infersharp-release/
 
