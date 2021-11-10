@@ -38,7 +38,7 @@ steps:
       
       cp run_infersharp.sh infersharp-release/
       
-      mv -r Cilsil/bin/Release/net5.0/ubuntu.16.10-x64/publish/ infersharp-release/Cilsil/
+      mv -r Cilsil/bin/Release/net5.0/ubuntu.16.10-x64/publish infersharp-release/Cilsil
 
       cp .build/NOTICE.txt infersharp-release/
 
@@ -48,7 +48,7 @@ steps:
   inputs:
     ConnectedServiceName: 'InferSharp ESRP CodeSigning'
     FolderPath: 'infersharp-release/'
-    Pattern: '*.dll'
+    Pattern: '*.dll,*.exe'
     signConfigType: 'inlineSignParams'
     SessionTimeout: '60'
     MaxConcurrency: '50'
