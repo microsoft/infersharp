@@ -54,7 +54,7 @@ steps:
   inputs:
     ConnectedServiceName: 'InferSharp ESRP CodeSigning'
     FolderPath: 'infersharp-release/'
-    Pattern: 'Cilsil.dll'
+    Pattern: '*.dll'
     signConfigType: 'inlineSignParams'
     SessionTimeout: '60'
     MaxConcurrency: '50'
