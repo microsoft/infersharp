@@ -7,7 +7,7 @@ jobs:
     vmImage: 'windows-2019'
 
   steps:
-  # Build  
+  # Build
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build'
     inputs:
