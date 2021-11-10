@@ -56,42 +56,9 @@ steps:
     FolderPath: 'infersharp-release/'
     Pattern: 'Cilsil.dll'
     signConfigType: 'inlineSignParams'
-    inlineOperation: |
-      [
-        {
-            "KeyCode": "CP-230072",
-            "OperationSetCode": "Authenticode_SignTool6.3.9304_NPH_FDSHA256",
-            "parameters": [
-              {
-                "parameterName": "OpusName",
-                "parameterValue": "Microsoft"
-              },
-              {
-                "parameterName": "OpusInfo",
-                "parameterValue": "http://www.microsoft.com"
-              },
-              {
-                "parameterName": "PageHash",
-                "parameterValue": "/NPH"
-              },​
-              {
-                "parameterName": "FileDigest",
-                "parameterValue": "/fd sha256"
-              },
-              {
-                "parameterName": "TimeStamp",
-                "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-              }
-            ],
-            "ToolName": "signtool.exe",
-            "ToolVersion": "6.2.9304.0"
-        }
-      ]
     SessionTimeout: '60'
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
-
-
 
 - task: EsrpCodeSigning@1
   enabled: false
