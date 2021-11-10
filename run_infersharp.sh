@@ -53,7 +53,7 @@ if [ -d infer-staging ]; then rm -Rf infer-staging; fi
 coreLibraryPath=Cilsil/System.Private.CoreLib.dll
 echo "Copying binaries to a staging folder...\n"
 mkdir infer-staging
-cp -r $coreLibraryPath $1 infer-staging
+cp -r $coreLibraryPath "$1" infer-staging
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."
