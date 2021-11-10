@@ -18,7 +18,7 @@ if [ -d infer-staging ]; then rm -Rf infer-staging; fi
 coreLibraryPath=/infersharp/Cilsil/System.Private.CoreLib.dll
 echo "Copy binaries to a staging folder..."
 mkdir infer-staging
-cp -r $coreLibraryPath $1 infer-staging
+cp -r $coreLibraryPath "$1" infer-staging
 
 # Run InferSharp analysis.
 /./infersharp/Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt
