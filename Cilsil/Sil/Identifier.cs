@@ -29,6 +29,17 @@ namespace Cilsil.Sil
         /// String used to denote the possessing object for an instance field or method.
         /// </summary>
         public const string ThisIdentifier = "this";
+
+        /// <summary>
+        /// Synthetic identifier. Used to represent variables local to finally block.
+        /// </summary>
+        public const string SyntheticIdentifier = "bcvar";
+
+        /// <summary>
+        /// The identifier for the thrown exception upon an exceptional entry into an
+        /// exception-handling block.
+        /// </summary>
+        public const string CatchVarIdentifier = "CatchVar";
         #endregion
 
         /// <summary>

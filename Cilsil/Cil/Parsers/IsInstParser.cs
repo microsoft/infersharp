@@ -26,19 +26,19 @@ namespace Cilsil.Cil.Parsers
                     var builtinFunctionExpression = new ConstExpression(
                         ProcedureName.BuiltIn__instanceof);
                     var sizeofExpression = new SizeofExpression(
-                        Typ.FromTypeReferenceNoPointer(typeToCheck), 
+                        Typ.FromTypeReferenceNoPointer(typeToCheck),
                         SizeofExpression.SizeofExpressionKind.instof);
-                    var args = new List<Call.CallArg> 
-                    { 
-                        new Call.CallArg(objectExpression, objectType), 
+                    var args = new List<Call.CallArg>
+                    {
+                        new Call.CallArg(objectExpression, objectType),
                         new Call.CallArg(sizeofExpression, new Tvoid())
                     };
                     var callInstruction = new Call(
-                        returnIdentifier, 
-                        returnType, 
-                        builtinFunctionExpression, 
-                        args, 
-                        new Call.CallFlags(), 
+                        returnIdentifier,
+                        returnType,
+                        builtinFunctionExpression,
+                        args,
+                        new Call.CallFlags(),
                         state.CurrentLocation);
                     var newNode = AddMethodBodyInstructionsToCfg(state, callInstruction);
                     state.PushExpr(new VarExpression(returnIdentifier), returnType);

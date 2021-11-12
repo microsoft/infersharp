@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Sil.Instructions;
+using Cilsil.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
@@ -78,6 +79,14 @@ namespace Cilsil.Sil
         public List<CfgNode> Successors { get; set; }
 
         /// <summary>
+        /// Gets or sets the handler end offset.
+        /// </summary>
+        /// <value>
+        /// The handler end offset.
+        /// </value>
+        public int BlockEndOffset { get; set; }
+
+        /// <summary>
         /// The identifiers of the successors of this node.
         /// </summary>
         [JsonProperty("nd_succ_ids")]
@@ -137,6 +146,8 @@ namespace Cilsil.Sil
 
             Location = location;
             Proc = proc;
+
+            BlockEndOffset = MethodExceptionHandlers.DefaultHandlerEndOffset;
         }
 
         /// <summary>

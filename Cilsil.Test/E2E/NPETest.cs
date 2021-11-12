@@ -712,6 +712,78 @@ namespace Cilsil.Test.E2E
         }
 
         /// <summary>
+        /// Validates that caught exceptions and their types are interpreted correctly.
+        /// </summary>
+        /// <param name="returnsNull">if <c>true</c>, a null dereference should occur; if
+        /// <c>false</c>, no warning should occur.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(false, InferError.None)]
+        [DataRow(true, InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
+        public void NullExceptionTestCatchException(bool returnsNull, InferError expectedError)
+        {
+            TestRunManager.Run(
+                InitVars(firstLocalVarType: VarType.TestClass,
+                         firstLocalVarValue: CallTestClassMethod(
+                             TestClassMethod.CatchReturnsNullIfTrue,
+                             false,
+                             args: new string[]
+                             {
+                                 returnsNull.ToString()
+                                             .ToLower()
+                             })) +
+                    DerefObject(VarName.FirstLocal), GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates that caught exceptions and their types are interpreted correctly, and that 
+        /// control flow through finally is correctly handled.
+        /// </summary>
+        /// <param name="returnsNull">if <c>true</c>, a null dereference should occur; if
+        /// <c>false</c>, no warning should occur.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(false, InferError.None)]
+        [DataRow(true, InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
+        public void NullExceptionTestFinallyException(bool returnsNull, InferError expectedError)
+        {
+            TestRunManager.Run(
+                InitVars(firstLocalVarType: VarType.TestClass,
+                         firstLocalVarValue: CallTestClassMethod(
+                             TestClassMethod.FinallyReturnsNullIfTrue,
+                             false,
+                             args: new string[]
+                             {
+                                 returnsNull.ToString()
+                                             .ToLower()
+                             })) +
+                    DerefObject(VarName.FirstLocal), GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates thread safety violation detection of a public method's read without
+        /// synchronization on an integer field which may race with a write on that integer field.
+        /// </summary>
+        /// <param name="encloseReadInLock"><c>true</c> if the read should be enclosed in a lock,
+        /// <c>false</c> otherwise.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(false, InferError.THREAD_SAFETY_VIOLATION)]
+        [DataRow(true, InferError.None)]
+        [DataTestMethod]
+        public void ThreadSafetyViolationSimple(bool encloseReadInLock, InferError expectedError)
+        {
+            TestRunManager.Run(
+                encloseReadInLock ?
+                    EncloseInLock(
+                        InitVars(firstLocalVarType: VarType.Integer,
+                                 firstLocalVarValue: GetString(VarName.StaticIntegerField)))
+                                  :
+                    InitVars(firstLocalVarType: VarType.Integer,
+                                 firstLocalVarValue: GetString(VarName.StaticIntegerField)),
+                GetString(expectedError), true);
+        }
+
+        /// <summary>
         /// Validates the use of Infer models for pre-compiled code during analysis. The model 
         /// tested here is String.IsNullOrWhiteSpace, but the purpose of the test is to verify
         /// that any model can be used in analysis.

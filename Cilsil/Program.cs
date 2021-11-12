@@ -47,10 +47,15 @@ namespace Cilsil
                 {
                     Argument = new Argument<string>(),
                     Description = "Output type environment JSON file path"
-                }
+                },
+                new Option("--debug")
+                {
+                    Argument = new Argument<bool>(),
+                    Description = "Output debug information"
+                },
             };
             translateCommand.Handler =
-                CommandHandler.Create<string[], string, string, string, string, string>(Translate);
+                CommandHandler.Create<string[], string, string, string, string, string, bool>(Translate);
             var printCommand = new Command("print")
             {
                 new Option("--procs", "A comma-separated procedure names to print")
@@ -83,15 +88,18 @@ namespace Cilsil
         /// <param name="outcfg">The CFG output path.</param>
         /// <param name="cfgtxt">The CFG text representation output path.</param>
         /// <param name="outtenv">The type environment output path.</param>
-        /// <param name="dot">The dot file (used for visualizing the computed CFG) output
-        /// path.</param>
+        /// <param name="dot">The dot file (used for visualizing the computed CFG) output path.</param>
+        /// <param name="debug">The flag for printing debug output.</param>
         public static void Translate(string[] paths = null,
                                      string printprocs = null,
                                      string outcfg = null,
                                      string cfgtxt = null,
                                      string outtenv = null,
-                                     string dot = null)
+                                     string dot = null,
+                                     bool debug = false)
         {
+            Log.SetDebugMode(debug);
+
             (var cfg, var tenv) = ExecuteTranslation(paths, printprocs);
 
             File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString());
@@ -111,9 +119,11 @@ namespace Cilsil
         /// </summary>
         /// <param name="paths">The paths.</param>
         /// <param name="printprocs">The printprocs.</param>
+        /// <param name="debug">The debug flag.</param>
         /// <returns></returns>
         public static (Cfg, TypeEnvironment) ExecuteTranslation(string[] paths,
-                                                                string printprocs = null)
+                                                                string printprocs = null,
+                                                                bool debug = false)
         {
             var assemblies = GetAssemblies(paths);
 

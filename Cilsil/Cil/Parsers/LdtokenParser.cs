@@ -32,7 +32,7 @@ namespace Cilsil.Cil.Parsers
                     }
                     else
                     {
-                        Log.WriteError($"Unexpected instruction operand {instruction.Operand}");
+                        Log.WriteWarning($"Unexpected instruction operand {instruction.Operand}");
                         return false;
                     }
                     var runtimeHandleType = new Tptr(Tptr.PtrKind.Pk_pointer,

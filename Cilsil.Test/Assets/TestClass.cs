@@ -9,6 +9,7 @@ namespace Cilsil.Test.Assets
         public TestClass InstanceObjectField;
         public static TestClass StaticObjectField;
         public TestClass[] InstanceArrayField;
+        public static int StaticIntegerField;
 
         public record TestClassRecord { public string Name { get; init; } }
 
@@ -266,6 +267,110 @@ namespace Cilsil.Test.Assets
             else
             {
                 return new TestClass();
+            }
+        }
+
+        private static void ThrowsFileNotFoundException()
+        {
+            throw new FileNotFoundException();
+        }
+
+        private static void ThrowsIOException()
+        {
+            throw new IOException();
+        }
+
+        /// <summary>
+        /// If input <c>true</c>, a certain exception is thrown which when caught results in a null 
+        /// object being returned; otherwise, an instantiated object is returned.
+        /// </summary>
+        /// <param name="input">if <c>true</c>, a null object is returned; otherwise, an
+        /// instantiated object is returned.</param>
+        /// <returns>A possibly null <see cref="TestClass"/> instance.</returns>
+        public static TestClass CatchReturnsNullIfTrue(bool input)
+        {
+            try
+            {
+                if (input)
+                {
+                    ThrowsIOException();
+                }
+                else
+                {
+                    ThrowsFileNotFoundException();
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                return new TestClass();
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+            return new TestClass();
+        }
+
+        /// <summary>
+        /// Analogous to <see cref="CatchReturnsNullIfTrue(bool)"/>, but with a finally handler.
+        /// </summary>
+        /// <param name="input">if <c>true</c>, a null object is returned; otherwise, an
+        /// instantiated object is returned.</param>
+        /// <returns>A possibly null <see cref="TestClass"/> instance.</returns>
+        public static TestClass FinallyReturnsNullIfTrue(bool input)
+        {
+            TestClass output = new TestClass();
+            TestClass returnValue = new TestClass();
+            try
+            {
+                if (input)
+                {
+                    ThrowsIOException();
+                }
+                else
+                {
+                    ThrowsFileNotFoundException();
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                output = new TestClass();
+            }
+            catch (IOException)
+            {
+                output = null;
+            }
+            finally
+            {
+                returnValue = output;
+            }
+            return returnValue;
+        }
+
+        /// <summary>
+        /// No resource leak should be reported, as the allocated stream is closed in finally.
+        /// </summary>
+        public static void TryFinallyResourceLeak()
+        {
+            var stream = new StreamReader("file.txt");
+            try
+            {
+                ThrowsIOException();
+            }
+            finally
+            {
+                stream.Close();
+            }
+        }
+
+        /// <summary>
+        /// Identical to <see cref="TryFinallyResourceLeak"/>.
+        /// </summary>
+        public static void TryFinallyResourceLeakUsing()
+        {
+            using (var stream = new StreamReader("file.txt"))
+            {
+                ThrowsIOException();
             }
         }
     }
