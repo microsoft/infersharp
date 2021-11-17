@@ -15,7 +15,7 @@ In addition to implementing the C# frontend, we contributed our [language-agnost
 The latest version is ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/microsoft/infersharp?include_prereleases). Please refer to the [release page](https://github.com/microsoft/infersharp/releases) for more information on the changes.
 
 ### Windows Subsystem for Linux
-The instructions on how to run Infer# on Windows via WSL2 can be found [here](/RUNNING_INFERSHARP_ON_WINDOWS.md).
+The instructions can be found [here](/RUNNING_INFERSHARP_ON_WINDOWS.md).
 
 ### GitHub Action
 The instructions on how to run Infer# as a GitHub Action can be found here: [Infer# Action](https://github.com/marketplace/actions/infersharp).
@@ -24,13 +24,7 @@ The instructions on how to run Infer# as a GitHub Action can be found here: [Inf
 Infer# can be run as an Azure Pipelines [container job](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops). An example can be found [here](/.build/azure-pipelines-example-multistage.yml).
 
 ### Docker Image
-```shell
-docker pull mcr.microsoft.com/infersharp:v1.2
-```
-Start a container in interactive mode, then run the following command in the container:
-```shell
-./run_infersharp.sh Examples
-```
+The instructions can be found [here](/RUNNING_IN_DOCKER.md).
 
 ### Build from Source
 Use this [Dockerfile](/Dockerfile) to build images and binaries from source. It builds the latest code from microsoft/infersharp:main + facebook/infer:main by default.
