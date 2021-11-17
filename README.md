@@ -18,7 +18,7 @@ The latest version is ![GitHub release (latest by date including pre-releases)](
 The instructions can be found [here](/RUNNING_INFERSHARP_ON_WINDOWS.md).
 
 ### GitHub Action
-The instructions on how to run Infer# as a GitHub Action can be found here: [Infer# Action](https://github.com/marketplace/actions/infersharp).
+The instructions can be found here: [Infer# Action](https://github.com/marketplace/actions/infersharp).
 
 ### Azure Pipelines
 Infer# can be run as an Azure Pipelines [container job](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops). An example can be found [here](/.build/azure-pipelines-example-multistage.yml).
