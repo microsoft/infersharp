@@ -1,7 +1,7 @@
 # How to Run Infer# Locally on Windows via WSL2 (Windows Subsystem for Linux)
 
 ## Prerequisite
-- [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
+- [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install).
 
 **Please use _Ubuntu-20.04_ WSL distribution or the _Debian_ WSL distribution.**
 
