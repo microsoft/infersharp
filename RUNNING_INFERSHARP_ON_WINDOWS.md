@@ -3,7 +3,7 @@
 ## Prerequisite
 - [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install).
 
-**Please use _Ubuntu-20.04_ WSL distribution or the _Debian_ WSL distribution.**
+**Please use the _Ubuntu-20.04_ WSL distribution or the _Debian_ WSL distribution.**
 
 ## Setup
 1. From Windows Command Prompt or PowerShell, enter `wsl.exe` to open your default Linux distribution.
