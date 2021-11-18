@@ -1,43 +1,20 @@
 # How to Run Infer# Locally on Windows via WSL2 (Windows Subsystem for Linux)
 
 ## Prerequisite
-- [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
+- [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install).
 
-*We recommend using either the Ubuntu WSL distribution or the Debian WSL distribution.*
+**Please use the _Ubuntu-20.04_ WSL distribution or the _Debian_ WSL distribution.**
 
 ## Setup
-1. Download the Infer# binaries from the [latest release page](https://github.com/microsoft/infersharp/releases).
-2. From Windows Command Prompt or PowerShell, enter ```wsl.exe``` to open your default Linux distribution.
-3. Copy the _infersharp_ folder to _/home/<YOUR_USERNAME>_ and create a symlink for future use.
-
-**Important** - Copy the binaries only to the Linux file system.
+1. From Windows Command Prompt or PowerShell, enter `wsl.exe` to open your default Linux distribution.
+2. Execute the following commands:
 
 ```
-cp -r <FOLDER_PATH_TO_INFERSHARP_BINARIES> ~
-cd /home/<YOUR_USERNAME>/infersharp/
-sudo ln -s /home/<YOUR_USERNAME>/infersharp/infer/lib/infer/infer/bin/infer /usr/local/bin/infer
-```
-The folder structure should look like this:
-```
-└── home
-    └── <YOUR_USERNAME>
-        └── infersharp
-            ├── Cilsil
-            ├── Examples
-            ├── infer
-            └── run_infersharp.sh
-```
-4. Run Infer# against examples.
-```
-./run_infersharp.sh Examples/
+cd ~ && wget https://github.com/microsoft/infersharp/releases/download/v1.2/infersharp-linux64-v1.2.tar.gz && tar -xvzf infersharp-linux64-v1.2.tar.gz && cd infersharp
 ```
 
-## Using Infer# on Your Own Code
-Navigate to the Infer# binaries:
-```
-cd /home/<YOUR_USERNAME>/infersharp/
-```
-Your own code/binaries, however, can be anywhere on the system. For example, if your binaries are at ```C:\Code\MyApp\bin```:
+3. Run Infer# against your binaries. For example, if the binaries are at `C:\Code\MyApp\bin`
+
 ```
 ./run_infersharp.sh /mnt/c/Code/MyApp/bin/
 ```
