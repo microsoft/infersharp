@@ -13,7 +13,7 @@
 cd ~ && wget https://github.com/microsoft/infersharp/releases/download/v1.2/infersharp-linux64-v1.2.tar.gz && tar -xvzf infersharp-linux64-v1.2.tar.gz && cd infersharp
 ```
 
-3. Run Infer# against your binaries. For example, if the binaries are at C:\Code\MyApp\bin
+3. Run Infer# against your binaries. For example, if the binaries are at `C:\Code\MyApp\bin`
 
 ```
 ./run_infersharp.sh /mnt/c/Code/MyApp/bin/
