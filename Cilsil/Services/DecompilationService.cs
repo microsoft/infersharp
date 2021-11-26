@@ -34,30 +34,41 @@ namespace Cilsil.Services
                 ReadSymbols = false
             };
 
+            Log.WriteLine("Loading binaries.");
             IEnumerable<ModuleDefinition> modulesWithNoSymbols = new List<ModuleDefinition>();
-
-            IEnumerable<ModuleDefinition> modulesWithSymbols = AssemblyPaths.Select(p =>
+            IEnumerable<ModuleDefinition> modulesWithSymbols = new List<ModuleDefinition>();
+            var i = 0;
+            var total = AssemblyPaths.Count();
+            using (var progress = new ProgressBar())
             {
-                try
+                modulesWithSymbols = AssemblyPaths.Select(p =>
                 {
-                    return ModuleDefinition.ReadModule(p, readerParams);
-                }
-                catch
-                {
-                    // This try catch block handles cases that the dll file is corrupted or broken.
                     try
                     {
-                        modulesWithNoSymbols =
-                            modulesWithNoSymbols.Append(ModuleDefinition.ReadModule(p, readerParamsWithoutSymbols));
+                        return ModuleDefinition.ReadModule(p, readerParams);
                     }
                     catch
                     {
+                        // This try catch block handles cases that the dll file is corrupted or broken.
+                        try
+                        {
+                            modulesWithNoSymbols =
+                                modulesWithNoSymbols.Append(ModuleDefinition.ReadModule(p, readerParamsWithoutSymbols));
+                        }
+                        catch
+                        {
+                            return null;
+                        }
+
                         return null;
                     }
-
-                    return null;
-                }
-            }).ToList();
+                    finally
+                    {
+                        i++;
+                        progress.Report((double )i/ total);
+                    }
+                }).ToList();
+            }
 
             modulesWithSymbols = modulesWithSymbols
                 .Where(p => p != null).Distinct(new ModuleComparer());
