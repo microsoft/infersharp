@@ -69,7 +69,7 @@ namespace Cilsil.Services
                     finally
                     {
                         i++;
-                        bar.Report((double )i/ numAssemblies);
+                        bar.Report((double)i / numAssemblies);
                         if (WriteConsoleProgress)
                         {
                             Log.WriteProgressLine(i, numAssemblies);

@@ -5,7 +5,6 @@ using Cilsil.Services.Results;
 using Cilsil.Sil;
 using Cilsil.Sil.Types;
 using Mono.Cecil;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -74,7 +73,8 @@ namespace Cilsil.Services
             Log.WriteLine("Computing type environment.");
             var i = 0;
             var total = Types.Count();
-            using (var bar = new ProgressBar()) {
+            using (var bar = new ProgressBar())
+            {
                 foreach (var t in Types)
                 {
                     RegisterCilType(t, tenv);

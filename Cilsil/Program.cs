@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
-using System.Linq;
 
 namespace Cilsil
 {
@@ -116,25 +115,13 @@ namespace Cilsil
         /// Executes the translation.
         /// </summary>
         /// <param name="paths">The paths.</param>
-        /// <param name="extensionProgress">If <c>true</c>, periodically write progress to 
-        /// console if the input binaries are adequately large.</param>
+        /// <param name="extensionProgress">If <c>true</c>, periodically write progress to console
+        /// if the input binaries are adequately large.</param>
         /// <returns>The computed cfg and type environment.</returns>
-        public static (Cfg, TypeEnvironment) ExecuteTranslation(
-            string[] paths, bool extensionProgress = false)
+        public static (Cfg, TypeEnvironment) ExecuteTranslation(string[] paths, 
+                                                                bool extensionProgress = false)
         {
-            var assemblies = GetAssemblies(paths);
-
-            var totalSize = assemblies.Select(p =>
-            {
-                try
-                {
-                    return new FileInfo(p).Length;
-                }
-                catch
-                {
-                    return 0;
-                }
-            }).ToArray().Sum();
+            (var assemblies, var totalSize) = GetAssemblies(paths);
 
             InstructionParser.RegisterAllKnownParsers();
 
@@ -142,7 +129,7 @@ namespace Cilsil
 
             var decompilationService = new DecompilationService(assemblies, reportProgressExtension);
             var tenvParser = new TenvParserService(reportProgressExtension);
-            var cfgParser = new CfgParserService();
+            var cfgParser = new CfgParserService(reportProgressExtension);
 
             var result = decompilationService
                 .Execute()
@@ -159,9 +146,10 @@ namespace Cilsil
             return (cfg, tenv);
         }
 
-        private static IEnumerable<string> GetAssemblies(IEnumerable<string> paths)
+        private static (IEnumerable<string>, long) GetAssemblies(IEnumerable<string> paths)
         {
             var assemblies = new List<string>();
+            long totalSize = 0;
             foreach (var p in paths)
             {
                 try
@@ -176,6 +164,7 @@ namespace Cilsil
                     else
                     {
                         assemblies.Add(p);
+                        totalSize += new FileInfo(p).Length;
                     }
                 }
                 catch (FileNotFoundException e)
@@ -184,7 +173,7 @@ namespace Cilsil
                     continue;
                 }
             }
-            return assemblies;
+            return (assemblies, totalSize);
         }
 
         private static void PrintFiles(string[] files = null, string procs = null)

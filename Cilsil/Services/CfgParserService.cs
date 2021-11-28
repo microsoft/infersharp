@@ -19,17 +19,22 @@ namespace Cilsil.Services
 
         public IEnumerable<TypeDefinition> Types { get; private set; }
 
+        public bool WriteConsoleProgress { get; private set; }
+
         private Cfg Cfg;
 
-        public CfgParserService(IEnumerable<MethodDefinition> methods = null,
+        public CfgParserService(bool writeConsoleProgress,
+                                IEnumerable<MethodDefinition> methods = null,
                                 IEnumerable<TypeDefinition> types = null)
         {
+            WriteConsoleProgress = writeConsoleProgress;
             Methods = methods;
             Types = types;
         }
 
         public ServiceExecutionResult Execute()
         {
+            Log.WriteLine("Computing control-flow graph.");
             if (Methods == null)
             {
                 if (Types == null)
@@ -45,10 +50,21 @@ namespace Cilsil.Services
                 }
             }
 
+            var i = 0;
+            var total = Methods.Count();
             Cfg = new Cfg();
-            foreach (var method in Methods)
+            using (var bar = new ProgressBar())
             {
-                ComputeMethodCfg(method);
+                foreach (var method in Methods)
+                {
+                    ComputeMethodCfg(method);
+                    i++;
+                    bar.Report((double)i / total);
+                    if (WriteConsoleProgress)
+                    {
+                        Log.WriteProgressLine(i, total);
+                    }
+                }
             }
             Log.WriteWarning("Timed out methods: " + TimeoutMethodCount);
             return new CfgParserResult(Cfg, Methods);

@@ -19,7 +19,7 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void SetDebugMode (bool isDebugMode) => debugMode = isDebugMode;
+        public static void SetDebugMode(bool isDebugMode) => debugMode = isDebugMode;
 
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
@@ -167,15 +167,15 @@ namespace Cilsil
         {
             if ((((double)i / total) % .25) != ((double)(i - 1) / total) % .25)
             {
-                var numerator = (double)i / total;
-                var denominator = (double)(i - 1) / total;
-                if (numerator >= 0.25 && denominator <= 0.25 ||
-                    numerator >= 0.5 && denominator <= 0.5 ||
-                    numerator >= 0.75 && denominator <= 0.75)
+                var current = (double)i / total;
+                var previous = (double)(i - 1) / total;
+                if (current >= 0.25 && previous < 0.25 ||
+                    current >= 0.5 && previous < 0.5 ||
+                    current >= 0.75 && previous < 0.75)
                 {
-                    var nearestQuarter = 
-                        100 * Math.Round(numerator * 4, MidpointRounding.ToEven) / 4;
-                    Log.WriteLine("Progress is " + nearestQuarter.ToString() + '%');
+                    var nearestQuarter =
+                        100 * Math.Round(current * 4, MidpointRounding.ToEven) / 4;
+                    WriteLine("Progress is " + nearestQuarter.ToString() + '%');
                 }
             }
         }
