@@ -17,6 +17,9 @@ public class ProgressBar : IDisposable, IProgress<double> {
 	private bool disposed = false;
 	private int animationIndex = 0;
 
+    /// <summary>
+    /// Adapted from https://gist.github.com/DanielSWolf/0ab6a96899cc5377bf54.
+    /// </summary>
 	public ProgressBar() {
 		timer = new Timer(TimerHandler);
 
@@ -29,6 +32,10 @@ public class ProgressBar : IDisposable, IProgress<double> {
         }
     }
 
+    /// <summary>
+    /// Reports the new progress value.
+    /// </summary>
+    /// <param name="value">The value to report.</param>
     public void Report(double value) {
 		// Make sure value is in [0..1] range
 		value = Math.Max(0, Math.Min(1, value));
@@ -81,6 +88,9 @@ public class ProgressBar : IDisposable, IProgress<double> {
 		timer.Change(animationInterval, TimeSpan.FromMilliseconds(-1));
 	}
 
+    /// <summary>
+    /// Resets the progress bar.
+    /// </summary>
 	public void Dispose() {
 		lock (timer) {
 			disposed = true;

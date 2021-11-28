@@ -157,6 +157,29 @@ namespace Cilsil
             WriteWarning(state.GetStateDebugInformation(invalidObject));
         }
 
+        /// <summary>
+        /// For use in the extension scenario -- writes a line indicating progress for every 
+        /// quarter of progress.
+        /// </summary>
+        /// <param name="i">Current number of items processed.</param>
+        /// <param name="total">Total number of items to process.</param>
+        public static void WriteProgressLine(int i, int total)
+        {
+            if ((((double)i / total) % .25) != ((double)(i - 1) / total) % .25)
+            {
+                var numerator = (double)i / total;
+                var denominator = (double)(i - 1) / total;
+                if (numerator >= 0.25 && denominator <= 0.25 ||
+                    numerator >= 0.5 && denominator <= 0.5 ||
+                    numerator >= 0.75 && denominator <= 0.75)
+                {
+                    var nearestQuarter = 
+                        100 * Math.Round(numerator * 4, MidpointRounding.ToEven) / 4;
+                    Log.WriteLine("Progress is " + nearestQuarter.ToString() + '%');
+                }
+            }
+        }
+
         private static int ComputePercent(double n, double total) =>
             (int)Math.Round(100.0 * n / total, MidpointRounding.ToEven);
     }
