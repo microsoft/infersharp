@@ -16,9 +16,13 @@ namespace Cilsil.Services
 
         public IEnumerable<ModuleDefinition> ModuleDefinitions { get; private set; }
 
-        public TenvParserService(IEnumerable<TypeDefinition> types = null,
+        public bool WriteConsoleProgress { get; private set; }
+
+        public TenvParserService(bool writeConsoleProgress,
+                                 IEnumerable<TypeDefinition> types = null,
                                  IEnumerable<ModuleDefinition> moduleDefinitions = null)
         {
+            WriteConsoleProgress = writeConsoleProgress;
             Types = types;
             ModuleDefinitions = moduleDefinitions;
         }
@@ -66,10 +70,21 @@ namespace Cilsil.Services
         private TypeEnvironment ComputeTypeEnvironment()
         {
             var tenv = new TypeEnvironment();
-
-            foreach (var t in Types)
+            Log.WriteLine("Computing type environment.");
+            var i = 0;
+            var total = Types.Count();
+            using (var bar = new ProgressBar())
             {
-                RegisterCilType(t, tenv);
+                foreach (var t in Types)
+                {
+                    RegisterCilType(t, tenv);
+                    i++;
+                    bar.Report((double)i / total);
+                    if (WriteConsoleProgress)
+                    {
+                        Log.WriteProgressLine(i, total);
+                    }
+                }
             }
             return tenv;
         }
