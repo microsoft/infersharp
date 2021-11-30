@@ -34,7 +34,7 @@ namespace Cilsil.Services
 
         public ServiceExecutionResult Execute()
         {
-            Log.WriteLine("Computing control-flow graph.");
+            Log.WriteLine("Translation stage 3/3: Computing control-flow graph.");
             if (Methods == null)
             {
                 if (Types == null)

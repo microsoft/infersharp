@@ -36,7 +36,7 @@ namespace Cilsil.Services
                 ReadSymbols = false
             };
 
-            Log.WriteLine("Loading binaries.");
+            Log.WriteLine("Translation stage 1/3: Loading binaries.");
             IEnumerable<ModuleDefinition> modulesWithNoSymbols = new List<ModuleDefinition>();
             IEnumerable<ModuleDefinition> modulesWithSymbols = new List<ModuleDefinition>();
             var i = 0;
