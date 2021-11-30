@@ -70,7 +70,7 @@ namespace Cilsil.Services
         private TypeEnvironment ComputeTypeEnvironment()
         {
             var tenv = new TypeEnvironment();
-            Log.WriteLine("Computing type environment.");
+            Log.WriteLine("Translation stage 2/3: Computing type environment.");
             var i = 0;
             var total = Types.Count();
             using (var bar = new ProgressBar())
