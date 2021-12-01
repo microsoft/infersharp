@@ -1,8 +1,11 @@
 # InferSharp
 
-**InferSharp** (also referred to as Infer#) is an interprocedural and scalable static code analyzer for C#. Via the capabilities of Facebook's [Infer](https://fbinfer.com/), this tool detects race conditions, null pointer dereferences and resource leaks. Read more about our approach in the [Wiki page](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET).
+**InferSharp** (also referred to as Infer#) is an interprocedural and scalable static code analyzer for C# with [VSCode integration](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext). Via the capabilities of Facebook's [Infer](https://fbinfer.com/), this tool detects race conditions, null pointer dereferences and resource leaks. Read more about our approach in the [Wiki page](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET).
 
 In addition to implementing the C# frontend, we contributed our [language-agnostic serialization layer](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#language-agnostic-representation-of-sil) ([Commit #1361](https://github.com/facebook/infer/commit/285ddb4a98f337a40d61e73b7a0867e44fa4f042)) to facebook/infer, which opens up opportunities for [additional language support](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#overview) in the future.
+
+
+![Demo](https://github.com/matjin/infersharp-extension/blob/master/images/extension_text.gif?raw=true)
 
 ## Public Announcements
 - [.NET Blog 1.2](https://devblogs.microsoft.com/dotnet/infer-v1-2-interprocedural-memory-safety-analysis-for-c/)
@@ -14,6 +17,10 @@ In addition to implementing the C# frontend, we contributed our [language-agnost
 ## Get Started
 
 The latest version is ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/microsoft/infersharp?include_prereleases). Please refer to the [release page](https://github.com/microsoft/infersharp/releases) for more information on the changes.
+
+### VSCode Extension
+
+Please see [here](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext) to use InferSharp in VSCode.
 
 ### Windows Subsystem for Linux
 The instructions can be found [here](/RUNNING_INFERSHARP_ON_WINDOWS.md).
