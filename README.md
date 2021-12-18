@@ -4,7 +4,10 @@
 
 In addition to implementing the C# frontend, we contributed our [language-agnostic serialization layer](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#language-agnostic-representation-of-sil) ([Commit #1361](https://github.com/facebook/infer/commit/285ddb4a98f337a40d61e73b7a0867e44fa4f042)) to facebook/infer, which opens up opportunities for [additional language support](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#overview) in the future.
 
-<mark>**New: InferSharp is now available as a VSCode extension**</mark> (Visual Studio integration coming soon). [Try it out](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext)!
+<mark>**New: InferSharp is now available as an extension in [VS](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp) and [VSCode](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext)**</mark>!
+
+![Demo](https://github.com/matjin/infersharp-vs-extension/blob/main/Resources/extension_resized_text.gif)
+
 ![Demo](https://github.com/matjin/infersharp-extension/blob/master/images/extension_text.gif?raw=true)
 
 ## Public Announcements
