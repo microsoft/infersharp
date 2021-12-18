@@ -21,6 +21,10 @@ In addition to implementing the C# frontend, we contributed our [language-agnost
 
 The latest version is ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/microsoft/infersharp?include_prereleases). Please refer to the [release page](https://github.com/microsoft/infersharp/releases) for more information on the changes.
 
+### VS Extension
+
+Please see [here](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp) to use InferSharp in VS.
+
 ### VSCode Extension
 
 Please see [here](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext) to use InferSharp in VSCode.
