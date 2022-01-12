@@ -66,6 +66,7 @@ namespace Cilsil.Test.Assets
         public enum TestClassMethod
         {
             None,
+            Cast,
             ExpectNonNullParam,
             ReturnNullOnFalse,
             IncrementRefParameter,
@@ -79,6 +80,7 @@ namespace Cilsil.Test.Assets
             ReturnOneDimArray,
             ReturnTwoDimArray,
             TestBox,
+            TestCastClass,
             TestIsInst,
             TestStarg,
             CloseStream,

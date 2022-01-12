@@ -19,12 +19,14 @@ namespace Cilsil.Cil.Parsers
             switch (instruction.OpCode.Code)
             {
                 case Code.Isinst:
+                case Code.Castclass:
                     (var objectExpression, var objectType) = state.Pop();
                     var typeToCheck = instruction.Operand as TypeReference;
                     var returnIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
                     var returnType = new Tint(Tint.IntKind.IBool, true);
-                    var builtinFunctionExpression = new ConstExpression(
-                        ProcedureName.BuiltIn__instanceof);
+                    var builtinFunctionExpression = instruction.OpCode.Code == Code.Isinst ? 
+                        new ConstExpression(ProcedureName.BuiltIn__instanceof) :
+                        new ConstExpression(ProcedureName.BuiltIn__cast);
                     var sizeofExpression = new SizeofExpression(
                         Typ.FromTypeReferenceNoPointer(typeToCheck),
                         SizeofExpression.SizeofExpressionKind.instof);

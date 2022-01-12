@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 using Cilsil.Test.Assets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Windows.Markup;
 using static Cilsil.Test.Assets.Utils;
 
 namespace Cilsil.Test.E2E
@@ -812,6 +813,34 @@ namespace Cilsil.Test.E2E
                             "true") +
                     DerefObject(VarName.Tc),
                 GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates our translation of CastClass.
+        /// </summary>
+        /// <param name="testInputCode">Defines the object to be input to the type-checking
+        /// TestClass method; 0 for successful casting operation. 1 for casting exception.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(0, InferError.None)]
+        [DataRow(1, InferError.CLASS_CAST_EXCEPTION)]
+        [DataTestMethod]
+        public void CastExceptionCastClass(int testInputCode, InferError expectedError)
+        {
+            string inputTestCode;
+            switch (testInputCode)
+            {
+                case 0:
+                    inputTestCode = @"var x = new object();
+                                var y = (System.String)x;";
+                    break;
+                case 1:
+                    inputTestCode = @"var x = 1;
+                                var y = (System.String)x;";
+                    break;
+                default:
+                    return;
+            }
+            TestRunManager.Run(inputTestCode, GetString(expectedError));
         }
     }
 }
