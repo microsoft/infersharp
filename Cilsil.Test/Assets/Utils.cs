@@ -57,7 +57,8 @@ namespace Cilsil.Test.Assets
             NULL_DEREFERENCE,
             DANGLING_POINTER_DEREFERENCE,
             DOTNET_RESOURCE_LEAK,
-            THREAD_SAFETY_VIOLATION
+            THREAD_SAFETY_VIOLATION,
+            CLASS_CAST_EXCEPTION
         }
 
         /// <summary>
@@ -460,6 +461,18 @@ namespace Cilsil.Test.Assets
                     if (args == null || args.Length != 1)
                     {
                         throw new ArgumentException("FinallyReturnsNullIfTrue requires 1 argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.Cast:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException("Cast requires 1 argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.TestCastClass:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException("TestCastClass requires 1 argument.");
                     }
                     return GetMethodCall(true);
                 default:
