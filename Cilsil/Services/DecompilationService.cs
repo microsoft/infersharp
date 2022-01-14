@@ -61,21 +61,6 @@ namespace Cilsil.Services
                         }
                         catch
                         {
-                            try
-                            {
-                                modulesWithSymbols = modulesWithSymbols.Concat(AssemblyDefinition.ReadAssembly(p, readerParams).Modules);
-                            }
-                            catch
-                            {
-                                try
-                                {
-                                    modulesWithNoSymbols = modulesWithNoSymbols.Concat(AssemblyDefinition.ReadAssembly(p, readerParamsWithoutSymbols).Modules);
-                                }
-                                catch
-                                {
-                                    return null;
-                                }
-                            }
                             return null;
                         }
 
