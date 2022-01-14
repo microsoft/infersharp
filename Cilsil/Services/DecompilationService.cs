@@ -61,6 +61,21 @@ namespace Cilsil.Services
                         }
                         catch
                         {
+                            try
+                            {
+                                modulesWithSymbols = modulesWithSymbols.Concat(AssemblyDefinition.ReadAssembly(p, readerParams).Modules);
+                            }
+                            catch
+                            {
+                                try
+                                {
+                                    modulesWithNoSymbols = modulesWithNoSymbols.Concat(AssemblyDefinition.ReadAssembly(p, readerParamsWithoutSymbols).Modules);
+                                }
+                                catch
+                                {
+                                    return null;
+                                }
+                            }
                             return null;
                         }
 
@@ -77,7 +92,7 @@ namespace Cilsil.Services
                     }
                 }).ToList();
             }
-
+            
             modulesWithSymbols = modulesWithSymbols
                 .Where(p => p != null).Distinct(new ModuleComparer());
             modulesWithNoSymbols = modulesWithNoSymbols
@@ -89,7 +104,6 @@ namespace Cilsil.Services
             var typeWithNoSymbols = modulesWithNoSymbols
                 .SelectMany(m => m.Types)
                 .SelectMany(t => t.GetAllNestedTypes());
-
             return new DecompilationResult(modulesWithSymbols,
                                            modulesWithNoSymbols,
                                            typesWithSymbols,
