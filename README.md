@@ -4,9 +4,6 @@
 
 In addition to implementing the C# frontend, we contributed our [language-agnostic serialization layer](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#language-agnostic-representation-of-sil) ([Commit #1361](https://github.com/facebook/infer/commit/285ddb4a98f337a40d61e73b7a0867e44fa4f042)) to facebook/infer, which opens up opportunities for [additional language support](https://github.com/microsoft/infersharp/wiki/InferSharp:-A-Scalable-Code-Analytics-Tool-for-.NET#overview) in the future.
 
-<<<<<<< HEAD
-<mark>**New: InferSharp is now available as a VSCode extension**</mark> (Visual Studio integration coming soon). [Try it out](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext)!
-=======
 <mark>**New: InferSharp is now integrated in VS and VSCode!**</mark>
 
 [**VS Demo**](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp)
@@ -14,7 +11,6 @@ In addition to implementing the C# frontend, we contributed our [language-agnost
 
 
 [**VSCode Demo**](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext)
->>>>>>> 55d780c501c02f5d2d5063dd730116f5c3885c81
 ![Demo](https://github.com/matjin/infersharp-extension/blob/master/images/extension_text.gif?raw=true)
 
 ## Public Announcements
@@ -28,13 +24,10 @@ In addition to implementing the C# frontend, we contributed our [language-agnost
 
 The latest version is ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/microsoft/infersharp?include_prereleases). Please refer to the [release page](https://github.com/microsoft/infersharp/releases) for more information on the changes.
 
-<<<<<<< HEAD
-=======
 ### VS Extension
 
 Please see [here](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp) to use InferSharp in VS.
 
->>>>>>> 55d780c501c02f5d2d5063dd730116f5c3885c81
 ### VSCode Extension
 
 Please see [here](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext) to use InferSharp in VSCode.
