@@ -77,7 +77,6 @@ namespace Cilsil.Services
                     }
                 }).ToList();
             }
-            
             modulesWithSymbols = modulesWithSymbols
                 .Where(p => p != null).Distinct(new ModuleComparer());
             modulesWithNoSymbols = modulesWithNoSymbols
