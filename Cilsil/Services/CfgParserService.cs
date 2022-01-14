@@ -77,12 +77,7 @@ namespace Cilsil.Services
                 Methods = decompilationResult
                             .TypesWithSymbols
                             .SelectMany(t => t.Methods)
-                            .Where(m => m.HasBody)
-                            .Concat(
-                          decompilationResult
-                            .TypesWithNoSymbols
-                            .SelectMany(t => t.Methods)
-                            .Where(m => m.HasBody));
+                            .Where(m => m.HasBody);
             }
             else
             {
