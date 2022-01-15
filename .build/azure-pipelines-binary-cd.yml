@@ -1,4 +1,4 @@
-name: "InferSharp-Release"
+name: "InferSharp-Binary-CD"
 
 pool:
   vmImage: 'ubuntu-20.04'
