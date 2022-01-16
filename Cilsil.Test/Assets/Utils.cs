@@ -185,6 +185,7 @@ namespace Cilsil.Test.Assets
                 case InferError.NULL_DEREFERENCE:
                 case InferError.DOTNET_RESOURCE_LEAK:
                 case InferError.THREAD_SAFETY_VIOLATION:
+                case InferError.CLASS_CAST_EXCEPTION:
                     return error.ToString();
                 case InferError.None:
                     return null;
