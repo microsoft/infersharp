@@ -157,6 +157,8 @@ namespace Cilsil
                     if (File.GetAttributes(p).HasFlag(FileAttributes.Directory))
                     {
                         assemblies.AddRange(
+                            Directory.GetFiles(p, "*.netmodule", SearchOption.AllDirectories));
+                        assemblies.AddRange(
                             Directory.GetFiles(p, "*.dll", SearchOption.AllDirectories));
                         assemblies.AddRange(
                             Directory.GetFiles(p, "*.exe", SearchOption.AllDirectories));
