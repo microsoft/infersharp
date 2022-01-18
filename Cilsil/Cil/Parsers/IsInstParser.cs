@@ -27,9 +27,13 @@ namespace Cilsil.Cil.Parsers
                     var builtinFunctionExpression = instruction.OpCode.Code == Code.Isinst ? 
                         new ConstExpression(ProcedureName.BuiltIn__instanceof) :
                         new ConstExpression(ProcedureName.BuiltIn__cast);
-                    var sizeofExpression = new SizeofExpression(
-                        Typ.FromTypeReferenceNoPointer(typeToCheck),
-                        SizeofExpression.SizeofExpressionKind.instof);
+                    var sizeofExpression = instruction.OpCode.Code == Code.Isinst ?
+                            new SizeofExpression(
+                                Typ.FromTypeReferenceNoPointer(typeToCheck),
+                                SizeofExpression.SizeofExpressionKind.instof) :
+                            new SizeofExpression(
+                                Typ.FromTypeReferenceNoPointer(typeToCheck),
+                                SizeofExpression.SizeofExpressionKind.cast);
                     var args = new List<Call.CallArg>
                     {
                         new Call.CallArg(objectExpression, objectType),

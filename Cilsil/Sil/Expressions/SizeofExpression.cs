@@ -73,7 +73,11 @@ namespace Cilsil.Sil.Expressions
             /// <summary>
             /// Denotes the current type and a list of types that are not their subtypes.
             /// </summary>
-            instof
+            instof,
+            /// <summary>
+            /// Denotes the sizeof expression used for casting.
+            /// </summary>
+            cast
         };
 
         /// <summary>
