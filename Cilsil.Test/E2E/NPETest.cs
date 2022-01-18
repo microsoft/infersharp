@@ -821,26 +821,20 @@ namespace Cilsil.Test.E2E
         /// <param name="testInputCode">Defines the object to be input to the type-checking
         /// TestClass method; 0 for successful casting operation. 1 for casting exception.</param>
         /// <param name="expectedError">The expected error.</param>
-        [DataRow(0, InferError.None)]
-        [DataRow(1, InferError.CLASS_CAST_EXCEPTION)]
+        [DataRow("new TestClass()", InferError.None)]
+        [DataRow("new object()", InferError.CLASS_CAST_EXCEPTION)]
         [DataTestMethod]
-        public void CastExceptionCastClass(int testInputCode, InferError expectedError)
+        public void CastExceptionCastClass(string inputObjectString, InferError expectedError)
         {
-            string inputTestCode;
-            switch (testInputCode)
-            {
-                case 0:
-                    inputTestCode = @"var x = new object();
-                                var y = (System.String)x;";
-                    break;
-                case 1:
-                    inputTestCode = @"var x = 1;
-                                var y = (System.String)x;";
-                    break;
-                default:
-                    return;
-            }
-            TestRunManager.Run(inputTestCode, GetString(expectedError));
+            TestRunManager.Run(
+                InitVars(firstLocalVarType: VarType.TestClass,
+                         firstLocalVarValue: CallTestClassMethod(
+                             TestClassMethod.Cast,
+                             false,
+                             args: new string[]
+                             {
+                                 inputObjectString
+                             })), GetString(expectedError));
         }
     }
 }
