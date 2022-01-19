@@ -23,13 +23,8 @@ steps:
     contents: 'infersharp-linux64-version.tar.gz' 
     targetFolder: '$(Build.ArtifactStagingDirectory)/infer-release/'
 
-- bash: ls $(Build.ArtifactStagingDirectory)/release/
-- bash: ls $(Build.ArtifactStagingDirectory)/infer-release/
-
-- task: ExtractFiles@1
-  inputs:
-    archiveFilePatterns: '$(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz' 
-    destinationFolder: '$(Build.ArtifactStagingDirectory)/infer-release/'
+- bash: tar -xzvf $(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz
+  displayName: Extract binaries
 
 - task: EsrpCodeSigning@1
   inputs:
@@ -72,14 +67,8 @@ steps:
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
 
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '(Build.ArtifactStagingDirectory)/infer-release/infersharp' 
-    includeRootFolder: true 
-    archiveType: 'tar'
-    tarCompression: 'gz'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz' 
-    replaceExistingArchive: true
+- bash: tar -czvf $(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz $(Build.ArtifactStagingDirectory)/infer-release/infersharp
+  displayName: Archive binaries
 
 - task: PublishBuildArtifacts@1
   inputs:
