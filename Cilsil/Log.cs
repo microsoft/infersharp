@@ -19,7 +19,7 @@ namespace Cilsil
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
         /// </summary>
-        public static void SetDebugMode (bool isDebugMode) => debugMode = isDebugMode;
+        public static void SetDebugMode(bool isDebugMode) => debugMode = isDebugMode;
 
         /// <summary>
         /// TODO: use https://nlog-project.org or log4net instead of this class.
@@ -155,6 +155,29 @@ namespace Cilsil
         {
             WriteWarning($"Unable to complete translation of {instruction?.ToString()}:");
             WriteWarning(state.GetStateDebugInformation(invalidObject));
+        }
+
+        /// <summary>
+        /// For use in the extension scenario -- writes a line indicating progress for every 
+        /// quarter of progress.
+        /// </summary>
+        /// <param name="i">Current number of items processed.</param>
+        /// <param name="total">Total number of items to process.</param>
+        public static void WriteProgressLine(int i, int total)
+        {
+            if ((((double)i / total) % .25) != ((double)(i - 1) / total) % .25)
+            {
+                var current = (double)i / total;
+                var previous = (double)(i - 1) / total;
+                if (current >= 0.25 && previous < 0.25 ||
+                    current >= 0.5 && previous < 0.5 ||
+                    current >= 0.75 && previous < 0.75)
+                {
+                    var nearestQuarter =
+                        100 * Math.Round(current * 4, MidpointRounding.ToEven) / 4;
+                    WriteLine("Progress is " + nearestQuarter.ToString() + '%');
+                }
+            }
         }
 
         private static int ComputePercent(double n, double total) =>

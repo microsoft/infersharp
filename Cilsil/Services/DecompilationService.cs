@@ -15,11 +15,13 @@ namespace Cilsil.Services
         /// If set to <c>true</c>, parsing service produces the tenv; otherwise,
         /// parsing service produces the cfg.
         /// </summary>
+        public bool WriteConsoleProgress { set; get; }
         public bool ParseTenv { set; get; }
         public IEnumerable<string> AssemblyPaths { get; }
 
-        public DecompilationService(IEnumerable<string> assemblyPaths)
+        public DecompilationService(IEnumerable<string> assemblyPaths, bool writeConsoleProgress)
         {
+            WriteConsoleProgress = writeConsoleProgress;
             AssemblyPaths = assemblyPaths;
         }
 
@@ -34,30 +36,47 @@ namespace Cilsil.Services
                 ReadSymbols = false
             };
 
+            Log.WriteLine("Translation stage 1/3: Loading binaries.");
             IEnumerable<ModuleDefinition> modulesWithNoSymbols = new List<ModuleDefinition>();
-
-            IEnumerable<ModuleDefinition> modulesWithSymbols = AssemblyPaths.Select(p =>
+            IEnumerable<ModuleDefinition> modulesWithSymbols = new List<ModuleDefinition>();
+            var i = 0;
+            var numAssemblies = AssemblyPaths.Count();
+            using (var bar = new ProgressBar())
             {
-                try
+                modulesWithSymbols = AssemblyPaths.Select(p =>
                 {
-                    return ModuleDefinition.ReadModule(p, readerParams);
-                }
-                catch
-                {
-                    // This try catch block handles cases that the dll file is corrupted or broken.
                     try
                     {
-                        modulesWithNoSymbols =
-                            modulesWithNoSymbols.Append(ModuleDefinition.ReadModule(p, readerParamsWithoutSymbols));
+                        return ModuleDefinition.ReadModule(p, readerParams);
                     }
                     catch
                     {
+                        // This try catch block handles cases that the dll file is corrupted or
+                        // broken.
+                        try
+                        {
+                            modulesWithNoSymbols =
+                                modulesWithNoSymbols.Append(
+                                    ModuleDefinition.ReadModule(p, readerParamsWithoutSymbols));
+                        }
+                        catch
+                        {
+                            return null;
+                        }
+
                         return null;
                     }
-
-                    return null;
-                }
-            }).ToList();
+                    finally
+                    {
+                        i++;
+                        bar.Report((double)i / numAssemblies);
+                        if (WriteConsoleProgress)
+                        {
+                            Log.WriteProgressLine(i, numAssemblies);
+                        }
+                    }
+                }).ToList();
+            }
 
             modulesWithSymbols = modulesWithSymbols
                 .Where(p => p != null).Distinct(new ModuleComparer());

@@ -1,0 +1,24 @@
+name: "InferSharp-Binary-CD"
+
+pool:
+  vmImage: 'ubuntu-20.04'
+
+steps:
+- script: sudo apt-get update -y
+  displayName: 'Initialize'
+
+- task: Docker@2
+  displayName: 'Build and test'
+  inputs:
+    command: build
+    repository: temp/infersharp
+    tags: 'latest'
+
+- bash: docker run -v $(Build.ArtifactStagingDirectory)/release:/release --rm temp/infersharp /bin/bash -c "cd ..; tar -czvf infersharp-linux64-version.tar.gz /infersharp; cp infersharp-linux64-version.tar.gz /release/infersharp-linux64-version.tar.gz"
+  displayName: Create release binaries and mount volume
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/release/infersharp-linux64-version.tar.gz'
+    ArtifactName: 'release'
+    publishLocation: 'Container'

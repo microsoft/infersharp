@@ -21,12 +21,6 @@ namespace Cilsil
             var translateCommand = new Command("translate")
             {
                 new Argument<string[]>("paths"),
-                new Option("--printprocs")
-                {
-                    Argument = new Argument<string>(),
-                    Description =
-                        "Comma-separated list of procedures to print out for debugging purposes"
-                },
                 new Option("--dot")
                 {
                     Argument = new Argument<string>(),
@@ -53,9 +47,14 @@ namespace Cilsil
                     Argument = new Argument<bool>(),
                     Description = "Output debug information"
                 },
+                new Option("--extprogress")
+                {
+                    Argument = new Argument<bool>(),
+                    Description = "Print progress for extension scenario"
+                }
             };
             translateCommand.Handler =
-                CommandHandler.Create<string[], string, string, string, string, string, bool>(Translate);
+                CommandHandler.Create<string[], string, string, string, string, bool, bool>(Translate);
             var printCommand = new Command("print")
             {
                 new Option("--procs", "A comma-separated procedure names to print")
@@ -81,26 +80,24 @@ namespace Cilsil
         /// rest of the repository.
         /// </summary>
         /// <param name="paths">The paths to the DLLs to translate.</param>
-        /// <param name="printprocs">Comma-separated string used to identify the translated 
-        /// procedure descriptions to print. A procedure description is matched if its corresponding
-        /// procedure name contains a comma-delineated part as a substring. If this is null, all 
-        /// procedure descriptions are printed.</param>
         /// <param name="outcfg">The CFG output path.</param>
         /// <param name="cfgtxt">The CFG text representation output path.</param>
         /// <param name="outtenv">The type environment output path.</param>
         /// <param name="dot">The dot file (used for visualizing the computed CFG) output path.</param>
         /// <param name="debug">The flag for printing debug output.</param>
+        /// <param name="extprogress">If <c>true</c>, output progress for extension 
+        /// scenario when input binaries are adequately large.</param>
         public static void Translate(string[] paths = null,
-                                     string printprocs = null,
                                      string outcfg = null,
                                      string cfgtxt = null,
                                      string outtenv = null,
                                      string dot = null,
-                                     bool debug = false)
+                                     bool debug = false,
+                                     bool extprogress = false)
         {
             Log.SetDebugMode(debug);
 
-            (var cfg, var tenv) = ExecuteTranslation(paths, printprocs);
+            (var cfg, var tenv) = ExecuteTranslation(paths, extprogress);
 
             File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString());
             cfg.WriteToFile(outcfg);
@@ -118,20 +115,21 @@ namespace Cilsil
         /// Executes the translation.
         /// </summary>
         /// <param name="paths">The paths.</param>
-        /// <param name="printprocs">The printprocs.</param>
-        /// <param name="debug">The debug flag.</param>
-        /// <returns></returns>
-        public static (Cfg, TypeEnvironment) ExecuteTranslation(string[] paths,
-                                                                string printprocs = null,
-                                                                bool debug = false)
+        /// <param name="extensionProgress">If <c>true</c>, periodically write progress to console
+        /// if the input binaries are adequately large.</param>
+        /// <returns>The computed cfg and type environment.</returns>
+        public static (Cfg, TypeEnvironment) ExecuteTranslation(string[] paths, 
+                                                                bool extensionProgress = false)
         {
-            var assemblies = GetAssemblies(paths);
+            (var assemblies, var totalSize) = GetAssemblies(paths);
 
             InstructionParser.RegisterAllKnownParsers();
 
-            var decompilationService = new DecompilationService(assemblies);
-            var tenvParser = new TenvParserService();
-            var cfgParser = new CfgParserService();
+            var reportProgressExtension = totalSize > 1e7 && extensionProgress;
+
+            var decompilationService = new DecompilationService(assemblies, reportProgressExtension);
+            var tenvParser = new TenvParserService(reportProgressExtension);
+            var cfgParser = new CfgParserService(reportProgressExtension);
 
             var result = decompilationService
                 .Execute()
@@ -141,11 +139,6 @@ namespace Cilsil
             var tenv = result.GetResult<TenvParserResult>().TypeEnvironment;
             var cfg = result.GetResult<CfgParserResult>().Cfg;
 
-            if (printprocs != null)
-            {
-                PrintCfg(cfg, printprocs);
-            }
-
             Log.PrintAllUnknownInstruction();
             Log.WriteLine();
             Log.PrintCoverageStats(result.GetResult<CfgParserResult>().Methods);
@@ -153,15 +146,18 @@ namespace Cilsil
             return (cfg, tenv);
         }
 
-        private static IEnumerable<string> GetAssemblies(IEnumerable<string> paths)
+        private static (IEnumerable<string>, long) GetAssemblies(IEnumerable<string> paths)
         {
             var assemblies = new List<string>();
+            long totalSize = 0;
             foreach (var p in paths)
             {
                 try
                 {
                     if (File.GetAttributes(p).HasFlag(FileAttributes.Directory))
                     {
+                        assemblies.AddRange(
+                            Directory.GetFiles(p, "*.netmodule", SearchOption.AllDirectories));
                         assemblies.AddRange(
                             Directory.GetFiles(p, "*.dll", SearchOption.AllDirectories));
                         assemblies.AddRange(
@@ -170,6 +166,7 @@ namespace Cilsil
                     else
                     {
                         assemblies.Add(p);
+                        totalSize += new FileInfo(p).Length;
                     }
                 }
                 catch (FileNotFoundException e)
@@ -178,7 +175,7 @@ namespace Cilsil
                     continue;
                 }
             }
-            return assemblies;
+            return (assemblies, totalSize);
         }
 
         private static void PrintFiles(string[] files = null, string procs = null)
