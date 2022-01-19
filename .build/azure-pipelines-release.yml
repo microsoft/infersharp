@@ -23,7 +23,7 @@ steps:
     contents: 'infersharp-linux64-version.tar.gz' 
     targetFolder: '$(Build.ArtifactStagingDirectory)/infer-release/'
 
-- bash: tar -xzvf $(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz
+- bash: tar -xzvf $(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz -C $(Build.ArtifactStagingDirectory)/infer-release/
   displayName: Extract binaries
 
 - task: EsrpCodeSigning@1
