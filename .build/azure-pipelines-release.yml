@@ -23,7 +23,7 @@ steps:
     contents: 'infersharp-linux64-version.tar.gz' 
     targetFolder: '$(Build.ArtifactStagingDirectory)/infer-release/'
 
-- bash: $(Build.ArtifactStagingDirectory)/infer/
+- bash: ls $(Build.ArtifactStagingDirectory)/infer/
 - bash: ls $(Build.ArtifactStagingDirectory)/infer-release/
 
 - task: ExtractFiles@1
