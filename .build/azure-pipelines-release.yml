@@ -67,7 +67,7 @@ steps:
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
 
-- bash: tar -czvf $(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz $(Build.ArtifactStagingDirectory)/infer-release/infersharp
+- bash: cd $(Build.ArtifactStagingDirectory)/infer-release/; tar -czvf infersharp-linux64-version.tar.gz infersharp
   displayName: Archive binaries
 
 - task: PublishBuildArtifacts@1
