@@ -7,47 +7,31 @@ steps:
 - script: sudo apt-get update -y
   displayName: 'Initialize'
 
-- task: UseDotNet@2
+- task: Docker@2
+  displayName: 'Build and test'
   inputs:
-    packageType: 'runtime'
-    version: '5.x'
+    command: build
+    repository: temp/infersharp
+    tags: 'latest'
 
-- task: Bash@3
-  displayName: "Build C# Models"
+- bash: docker run -v $(Build.ArtifactStagingDirectory)/release:/release --rm temp/infersharp /bin/bash -c "cd ..; tar -czvf infersharp-linux64-version.tar.gz /infersharp; cp infersharp-linux64-version.tar.gz /release/infersharp-linux64-version.tar.gz"
+  displayName: Create release binaries and mount volume
+
+- task: CopyFiles@2
   inputs:
-    targetType: 'inline'
-    script: './build_csharp_models.sh'
+    sourceFolder: '$(Build.ArtifactStagingDirectory)/release/'
+    contents: 'infersharp-linux64-version.tar.gz' 
+    targetFolder: '$(Build.ArtifactStagingDirectory)/infer-release/'
 
-
-- task: Bash@3
-  displayName: "Build Infersharp Release"
+- task: ExtractFiles@1
   inputs:
-    targetType: 'inline'
-    script: |
-      dotnet publish -c Release Cilsil/Cilsil.csproj -r ubuntu.16.10-x64
-
-      dotnet build Examples/Examples/Examples.csproj
-
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: |
-      mkdir infersharp-release
-      
-      cp -r Examples/Examples/bin/Debug/net5.0/ infersharp-release/Examples
-      
-      cp run_infersharp.sh infersharp-release/
-      
-      mv Cilsil/bin/Release/net5.0/ubuntu.16.10-x64/publish infersharp-release/Cilsil
-
-      cp .build/NOTICE.txt infersharp-release/
-
-      cp LICENSE infersharp-release/
+    archiveFilePatterns: '$(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz' 
+    destinationFolder: '$(Build.ArtifactStagingDirectory)/infer-release/'
 
 - task: EsrpCodeSigning@1
   inputs:
     ConnectedServiceName: 'InferSharp ESRP CodeSigning'
-    FolderPath: 'infersharp-release'
+    FolderPath: '$(Build.ArtifactStagingDirectory)/infer-release/'
     Pattern: '*.dll,*.exe'
     signConfigType: 'inlineSignParams'
     inlineOperation: |
@@ -85,37 +69,18 @@ steps:
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
 
-- task: EsrpCodeSigning@1
-  enabled: false
+- task: ArchiveFiles@2
   inputs:
-    ConnectedServiceName: 'InferSharp ESRP CodeSigning'
-    FolderPath: 'infersharp-release/'
-    Pattern: 'Cilsil.dll'
-    signConfigType: 'inlineSignParams'
-    inlineOperation: |
-      [
-        {
-          "KeyCode" : "CP-401405",
-          "OperationCode" : "NuGetSign",
-          "Parameters" : {},
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        },
-        {
-          "KeyCode" : "CP-401405",
-          "OperationCode" : "NuGetVerify",
-          "Parameters" : {},
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        }
-      ]
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
+    rootFolderOrFile: '(Build.ArtifactStagingDirectory)/infer-release/infersharp' 
+    includeRootFolder: true 
+    archiveType: 'tar'
+    tarCompression: 'gz'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz' 
+    replaceExistingArchive: true
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: 'infersharp-release'
-    ArtifactName: 'drop'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz'
+    ArtifactName: 'release'
     publishLocation: 'Container'
 
