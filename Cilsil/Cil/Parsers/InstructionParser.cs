@@ -72,6 +72,25 @@ namespace Cilsil.Cil.Parsers
         }
 
         /// <summary>
+        /// Retrieves the instruction operand index. Can throw a cast exception, which must be
+        /// handled.
+        /// </summary>
+        /// <param name="instruction">The instruction for which to retrieve the index.</param>
+        /// <returns>Integer representing operand index.</returns>
+        protected int TryGetOperandIndex(Instruction instruction)
+        {
+            if (instruction.Operand is ParameterDefinition param)
+            {
+                return param.Index;
+            }
+            else if (instruction.Operand is VariableDefinition variableDefinition)
+            {
+                return variableDefinition.Index;
+            }
+            return (int)instruction.Operand;
+        }
+
+        /// <summary>
         /// Attempts to parse an instruction with the registered instruction parsers.
         /// </summary>
         /// <param name="instruction"><see cref="Instruction"/> to be parsed.</param>
