@@ -51,7 +51,7 @@ cd "$parent_path"
 if [ -d infer-out ]; then rm -Rf infer-out; fi
 if [ -d infer-staging ]; then rm -Rf infer-staging; fi
 coreLibraryPath=Cilsil/System.Private.CoreLib.dll
-echo "Copying binaries to a staging folder...\n"
+echo -e "Copying binaries to a staging folder...\n"
 mkdir infer-staging
 cp -r $coreLibraryPath "$1" infer-staging
 
