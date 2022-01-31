@@ -365,7 +365,7 @@ namespace Cilsil.Test
                 process.WaitForExit();
                 exitCode = process.ExitCode;
             }
-            return process.ExitCode;
+            return exitCode;
         }
     }
 }
