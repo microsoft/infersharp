@@ -344,25 +344,28 @@ namespace Cilsil.Test
 
         private int RunCommand(string command, string arg, out string stdout, out string stderr)
         {
-            var process = new Process();
-            var pInfo = new ProcessStartInfo
+            int exitCode;
+            using (var process = new Process()) 
             {
-                WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = command,
-                Arguments = arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            process.StartInfo = pInfo;
-            process.Start();
+                var pInfo = new ProcessStartInfo
+                {
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = command,
+                    Arguments = arg,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+                process.StartInfo = pInfo;
+                process.Start();
 
-            stdout = process.StandardOutput.ReadToEnd();
-            stderr = process.StandardError.ReadToEnd();
+                stdout = process.StandardOutput.ReadToEnd();
+                stderr = process.StandardError.ReadToEnd();
 
-            process.WaitForExit();
-
-            return process.ExitCode;
+                process.WaitForExit();
+                exitCode = process.ExitCode;
+            }
+            return exitCode;
         }
     }
 }
