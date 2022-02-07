@@ -54,11 +54,12 @@ namespace Cilsil.Cil.Parsers
                 default:
                     return false;
             }
+            var fieldExpression = CreateFieldExpression(fieldOwnerExpression, field);
             // An identifier to store the field expression.
-            var fieldIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            var fieldIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal,
+                                                      description: $"{fieldExpression}");
 
             fieldType = Typ.FromTypeReferenceNoPointer(field.FieldType);
-            var fieldExpression = CreateFieldExpression(fieldOwnerExpression, field);
 
             if (instruction.OpCode.Code == Code.Ldfld || instruction.OpCode.Code == Code.Ldsfld)
             {

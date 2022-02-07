@@ -635,7 +635,8 @@ namespace Cilsil.Cil.Parsers
                          state.CurrentLocation);
 
             var objectConstructorCall =
-                new Call(state.GetIdentifier(Identifier.IdentKind.Normal),
+                new Call(state.GetIdentifier(Identifier.IdentKind.Normal,
+                                             description: $"output of {typeName}::.ctor()"),
                          new Tvoid(),
                          new ConstExpression(new ProcedureName(".ctor",
                                                                new List<string>(),
@@ -719,7 +720,9 @@ namespace Cilsil.Cil.Parsers
                                    .Select(p => new Call.CallArg(p.Item1, p.Item2))
                                    .ToList());
             var callFlags = new Call.CallFlags(isVirtual, false, false);
-            returnVariable = state.GetIdentifier(Identifier.IdentKind.Normal);
+            returnVariable = state.GetIdentifier(Identifier.IdentKind.Normal,
+                                                 description: "returned from " +
+                                                    calledMethod.GetCompatibleFullName());
             methodCall = new Call(returnId: returnVariable,
                                   returnType: Typ.FromTypeReference(returnType),
                                   functionExpression: funcExp,
