@@ -317,7 +317,8 @@ namespace Cilsil.Utils
         /// <returns>The <see cref="Load"/> instruction created from the inputs.</returns>
         public Load PushAndLoad(Expression expression, Typ type)
         {
-            var freshIdentifier = GetIdentifier(Identifier.IdentKind.Normal);
+            var freshIdentifier = GetIdentifier(Identifier.IdentKind.Normal,
+                                                description: $"{expression}");
             var isThis = false;
             if (expression is LvarExpression variable && variable.Pvar.PvName == "this")
             {
