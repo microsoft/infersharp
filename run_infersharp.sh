@@ -3,6 +3,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+set -e
+
 # Check if we have enough arguments.
 if [ "$#" -lt 1 ]; then
     echo "run_infersharp.sh <dll_folder_path> [--enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation --sarif] -- requires 1 argument (dll_folder_path)"
