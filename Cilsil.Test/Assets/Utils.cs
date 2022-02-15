@@ -66,6 +66,7 @@ namespace Cilsil.Test.Assets
         public enum TestClassMethod
         {
             None,
+            CleanupStreamReaderObjectField,
             ExpectNonNullParam,
             ReturnNullOnFalse,
             IncrementRefParameter,
@@ -346,6 +347,13 @@ namespace Cilsil.Test.Assets
                             "CloseStream requires one argument.");
                     }
                     return GetMethodCall(true);
+                case TestClassMethod.CleanupStreamReaderObjectField:
+                    if (args != null)
+                    {
+                        throw new ArgumentException(
+                            "CleanupStreamReaderObjectField requires no argument.");
+                    }
+                    return GetMethodCall(false);
                 case TestClassMethod.InitializeStreamReaderObjectField:
                     if (args != null)
                     {

@@ -79,6 +79,14 @@ namespace Cilsil.Test.Assets
         }
 
         /// <summary>
+        /// Initializes the instance StreamReader field.
+        /// </summary>
+        public void CleanupStreamReaderObjectField()
+        {
+            InstanceStreamReaderField.Close();
+        }
+
+        /// <summary>
         /// Initializes the static TestClass field. In test cases, this method provides coverage for
         /// stsfld.
         /// </summary>
