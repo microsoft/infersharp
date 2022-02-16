@@ -14,7 +14,7 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various states that a TestClass object in the tests can be in.
         /// </summary>
-        public enum TestClassState { None, Uninitialized, Null, Initialized };
+        public enum TestClassState { None, Uninitialized, Null, Initialized, InitializedWithFilename };
 
         /// <summary>
         /// The various kinds of Severity that appear in the tests.
@@ -255,6 +255,10 @@ namespace Cilsil.Test.Assets
                 case TestClassState.Initialized:
                     output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc,
                                                                              "new TestClass()");
+                    break;
+                case TestClassState.InitializedWithFilename:
+                    output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc,
+                                                                             "new TestClass(\"whatever.txt\")");
                     break;
                 case TestClassState.Null:
                     output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc, "null");

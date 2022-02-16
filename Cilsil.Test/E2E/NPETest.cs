@@ -147,10 +147,7 @@ namespace Cilsil.Test.E2E
         [DataTestMethod]
         public void ResourceLeakGlobalResourceInterproc(bool closeStream, InferError expectedError)
         {
-            TestRunManager.Run(InitVars(state: TestClassState.Initialized) +
-                               CallTestClassMethod(
-                                TestClassMethod.InitializeStreamReaderObjectField,
-                                true) + 
+            TestRunManager.Run(InitVars(state: TestClassState.InitializedWithFilename) + 
                                (closeStream ? CallTestClassMethod(
                                                 TestClassMethod.CleanupStreamReaderObjectField,
                                                 true)

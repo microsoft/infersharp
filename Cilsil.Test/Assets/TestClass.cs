@@ -37,14 +37,9 @@ namespace Cilsil.Test.Assets
 
         public TestClass() { }
 
-        public TestClass(TestClass testClass)
+        public TestClass(string filename)
         {
-            InstanceObjectField = testClass;
-        }
-
-        public static void InvokeConstructorWithNullParam()
-        {
-            _ = new TestClass(null);
+            InstanceStreamReaderField = new StreamReader(filename);
         }
 
         /// <summary>
@@ -79,7 +74,7 @@ namespace Cilsil.Test.Assets
         }
 
         /// <summary>
-        /// Initializes the instance StreamReader field.
+        /// Close the instance StreamReader field interprocedurally.
         /// </summary>
         public void CleanupStreamReaderObjectField()
         {
