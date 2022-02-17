@@ -258,7 +258,7 @@ namespace Cilsil.Test.Assets
                     break;
                 case TestClassState.InitializedWithFilename:
                     output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc,
-                                                                             "new TestClass(\"whatever.txt\")");
+                                                                             "new TestClass(null, \"whatever.txt\")");
                     break;
                 case TestClassState.Null:
                     output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc, "null");
