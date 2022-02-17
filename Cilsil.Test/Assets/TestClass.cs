@@ -37,10 +37,22 @@ namespace Cilsil.Test.Assets
 
         public TestClass() { }
 
-        public TestClass(string filename)
+        public TestClass(TestClass testClass)
         {
+            InstanceObjectField = testClass;
+        }
+
+        public TestClass(TestClass testClass, string filename)
+        {
+            InstanceObjectField = testClass;
             InstanceStreamReaderField = new StreamReader(filename);
         }
+
+        public static void InvokeConstructorWithNullParam()
+        {
+            _ = new TestClass(null);
+        }
+        
 
         /// <summary>
         /// Initializes the instance TestClass field. In test cases, this method provides coverage
