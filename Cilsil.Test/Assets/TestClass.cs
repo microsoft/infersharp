@@ -41,6 +41,10 @@ namespace Cilsil.Test.Assets
         {
             InstanceObjectField = testClass;
         }
+        public static TestClass Cast(object input)
+        {
+            return (TestClass) input;
+        }
 
         public static void InvokeConstructorWithNullParam()
         {
