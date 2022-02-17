@@ -14,7 +14,7 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various states that a TestClass object in the tests can be in.
         /// </summary>
-        public enum TestClassState { None, Uninitialized, Null, Initialized };
+        public enum TestClassState { None, Uninitialized, Null, Initialized, InitializedWithFilename };
 
         /// <summary>
         /// The various kinds of Severity that appear in the tests.
@@ -67,6 +67,7 @@ namespace Cilsil.Test.Assets
         public enum TestClassMethod
         {
             None,
+            CleanupStreamReaderObjectField,
             Cast,
             ExpectNonNullParam,
             ReturnNullOnFalse,
@@ -259,6 +260,10 @@ namespace Cilsil.Test.Assets
                     output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc,
                                                                              "new TestClass()");
                     break;
+                case TestClassState.InitializedWithFilename:
+                    output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc,
+                                                                             "new TestClass(null, \"whatever.txt\")");
+                    break;
                 case TestClassState.Null:
                     output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc, "null");
                     break;
@@ -350,6 +355,13 @@ namespace Cilsil.Test.Assets
                             "CloseStream requires one argument.");
                     }
                     return GetMethodCall(true);
+                case TestClassMethod.CleanupStreamReaderObjectField:
+                    if (args != null)
+                    {
+                        throw new ArgumentException(
+                            "CleanupStreamReaderObjectField requires no argument.");
+                    }
+                    return GetMethodCall(false);
                 case TestClassMethod.InitializeStreamReaderObjectField:
                     if (args != null)
                     {
