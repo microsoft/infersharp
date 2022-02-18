@@ -138,6 +138,25 @@ namespace Cilsil.Test.E2E
         }
 
         /// <summary>
+        /// Validates that a resource leak on an StreamReader initialized in the constructore is identified.
+        /// </summary>
+        /// <param name="closeStream"> If <c>true</c>, invokes the CleanupStreamReaderObjectField method; otherwise,
+        /// does not.</param>
+        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
+        [DataRow(true, InferError.None)]
+        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataTestMethod]
+        public void ResourceLeakGlobalResourceInterproc(bool closeStream, InferError expectedError)
+        {
+            TestRunManager.Run(InitVars(state: TestClassState.InitializedWithFilename) + 
+                               (closeStream ? CallTestClassMethod(
+                                                TestClassMethod.CleanupStreamReaderObjectField,
+                                                true)
+                                            : string.Empty),
+                               GetString(expectedError));
+        }
+
+        /// <summary>
         /// Validates that there is no resource leak identified on a returned resource.
         /// </summary>
         /// <param name="returnsResource" If <c>true</c>, returns the instantiated resource; otherwise,
