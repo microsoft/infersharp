@@ -56,8 +56,7 @@ coreLibraryPath=Cilsil/System.Private.CoreLib.dll
 systemLibraryPath=Cilsil/System.dll
 echo -e "Copying binaries to a staging folder...\n"
 mkdir infer-staging
-cp -r $coreLibraryPath "$1" infer-staging
-cp -r $systemLibraryPath "$1" infer-staging
+cp -r $coreLibraryPath $systemLibraryPath "$1" infer-staging
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."
