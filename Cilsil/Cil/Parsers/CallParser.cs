@@ -45,6 +45,16 @@ namespace Cilsil.Cil.Parsers
             {
                 instrs.Add(CreateLockedAttributeCall(false, calledMethod.Parameters.Count, state));
             }
+            // We mimic the behavior of a regular equality comparison (Ceq) in this case.
+            else if (calledMethod.GetCompatibleFullName()
+                                 .Contains("op_Equality"))
+            {
+                (var equalityExp, var type) = state.PopTwoAndApplyBinop(
+                    BinopExpression.BinopKind.Eq);
+                state.PushExpr(equalityExp, type);
+                state.PushInstruction(instruction.Next);
+                return true;
+            }
             else
             {
                 CreateMethodCall(state,
@@ -87,6 +97,11 @@ namespace Cilsil.Cil.Parsers
             state.PushInstruction(instruction.Next, callNode);
             state.AppendToPreviousNode = true;
             return true;
+        }
+
+        private static void HandleOperatorMethod(string methodName)
+        {
+
         }
 
         /// <summary>
