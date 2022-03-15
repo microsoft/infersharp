@@ -3,6 +3,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+set -e
+
 # Check if we have enough arguments.
 if [ "$#" -lt 1 ]; then
     echo "run_infersharp.sh <dll_folder_path> [--enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation --sarif] -- requires 1 argument (dll_folder_path)"
@@ -51,9 +53,10 @@ cd "$parent_path"
 if [ -d infer-out ]; then rm -Rf infer-out; fi
 if [ -d infer-staging ]; then rm -Rf infer-staging; fi
 coreLibraryPath=Cilsil/System.Private.CoreLib.dll
+systemLibraryPath=Cilsil/System.dll
 echo -e "Copying binaries to a staging folder...\n"
 mkdir infer-staging
-cp -r $coreLibraryPath "$1" infer-staging
+cp -r $coreLibraryPath $systemLibraryPath "$1" infer-staging
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."

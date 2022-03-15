@@ -14,7 +14,7 @@ namespace Cilsil.Test.Assets
         /// <summary>
         /// The various states that a TestClass object in the tests can be in.
         /// </summary>
-        public enum TestClassState { None, Uninitialized, Null, Initialized };
+        public enum TestClassState { None, Uninitialized, Null, Initialized, InitializedWithFilename };
 
         /// <summary>
         /// The various kinds of Severity that appear in the tests.
@@ -57,7 +57,8 @@ namespace Cilsil.Test.Assets
             NULL_DEREFERENCE,
             DANGLING_POINTER_DEREFERENCE,
             DOTNET_RESOURCE_LEAK,
-            THREAD_SAFETY_VIOLATION
+            THREAD_SAFETY_VIOLATION,
+            CLASS_CAST_EXCEPTION
         }
 
         /// <summary>
@@ -66,6 +67,8 @@ namespace Cilsil.Test.Assets
         public enum TestClassMethod
         {
             None,
+            CleanupStreamReaderObjectField,
+            Cast,
             ExpectNonNullParam,
             ReturnNullOnFalse,
             IncrementRefParameter,
@@ -79,6 +82,7 @@ namespace Cilsil.Test.Assets
             ReturnOneDimArray,
             ReturnTwoDimArray,
             TestBox,
+            TestCastClass,
             TestIsInst,
             TestStarg,
             CloseStream,
@@ -182,6 +186,7 @@ namespace Cilsil.Test.Assets
                 case InferError.NULL_DEREFERENCE:
                 case InferError.DOTNET_RESOURCE_LEAK:
                 case InferError.THREAD_SAFETY_VIOLATION:
+                case InferError.CLASS_CAST_EXCEPTION:
                     return error.ToString();
                 case InferError.None:
                     return null;
@@ -254,6 +259,10 @@ namespace Cilsil.Test.Assets
                 case TestClassState.Initialized:
                     output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc,
                                                                              "new TestClass()");
+                    break;
+                case TestClassState.InitializedWithFilename:
+                    output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc,
+                                                                             "new TestClass(null, \"whatever.txt\")");
                     break;
                 case TestClassState.Null:
                     output = Declare(VarType.TestClass, VarName.Tc) + Assign(VarName.Tc, "null");
@@ -346,6 +355,13 @@ namespace Cilsil.Test.Assets
                             "CloseStream requires one argument.");
                     }
                     return GetMethodCall(true);
+                case TestClassMethod.CleanupStreamReaderObjectField:
+                    if (args != null)
+                    {
+                        throw new ArgumentException(
+                            "CleanupStreamReaderObjectField requires no argument.");
+                    }
+                    return GetMethodCall(false);
                 case TestClassMethod.InitializeStreamReaderObjectField:
                     if (args != null)
                     {
@@ -458,6 +474,18 @@ namespace Cilsil.Test.Assets
                     if (args == null || args.Length != 1)
                     {
                         throw new ArgumentException("FinallyReturnsNullIfTrue requires 1 argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.Cast:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException("Cast requires 1 argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.TestCastClass:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException("TestCastClass requires 1 argument.");
                     }
                     return GetMethodCall(true);
                 default:

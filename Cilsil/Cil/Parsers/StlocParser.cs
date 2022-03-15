@@ -43,7 +43,7 @@ namespace Cilsil.Cil.Parsers
                 case Code.Stloc:
                     try
                     {
-                        index = (int)instruction.Operand;
+                        index = TryGetOperandIndex(instruction);
                     }
                     catch (System.InvalidCastException e)
                     {
@@ -87,7 +87,7 @@ namespace Cilsil.Cil.Parsers
                 state.IndicesWithIsInstReturnType.Remove(index);
             }
 
-            var variable = new LocalVariable(LocalName(index), state.Method);
+            var variable = new LocalVariable(LocalName(index, state.Method), state.Method);
             var storeValueIntoVariable = new Store(new LvarExpression(variable),
                                                    value,
                                                    type,

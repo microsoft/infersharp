@@ -41,11 +41,22 @@ namespace Cilsil.Test.Assets
         {
             InstanceObjectField = testClass;
         }
+        public static TestClass Cast(object input)
+        {
+            return (TestClass) input;
+        }
+
+        public TestClass(TestClass testClass, string filename)
+        {
+            InstanceObjectField = testClass;
+            InstanceStreamReaderField = new StreamReader(filename);
+        }
 
         public static void InvokeConstructorWithNullParam()
         {
             _ = new TestClass(null);
         }
+        
 
         /// <summary>
         /// Initializes the instance TestClass field. In test cases, this method provides coverage
@@ -76,6 +87,14 @@ namespace Cilsil.Test.Assets
         public void InitializeStreamReaderObjectField()
         {
             InstanceStreamReaderField = new StreamReader("whatever.txt");
+        }
+
+        /// <summary>
+        /// Close the instance StreamReader field interprocedurally.
+        /// </summary>
+        public void CleanupStreamReaderObjectField()
+        {
+            InstanceStreamReaderField.Close();
         }
 
         /// <summary>

@@ -87,6 +87,16 @@ namespace Cilsil.Sil
                               BuiltInClassName,
                               string.Empty,
                               true);
+
+        /// <summary>
+        /// Standard procedure name for object casting calls, interpreted specially by the backend.
+        /// </summary>
+        public static readonly ProcedureName BuiltIn__cast =
+            new ProcedureName("__cast",
+                              new List<string>(),
+                              BuiltInClassName,
+                              string.Empty,
+                              true);
         #endregion
 
         /// <summary>

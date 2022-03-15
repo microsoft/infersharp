@@ -20,7 +20,7 @@ namespace Cilsil.Cil.Parsers
                 case Code.Ldarg:
                     try
                     {
-                        index = (int)instruction.Operand;
+                        index = TryGetOperandIndex(instruction);
                     }
                     catch (System.InvalidCastException e)
                     {

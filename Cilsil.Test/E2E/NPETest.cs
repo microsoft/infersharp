@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 using Cilsil.Test.Assets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Windows.Markup;
 using static Cilsil.Test.Assets.Utils;
 
 namespace Cilsil.Test.E2E
@@ -133,6 +134,25 @@ namespace Cilsil.Test.E2E
                                                 : CallTestClassMethod(
                                                     TestClassMethod.ReturnInitializedStreamReader,
                                                     true)),
+                               GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates that a resource leak on an StreamReader initialized in the constructore is identified.
+        /// </summary>
+        /// <param name="closeStream"> If <c>true</c>, invokes the CleanupStreamReaderObjectField method; otherwise,
+        /// does not.</param>
+        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
+        [DataRow(true, InferError.None)]
+        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataTestMethod]
+        public void ResourceLeakGlobalResourceInterproc(bool closeStream, InferError expectedError)
+        {
+            TestRunManager.Run(InitVars(state: TestClassState.InitializedWithFilename) + 
+                               (closeStream ? CallTestClassMethod(
+                                                TestClassMethod.CleanupStreamReaderObjectField,
+                                                true)
+                                            : string.Empty),
                                GetString(expectedError));
         }
 
@@ -812,6 +832,28 @@ namespace Cilsil.Test.E2E
                             "true") +
                     DerefObject(VarName.Tc),
                 GetString(expectedError));
+        }
+
+        /// <summary>
+        /// Validates our translation of CastClass.
+        /// </summary>
+        /// <param name="testInputCode">Defines the object to be input to the type-checking
+        /// TestClass method; 0 for successful casting operation. 1 for casting exception.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow("new TestClass()", InferError.None)]
+        [DataRow("new object()", InferError.CLASS_CAST_EXCEPTION)]
+        [DataTestMethod]
+        public void CastExceptionCastClass(string inputObjectString, InferError expectedError)
+        {
+            TestRunManager.Run(
+                InitVars(firstLocalVarType: VarType.TestClass,
+                         firstLocalVarValue: CallTestClassMethod(
+                             TestClassMethod.Cast,
+                             false,
+                             args: new string[]
+                             {
+                                 inputObjectString
+                             })), GetString(expectedError));
         }
     }
 }

@@ -72,6 +72,25 @@ namespace Cilsil.Cil.Parsers
         }
 
         /// <summary>
+        /// Retrieves the instruction operand index. Can throw a cast exception, which must be
+        /// handled.
+        /// </summary>
+        /// <param name="instruction">The instruction for which to retrieve the index.</param>
+        /// <returns>Integer representing operand index.</returns>
+        protected int TryGetOperandIndex(Instruction instruction)
+        {
+            if (instruction.Operand is ParameterDefinition param)
+            {
+                return param.Index;
+            }
+            else if (instruction.Operand is VariableDefinition variableDefinition)
+            {
+                return variableDefinition.Index;
+            }
+            return (int)instruction.Operand;
+        }
+
+        /// <summary>
         /// Attempts to parse an instruction with the registered instruction parsers.
         /// </summary>
         /// <param name="instruction"><see cref="Instruction"/> to be parsed.</param>
@@ -740,7 +759,7 @@ namespace Cilsil.Cil.Parsers
         protected (LvarExpression, Typ) CreateLocal(int index,
                                                     MethodDefinition method)
         {
-            var name = LocalName(index);
+            var name = LocalName(index, method);
             // If the variable is by reference, its corresponding type will have an &, which we do
             // not want.
             var variableType = method.Body.Variables[index].VariableType;
@@ -782,8 +801,10 @@ namespace Cilsil.Cil.Parsers
         /// Converts the given local variable index identifier to its string representation. 
         /// </summary>
         /// <param name="index">The index.</param>
+        /// <param name="method">The method in which the variable is located.</param>
         /// <returns>The string representation.</returns>
-        protected string LocalName(int index) => $"%{index}";
+        protected string LocalName(int index, MethodDefinition method) =>
+            method.DebugInformation.TryGetName(method.Body.Variables[index], out var name) ? name : $"%{index}";
 
         /// <summary>
         /// Gets the argument name for the given index and method.
