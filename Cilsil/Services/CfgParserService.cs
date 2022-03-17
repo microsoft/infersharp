@@ -97,6 +97,11 @@ namespace Cilsil.Services
                 Log.WriteWarning($"Method with duplicate full name found: {methodName }");
                 return;
             }
+            if (method.DebugInformation.SequencePoints.FirstOrDefault() == null)
+            {
+                Log.WriteWarning($"Skipping method not found in source code: {methodName }");
+                return;
+            }
 
             var programState = new ProgramState(method, Cfg);
 
