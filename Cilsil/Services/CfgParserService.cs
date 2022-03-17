@@ -190,7 +190,6 @@ namespace Cilsil.Services
                     programState.ProcDesc.ExitNode);
 
                 SetNodePredecessors(programState);
-
                 Cfg.Procs.Add(methodName, programState.ProcDesc);
             }
         }

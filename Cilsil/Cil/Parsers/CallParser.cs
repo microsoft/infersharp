@@ -45,13 +45,10 @@ namespace Cilsil.Cil.Parsers
             {
                 instrs.Add(CreateLockedAttributeCall(false, calledMethod.Parameters.Count, state));
             }
-            // We mimic the behavior of a regular equality comparison (Ceq) in this case.
-            else if (calledMethod.GetCompatibleFullName()
-                                 .Contains("op_Equality"))
+            else if (calledMethod.GetCompatibleFullName().Contains("op_") && 
+                     HandleOperatorMethod(calledMethod.GetCompatibleFullName(), state))
             {
-                (var equalityExp, var type) = state.PopTwoAndApplyBinop(
-                    BinopExpression.BinopKind.Eq);
-                state.PushExpr(equalityExp, type);
+                
                 state.PushInstruction(instruction.Next);
                 return true;
             }
@@ -99,9 +96,35 @@ namespace Cilsil.Cil.Parsers
             return true;
         }
 
-        private static void HandleOperatorMethod(string methodName)
+        /// <summary>
+        /// Reduces System operator methods into their binary expressions.
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="state"></param>
+        private static bool HandleOperatorMethod(string methodName, ProgramState state)
         {
-
+            BinopExpression.BinopKind kind;
+            (var right, _) = state.Peek();
+            // The expression is comparing object equality/inequality to null; we represent these
+            // as null checks with the corresponding equality/inequality operator.
+            if ((methodName.Contains("op_Equality") || methodName.Contains("op_Inequality")) &&
+                right.Equals(new ConstExpression(new IntRepresentation(0, false, true))))
+            {
+                kind = methodName.Contains("op_Equality") ? 
+                    BinopExpression.BinopKind.Eq : BinopExpression.BinopKind.Ne;
+                (var equalityExp, var type) = state.PopTwoAndApplyBinop(kind);
+                state.PushExpr(equalityExp, type);
+            }
+            // These methods can involve conversion between SqlBoolean and bool; to help the
+            // analysis understand the behavior, we simply treat these as nops so that the analysis
+            // directly interprets the underlying bool. 
+            else if ((methodName.Contains("Boolean::op_True") || 
+                      methodName.Contains("Boolean::op_Implicit"))) {}
+            else
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
