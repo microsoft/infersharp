@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 using Cilsil.Cil.Parsers;
+using Cilsil.Extensions;
 using Cilsil.Services;
 using Cilsil.Services.Results;
 using Cilsil.Sil;
+using Mono.Cecil;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -128,7 +130,26 @@ namespace Cilsil
             var reportProgressExtension = totalSize > 1e7 && extensionProgress;
 
             var decompilationService = new DecompilationService(assemblies, reportProgressExtension);
-            var tenvParser = new TenvParserService(reportProgressExtension);
+            Dictionary<string, string> typeToAssembly = new Dictionary<string, string>();
+            foreach (var assemblyPath in assemblies)
+            {
+                try
+                {
+                    var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters()
+                    {
+                        ReadSymbols = false
+                    });
+                    var types = module.GetTypes();
+                    foreach (var type in types)
+                    {
+                        typeToAssembly[type.GetCompatibleFullName()] = assemblyPath;
+                    }
+                }
+                catch { }
+            }
+
+
+                var tenvParser = new TenvParserService(typeToAssembly, reportProgressExtension);
             var cfgParser = new CfgParserService(reportProgressExtension);
 
             var result = decompilationService

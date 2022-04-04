@@ -5,7 +5,9 @@ using Cilsil.Services.Results;
 using Cilsil.Sil;
 using Cilsil.Sil.Types;
 using Mono.Cecil;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Cilsil.Services
@@ -18,13 +20,19 @@ namespace Cilsil.Services
 
         public bool WriteConsoleProgress { get; private set; }
 
-        public TenvParserService(bool writeConsoleProgress,
+        public Dictionary<string, string> TypeToAssembly;
+
+        public Dictionary<string, int> AssemblyToDisposableTypeCount = new Dictionary<string, int>();
+
+        public TenvParserService(Dictionary<string, string> typeToAssembly, bool writeConsoleProgress,
+                                 
                                  IEnumerable<TypeDefinition> types = null,
                                  IEnumerable<ModuleDefinition> moduleDefinitions = null)
         {
             WriteConsoleProgress = writeConsoleProgress;
             Types = types;
             ModuleDefinitions = moduleDefinitions;
+            TypeToAssembly = typeToAssembly;
         }
 
         public ServiceExecutionResult Execute()
@@ -85,6 +93,13 @@ namespace Cilsil.Services
                         Log.WriteProgressLine(i, total);
                     }
                 }
+            }
+            var totalTypes = AssemblyToDisposableTypeCount.Sum(x => x.Value);
+            var folder = Path.Join(Path.GetDirectoryName(AssemblyToDisposableTypeCount.Keys.First()), "IDisposableNetLibraries");
+            Directory.CreateDirectory(folder);
+            foreach (var assembly in AssemblyToDisposableTypeCount.Keys)
+            {
+                File.Copy(assembly, Path.Join(folder, Path.GetFileName(assembly)));
             }
             return tenv;
         }
@@ -155,6 +170,18 @@ namespace Cilsil.Services
                 TypeStruct = typeStruct,
             };
             typeEnvironment[typeFullName] = typeEntry;
+            if (baseTypes.Contains("System.IDisposable") || baseSupers.Contains("System.IDisposable"))
+            {
+                var assembly = TypeToAssembly[typeFullName];
+                if (AssemblyToDisposableTypeCount.ContainsKey(assembly))
+                {
+                    AssemblyToDisposableTypeCount[assembly] += 1;
+                }
+                else
+                {
+                    AssemblyToDisposableTypeCount[assembly] = 1;
+                }
+            }
             return typeEntry;
         }
     }

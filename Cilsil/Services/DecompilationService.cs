@@ -6,6 +6,7 @@ using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Cilsil.Services
 {
@@ -41,6 +42,43 @@ namespace Cilsil.Services
             IEnumerable<ModuleDefinition> modulesWithSymbols = new List<ModuleDefinition>();
             var i = 0;
             var numAssemblies = AssemblyPaths.Count();
+            foreach (var assemblyPath in AssemblyPaths)
+            {
+                try
+                {
+                    var assembly = AssemblyDefinition.ReadAssembly(assemblyPath);
+/*
+                    Console.WriteLine("ASSEMBLY: " + assembly.FullName);
+                    Console.WriteLine("MODULES");
+                    foreach (var module in assembly.Modules)
+                    {
+                        Console.WriteLine(module.Name);
+                    }
+                    var moduledefn = ModuleDefinition.ReadModule(assemblyPath);
+                    Console.WriteLine("ASSEMBLYMODULEDEFN: " + moduledefn.Name);
+                    Console.WriteLine("_________________________");
+                    */
+                    /*
+                    Console.WriteLine(assemblyPath);
+                    foreach (var module in assembly.Modules)
+                    {
+                        Console.WriteLine(module.Name);
+                        foreach (var type in module.Types)
+                        {
+                            Console.WriteLine(type.GetCompatibleFullName());
+                            foreach (var nestedType in type.GetAllNestedTypes())
+                            {
+                                Console.WriteLine(nestedType.FullName);
+                            }
+                        }
+                    }*/
+                    
+                }
+                catch
+                {
+
+                }
+            }
             using (var bar = new ProgressBar())
             {
                 modulesWithSymbols = AssemblyPaths.Select(p =>
