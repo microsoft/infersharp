@@ -32,8 +32,6 @@ if [ "$#" -gt 1 ]; then
             infer_args_list+=("--enable-issue-type DOTNET_RESOURCE_LEAK")
         elif [ ${!i} == "--enable-thread-safety-violation" ]; then
             infer_args_list+=("--enable-issue-type THREAD_SAFETY_VIOLATION")
-        elif [ ${!i} == "--sarif" ]; then
-            infer_args_list+=("--sarif")
         fi
         ((i++))
     done
@@ -52,10 +50,13 @@ parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$parent_path"
 if [ -d infer-out ]; then rm -Rf infer-out; fi
 if [ -d infer-staging ]; then rm -Rf infer-staging; fi
-coreLibraryPath=Cilsil/System.Private.CoreLib.dll
+
 echo -e "Copying binaries to a staging folder...\n"
-mkdir infer-staging
-cp -r $coreLibraryPath "$1" infer-staging
+mkdir infer-staging infer-staging/IDisposableNetLibraries
+while IFS=$' \t\r\n' read -r line; do
+    cp Cilsil/$line infer-staging/IDisposableNetLibraries
+done < Cilsil/IDisposableNetLibraries.txt
+cp -r "$1" infer-staging
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."
