@@ -60,8 +60,8 @@ cp -r "$1" infer-staging
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."
-./Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt --pulse --no-biabduction --sarif
+./Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt
 echo -e "Code translation completed. Analyzing...\n"
 $parent_path/infer/lib/infer/infer/bin/infer capture
 mkdir infer-out/captured 
-$parent_path/infer/lib/infer/infer/bin/infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') $infer_args analyzejson --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
+$parent_path/infer/lib/infer/infer/bin/infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') $infer_args --pulse --no-biabduction --sarif analyzejson --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
