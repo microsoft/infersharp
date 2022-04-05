@@ -27,7 +27,7 @@ if [ "$#" -gt 1 ]; then
     while [ $i -le $# ]
     do
         if [ ${!i} == "--enable-null-dereference" ]; then
-            infer_args_list+=("--enable-issue-type NULL_DEREFERENCE")
+            infer_args_list+=("--enable-issue-type NULLPTR_DEREFERENCE")
         elif [ ${!i} == "--enable-dotnet-resource-leak" ]; then
             infer_args_list+=("--enable-issue-type DOTNET_RESOURCE_LEAK")
         elif [ ${!i} == "--enable-thread-safety-violation" ]; then
@@ -53,14 +53,13 @@ cd "$parent_path"
 if [ -d infer-out ]; then rm -Rf infer-out; fi
 if [ -d infer-staging ]; then rm -Rf infer-staging; fi
 coreLibraryPath=Cilsil/System.Private.CoreLib.dll
-systemLibraryPath=Cilsil/System.dll
 echo -e "Copying binaries to a staging folder...\n"
 mkdir infer-staging
-cp -r $coreLibraryPath $systemLibraryPath "$1" infer-staging
+cp -r $coreLibraryPath "$1" infer-staging
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."
-./Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt
+./Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt --pulse --no-biabduction --sarif
 echo -e "Code translation completed. Analyzing...\n"
 $parent_path/infer/lib/infer/infer/bin/infer capture
 mkdir infer-out/captured 
