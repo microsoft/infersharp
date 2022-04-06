@@ -11,7 +11,7 @@ if [ "$#" -lt 1 ]; then
     exit
 fi
 
-infer_args_list=("--enable-issue-type NULL_DEREFERENCE" "--enable-issue-type DOTNET_RESOURCE_LEAK" "--enable-issue-type THREAD_SAFETY_VIOLATION")
+infer_args_list=("--enable-issue-type NULLPTR_DEREFERENCE" "--enable-issue-type DOTNET_RESOURCE_LEAK" "--enable-issue-type THREAD_SAFETY_VIOLATION")
 
 # Clear issue types if specific issue is mentioned in arguments
 for v in "$@" 
@@ -64,4 +64,4 @@ echo -e "Code translation started..."
 echo -e "Code translation completed. Analyzing...\n"
 $parent_path/infer/lib/infer/infer/bin/infer capture
 mkdir infer-out/captured 
-$parent_path/infer/lib/infer/infer/bin/infer $(infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') $infer_args --pulse --no-biabduction --sarif analyzejson --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
+$parent_path/infer/lib/infer/infer/bin/infer $($parent_path/infer/lib/infer/infer/bin/infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') $infer_args --pulse --no-biabduction --sarif analyzejson --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
