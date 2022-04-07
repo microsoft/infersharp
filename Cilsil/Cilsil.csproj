@@ -25,4 +25,10 @@
     <PackageReference Include="QuickGraph" Version="3.6.61119.7" NoWarn="NU1701" />
     <PackageReference Include="System.CommandLine.Experimental" Version="0.3.0-alpha.19317.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="IDisposableNetLibraries.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

@@ -45,6 +45,13 @@ namespace Cilsil.Cil.Parsers
             {
                 instrs.Add(CreateLockedAttributeCall(false, calledMethod.Parameters.Count, state));
             }
+            else if (calledMethod.GetCompatibleFullName().Contains("op_") && 
+                     HandleOperatorMethod(calledMethod.GetCompatibleFullName(), state))
+            {
+                
+                state.PushInstruction(instruction.Next);
+                return true;
+            }
             else
             {
                 CreateMethodCall(state,
@@ -86,6 +93,37 @@ namespace Cilsil.Cil.Parsers
 
             state.PushInstruction(instruction.Next, callNode);
             state.AppendToPreviousNode = true;
+            return true;
+        }
+
+        /// <summary>
+        /// Reduces System operator methods into their binary expressions.
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="state"></param>
+        private static bool HandleOperatorMethod(string methodName, ProgramState state)
+        {
+            BinopExpression.BinopKind kind;
+            (var right, _) = state.Peek();
+            // The expression is comparing object equality/inequality to null; we represent these
+            // as null checks with the corresponding equality/inequality operator.
+            if ((methodName.Contains("op_Equality") || methodName.Contains("op_Inequality")) &&
+                right.Equals(new ConstExpression(new IntRepresentation(0, false, true))))
+            {
+                kind = methodName.Contains("op_Equality") ? 
+                    BinopExpression.BinopKind.Eq : BinopExpression.BinopKind.Ne;
+                (var equalityExp, var type) = state.PopTwoAndApplyBinop(kind);
+                state.PushExpr(equalityExp, type);
+            }
+            // These methods can involve conversion between SqlBoolean and bool; to help the
+            // analysis understand the behavior, we simply treat these as nops so that the analysis
+            // directly interprets the underlying bool. 
+            else if ((methodName.Contains("Boolean::op_True") || 
+                      methodName.Contains("Boolean::op_Implicit"))) {}
+            else
+            {
+                return false;
+            }
             return true;
         }
 

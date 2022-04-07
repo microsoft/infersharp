@@ -57,23 +57,55 @@ namespace Examples
         }
 
         /// <summary>
+        /// Returns a StreamWriter resource unless returns null with exception, no leaks expected.
+        /// </summary>
+        public StreamWriter AllocateStreamWriter() 
+        {
+            try
+            {
+                FileStream fs = File.Create("everwhat.txt");
+                return new StreamWriter(fs);
+            }
+            catch(Exception e)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Interprocedural resource usage example, leaks expected.
         /// </summary>
          public void ResourceLeakInterproceduralBad(){
-            SRGlobal = new StreamReader("whatever.txt");  
-            string data = SRGlobal.ReadToEnd();
-            Console.WriteLine(data);
-            // FIXME: should close the stream interprocedurally by calling Cleanup()
+            StreamWriter stream = AllocateStreamWriter();
+            if (stream == null)
+                return;
+
+            try 
+            {
+                stream.WriteLine(12);
+            } 
+            finally 
+            {
+                // FIXME: should close the stream by calling stream.Close().
+            }
         }
 
         /// <summary>
         /// Interprocedural resource usage example, no leaks expected.
         /// </summary>
         public void ResourceLeakInterproceduralOK(){
-            SRGlobal = new StreamReader("whatever.txt");  
-            string data = SRGlobal.ReadToEnd();
-            Console.WriteLine(data);
-            CleanUp();
+            StreamWriter stream = AllocateStreamWriter();
+            if (stream == null)
+                return;
+
+            try 
+            {
+                stream.WriteLine(12);
+            } 
+            finally 
+            {
+                stream.Close();
+            }
         }
 
         /// <summary>
