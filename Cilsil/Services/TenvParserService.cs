@@ -23,6 +23,7 @@ namespace Cilsil.Services
         public Dictionary<string, string> TypeToAssembly;
 
         public Dictionary<string, int> AssemblyToDisposableTypeCount = new Dictionary<string, int>();
+        public Dictionary<string, List<string>> AssemblyToDisposableTypes = new Dictionary<string, List<string>>();
 
         public TenvParserService(Dictionary<string, string> typeToAssembly, bool writeConsoleProgress,
                                  
@@ -180,7 +181,10 @@ namespace Cilsil.Services
                 else
                 {
                     AssemblyToDisposableTypeCount[assembly] = 1;
+                    AssemblyToDisposableTypes[assembly] = new List<string>();
+                    
                 }
+                AssemblyToDisposableTypes[assembly].Add(typeFullName);
             }
             return typeEntry;
         }
