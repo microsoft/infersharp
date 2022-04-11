@@ -26,7 +26,7 @@ namespace Cilsil.Sil
             set => TypeEntries[typeName] = value;
         }
 
-        private readonly Dictionary<string, TypeEntry> TypeEntries;
+        public Dictionary<string, TypeEntry> TypeEntries;
 
         private static readonly JsonSerializerSettings JsonSerializerSettings =
             new JsonSerializerSettings()

@@ -97,11 +97,11 @@ namespace Cilsil.Services
             }
             var totalTypes = AssemblyToDisposableTypeCount.Sum(x => x.Value);
             var folder = Path.Join(Path.GetDirectoryName(AssemblyToDisposableTypeCount.Keys.First()), "IDisposableNetLibraries");
-            Directory.CreateDirectory(folder);
+            /*Directory.CreateDirectory(folder);
             foreach (var assembly in AssemblyToDisposableTypeCount.Keys)
             {
                 File.Copy(assembly, Path.Join(folder, Path.GetFileName(assembly)));
-            }
+            }*/
             return tenv;
         }
 

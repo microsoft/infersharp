@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
+using System.Linq;
 
 namespace Cilsil
 {
@@ -159,6 +160,19 @@ namespace Cilsil
 
             var tenv = result.GetResult<TenvParserResult>().TypeEnvironment;
             var cfg = result.GetResult<CfgParserResult>().Cfg;
+            var disposableTypeNames = new HashSet<string>();
+            foreach (var typeName in tenvParser.AssemblyToDisposableTypes.Keys)
+            {
+                var typeList = tenvParser.AssemblyToDisposableTypes[typeName];
+                foreach (var type in typeList)
+                {
+                    disposableTypeNames.Add(type);
+                }
+            }
+
+            var newTenvEntries = tenv.TypeEntries.Where(i => disposableTypeNames.Contains(i.Key)).ToDictionary(i => i.Key, i => i.Value);
+
+            tenv.TypeEntries = newTenvEntries;
 
             Log.PrintAllUnknownInstruction();
             Log.WriteLine();
