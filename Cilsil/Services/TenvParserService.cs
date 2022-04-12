@@ -84,8 +84,8 @@ namespace Cilsil.Services
 
         private TypeEnvironment ComputeTypeEnvironment()
         {
-            //var tenv = LoadIDisposableTypes();
-            var tenv = new TypeEnvironment();
+            var tenv = LoadIDisposableTypes();
+            //var tenv = new TypeEnvironment();
             Log.WriteLine("Translation stage 2/3: Computing type environment.");
             var i = 0;
             var total = Types.Count();
