@@ -69,7 +69,7 @@ namespace Cilsil.Services
             }
         }
 
-        private TypeEnvironment LoadIDisposableTypes()
+        private static TypeEnvironment LoadIDisposableTypes()
         {
             var assembly = Assembly.GetExecutingAssembly();
             var resourcePath = assembly.GetManifestResourceNames()
@@ -77,7 +77,8 @@ namespace Cilsil.Services
             using (Stream stream = assembly.GetManifestResourceStream(resourcePath))
             using (StreamReader reader = new StreamReader(stream))
             {
-                return TypeEnvironment.FromJson(reader.ReadToEnd());
+                var jsonString = reader.ReadToEnd();
+                return TypeEnvironment.FromJson(jsonString);
             }
         }
 

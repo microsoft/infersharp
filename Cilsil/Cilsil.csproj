@@ -20,16 +20,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Log.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="idisposableTenv.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="idisposableTenv.json" />
-    <EmbeddedResource Include="Log.cs" />
   </ItemGroup>
 
   <ItemGroup>
