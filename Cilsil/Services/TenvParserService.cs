@@ -6,7 +6,9 @@ using Cilsil.Sil;
 using Cilsil.Sil.Types;
 using Mono.Cecil;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Cilsil.Services
 {
@@ -67,9 +69,21 @@ namespace Cilsil.Services
             }
         }
 
+        private TypeEnvironment LoadIDisposableTypes()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourcePath = assembly.GetManifestResourceNames()
+                                       .Single(str => str.EndsWith("idisposableTenv.json"));
+            using (Stream stream = assembly.GetManifestResourceStream(resourcePath))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                return TypeEnvironment.FromJson(reader.ReadToEnd());
+            }
+        }
+
         private TypeEnvironment ComputeTypeEnvironment()
         {
-            var tenv = new TypeEnvironment();
+            var tenv = LoadIDisposableTypes();
             Log.WriteLine("Translation stage 2/3: Computing type environment.");
             var i = 0;
             var total = Types.Count();
