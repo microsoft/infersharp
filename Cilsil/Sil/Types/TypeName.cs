@@ -31,7 +31,7 @@ namespace Cilsil.Sil.Types
         /// </summary>
         /// <param name="typeReference">The Mono.Cecil TypeDefinition.</param>
         /// <returns></returns>
-        public static TypeName FromTypeReference(TypeDefinition typeReference) =>
+        public static CsuTypeName FromTypeReference(TypeDefinition typeReference) =>
             new CsuTypeName(CsuKind.Class, typeReference.GetCompatibleFullName());
 
         /// <summary>
