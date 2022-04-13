@@ -96,8 +96,8 @@ namespace Cilsil.Services
 
         private TypeEnvironment ComputeTypeEnvironment()
         {
-            var tenv = LoadIDisposableTypes();
-            //var tenv = new TypeEnvironment();
+            //var tenv = LoadIDisposableTypes();
+            var tenv = new TypeEnvironment();
             Log.WriteLine("Translation stage 2/3: Computing type environment.");
             var i = 0;
             var total = Types.Count();
@@ -192,7 +192,8 @@ namespace Cilsil.Services
                 TypeStruct = typeStruct,
             };
             typeEnvironment[typeFullName] = typeEntry;
-            if (baseTypes.Contains("System.IDisposable") || baseSupers.Contains("System.IDisposable"))
+            if (baseTypes.Select(x => x.Name).ToList().Contains("System.IDisposable") || 
+                baseSupers.Select(x => x.Name).ToList().Contains("System.IDisposable"))
             {
                 var assembly = TypeToAssembly[typeFullName];
                 if (AssemblyToDisposableTypeCount.ContainsKey(assembly))
