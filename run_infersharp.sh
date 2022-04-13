@@ -52,10 +52,6 @@ if [ -d infer-out ]; then rm -Rf infer-out; fi
 if [ -d infer-staging ]; then rm -Rf infer-staging; fi
 
 echo -e "Copying binaries to a staging folder...\n"
-mkdir infer-staging infer-staging/IDisposableNetLibraries
-while IFS=$' \t\r\n' read -r line; do
-    cp Cilsil/$line infer-staging/IDisposableNetLibraries
-done < Cilsil/IDisposableNetLibraries.txt
 cp -r "$1" infer-staging
 
 # Run InferSharp analysis.

@@ -77,19 +77,13 @@ namespace Cilsil.Services
             using (Stream stream = assembly.GetManifestResourceStream(resourcePath))
             using (StreamReader reader = new StreamReader(stream))
             {
-                var jsonString = reader.ReadToEnd();
-                var tenv = TypeEnvironment.FromJson(jsonString);
-                tenv.WriteToFile(
-                    "C:\\Users\\matjin\\source\\repos\\infersharp\\Cilsil\\disposableTenvRewrite.json"
-                );
-                return tenv;
+                return TypeEnvironment.FromJson(reader.ReadToEnd());
             }
         }
 
         private TypeEnvironment ComputeTypeEnvironment()
         {
             var tenv = LoadIDisposableTypes();
-            //var tenv = new TypeEnvironment();
             Log.WriteLine("Translation stage 2/3: Computing type environment.");
             var i = 0;
             var total = Types.Count();
