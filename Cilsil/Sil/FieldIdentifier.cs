@@ -36,14 +36,14 @@ namespace Cilsil.Sil
         /// <summary>
         /// Initializes a new instance of the <see cref="FieldIdentifier"/> class.
         /// </summary>
-        /// <param name="name">The valid full name of the field identifier, typically obtained from
+        /// <param name="fieldName">The valid full name of the field identifier, typically obtained from
         /// a <see cref="Mono.Cecil.FieldReference"/> parsed via 
         /// <see cref="Extensions.FieldReferenceExtensions"/>.</param>
         /// <param name="type">The field type.</param>
         /// <param name="annotation">The field annotations.</param>
-        public FieldIdentifier(string name, Typ type, ItemAnnotation annotation = null)
+        public FieldIdentifier(string fieldName, Typ type, ItemAnnotation annotation = null)
         {
-            FieldName = name;
+            FieldName = fieldName;
             Type = type;
             Annotation = annotation ?? new ItemAnnotation();
         }

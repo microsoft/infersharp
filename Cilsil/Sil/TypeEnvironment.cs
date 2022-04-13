@@ -31,7 +31,8 @@ namespace Cilsil.Sil
         private static readonly JsonSerializerSettings JsonSerializerSettings =
             new JsonSerializerSettings()
             {
-                ContractResolver = ContractResolver.SnakeCasePropertyNameContractResolver
+                ContractResolver = ContractResolver.SnakeCasePropertyNameContractResolver,
+                TypeNameHandling = TypeNameHandling.Auto
             };
 
         /// <summary>
@@ -86,9 +87,18 @@ namespace Cilsil.Sil
         /// </summary>
         /// <param name="json">The JSON.</param>
         /// <returns></returns>
-        public static TypeEnvironment FromJson(string json) =>
-            JsonConvert.DeserializeObject<TypeEnvironment>(json, JsonSerializerSettings);
-
+        public static TypeEnvironment FromJson(string json)
+        {
+            var tenv = new TypeEnvironment();
+            var typeEntries = 
+                JsonConvert.DeserializeObject<List<TypeEntry>>(json, JsonSerializerSettings);
+            foreach (var typeEntry in typeEntries)
+            {
+                var name = typeEntry.TypeName.Name;
+                tenv[name] = typeEntry;
+            }
+            return tenv;
+        }
         /// <summary>
         /// Converts to string.
         /// </summary>
@@ -108,7 +118,7 @@ namespace Cilsil.Sil
         /// The name of the type.
         /// </summary>
         [JsonProperty]
-        public TypeName TypeName { get; set; }
+        public CsuTypeName TypeName { get; set; }
 
         /// <summary>
         /// The structure containing information about the type.
