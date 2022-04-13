@@ -78,7 +78,11 @@ namespace Cilsil.Services
             using (StreamReader reader = new StreamReader(stream))
             {
                 var jsonString = reader.ReadToEnd();
-                return TypeEnvironment.FromJson(jsonString);
+                var tenv = TypeEnvironment.FromJson(jsonString);
+                tenv.WriteToFile(
+                    "C:\\Users\\matjin\\source\\repos\\infersharp\\Cilsil\\disposableTenvRewrite.json"
+                );
+                return tenv;
             }
         }
 
@@ -117,8 +121,8 @@ namespace Cilsil.Services
             var baseClasses = type.Interfaces.Select(i => i.InterfaceType).Append(type.BaseType);
             var baseInstanceFields = new List<FieldIdentifier>();
             var baseStaticFields = new List<FieldIdentifier>();
-            var baseSupers = new List<string>();
-            var baseTypes = new List<string>();
+            var baseSupers = new List<CsuTypeName>();
+            var baseTypes = new List<CsuTypeName>();
 
             // Aggregates the instance and static fields, the super
             foreach (var baseClass in baseClasses)
@@ -134,8 +138,8 @@ namespace Cilsil.Services
 
                             baseInstanceFields.AddRange(baseTypeEntry.TypeStruct.InstanceFields);
                             baseStaticFields.AddRange(baseTypeEntry.TypeStruct.StaticFields);
-                            baseSupers.AddRange(baseTypeEntry.TypeStruct.Supers.Select(s => s.Name));
-                            baseTypes.Add(baseClass.GetCompatibleFullName());
+                            baseSupers.AddRange(baseTypeEntry.TypeStruct.Supers);
+                            baseTypes.Add(new CsuTypeName(CsuKind.Class, baseClass.GetCompatibleFullName()));
                         }
                     }
                     catch
@@ -153,16 +157,18 @@ namespace Cilsil.Services
             var instanceFields = allFields
                                     .Where(f => !f.IsStatic)
                                     .Select(f => f.Field)
-                                    .Concat(baseInstanceFields);
+                                    .Concat(baseInstanceFields)
+                                    .ToList();
             var staticFields = allFields
                                     .Where(f => f.IsStatic)
                                     .Select(f => f.Field)
-                                    .Concat(baseStaticFields);
-            var procNames = type.Methods.Select(m => new ProcedureName(m));
+                                    .Concat(baseStaticFields)
+                                    .ToList();
+            var procNames = type.Methods.Select(m => new ProcedureName(m)).ToList();
 
             var typeStruct = new Struct(instanceFields,
                                         staticFields,
-                                        baseSupers.Concat(baseTypes),
+                                        baseSupers.Concat(baseTypes).ToList(),
                                         procNames);
 
             var typeEntry = new TypeEntry

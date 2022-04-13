@@ -31,7 +31,8 @@ namespace Cilsil.Sil
         private static readonly JsonSerializerSettings JsonSerializerSettings =
             new JsonSerializerSettings()
             {
-                ContractResolver = ContractResolver.SnakeCasePropertyNameContractResolver
+                ContractResolver = ContractResolver.SnakeCasePropertyNameContractResolver,
+                TypeNameHandling = TypeNameHandling.Auto
             };
 
         /// <summary>
