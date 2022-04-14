@@ -20,11 +20,15 @@ namespace Cilsil.Services
 
         public bool WriteConsoleProgress { get; private set; }
 
+        public bool LoadTypeEnvironment { get; private set; }
+
         public TenvParserService(bool writeConsoleProgress,
+                                 bool loadTenv,
                                  IEnumerable<TypeDefinition> types = null,
                                  IEnumerable<ModuleDefinition> moduleDefinitions = null)
         {
             WriteConsoleProgress = writeConsoleProgress;
+            LoadTypeEnvironment = loadTenv;
             Types = types;
             ModuleDefinitions = moduleDefinitions;
         }
@@ -83,7 +87,7 @@ namespace Cilsil.Services
 
         private TypeEnvironment ComputeTypeEnvironment()
         {
-            var tenv = LoadIDisposableTypes();
+            var tenv = LoadTypeEnvironment ? LoadIDisposableTypes() : new TypeEnvironment();
             Log.WriteLine("Translation stage 2/3: Computing type environment.");
             var i = 0;
             var total = Types.Count();

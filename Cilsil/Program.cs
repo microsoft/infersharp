@@ -83,7 +83,8 @@ namespace Cilsil
         /// <param name="outcfg">The CFG output path.</param>
         /// <param name="cfgtxt">The CFG text representation output path.</param>
         /// <param name="outtenv">The type environment output path.</param>
-        /// <param name="dot">The dot file (used for visualizing the computed CFG) output path.</param>
+        /// <param name="dot">The dot file (used for visualizing the computed CFG) output
+        /// path.</param>
         /// <param name="debug">The flag for printing debug output.</param>
         /// <param name="extprogress">If <c>true</c>, output progress for extension 
         /// scenario when input binaries are adequately large.</param>
@@ -117,9 +118,12 @@ namespace Cilsil
         /// <param name="paths">The paths.</param>
         /// <param name="extensionProgress">If <c>true</c>, periodically write progress to console
         /// if the input binaries are adequately large.</param>
+        /// <param name="loadTenv"> If <c>true</c>, load types stored in the baseline type 
+        /// environment which includes IDisposable types.</param>
         /// <returns>The computed cfg and type environment.</returns>
         public static (Cfg, TypeEnvironment) ExecuteTranslation(string[] paths, 
-                                                                bool extensionProgress = false)
+                                                                bool extensionProgress = false,
+                                                                bool loadTenv = true)
         {
             (var assemblies, var totalSize) = GetAssemblies(paths);
 
@@ -128,7 +132,7 @@ namespace Cilsil
             var reportProgressExtension = totalSize > 1e7 && extensionProgress;
 
             var decompilationService = new DecompilationService(assemblies, reportProgressExtension);
-            var tenvParser = new TenvParserService(reportProgressExtension);
+            var tenvParser = new TenvParserService(reportProgressExtension, loadTenv);
             var cfgParser = new CfgParserService(reportProgressExtension);
 
             var result = decompilationService
