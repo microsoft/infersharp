@@ -16,31 +16,31 @@ namespace Cilsil.Sil.Types
         /// The instance fields of the type.
         /// </value>
         [JsonProperty]
-        public IEnumerable<FieldIdentifier> InstanceFields { get; }
+        public List<FieldIdentifier> InstanceFields { get; }
 
         /// <summary>
         /// The static fields of the type.
         /// </summary>
         [JsonProperty]
-        public IEnumerable<FieldIdentifier> StaticFields { get; }
+        public List<FieldIdentifier> StaticFields { get; }
 
         /// <summary>
         /// All of the classes and interfaces which can reach this type in its inheritance tree.
         /// </summary>
         [JsonProperty]
-        public IEnumerable<CsuTypeName> Supers { get; }
+        public List<CsuTypeName> Supers { get; }
 
         /// <summary>
         /// The methods of the type.
         /// </summary>
         [JsonProperty]
-        public IEnumerable<ProcedureName> Methods { get; set; }
+        public List<ProcedureName> Methods { get; set; }
 
         /// <summary>
         /// The source code annotations of the type.
         /// </summary>
         [JsonProperty]
-        public IEnumerable<ItemAnnotation> Annotations { get; set; }
+        public List<ItemAnnotation> Annotations { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Struct"/> class.
@@ -51,15 +51,15 @@ namespace Cilsil.Sil.Types
         /// inheritance tree.</param>
         /// <param name="methods">The methods of the type.</param>
         /// <param name="annotations">The source code annotations of the type.</param>
-        public Struct(IEnumerable<FieldIdentifier> instanceFields,
-                      IEnumerable<FieldIdentifier> staticFields,
-                      IEnumerable<string> supers,
-                      IEnumerable<ProcedureName> methods,
-                      IEnumerable<ItemAnnotation> annotations = null)
+        public Struct(List<FieldIdentifier> instanceFields,
+                      List<FieldIdentifier> staticFields,
+                      List<CsuTypeName> supers,
+                      List<ProcedureName> methods,
+                      List<ItemAnnotation> annotations = null)
         {
             InstanceFields = instanceFields;
             StaticFields = staticFields;
-            Supers = supers.Select(s => new CsuTypeName(CsuKind.Class, s));
+            Supers = supers;
             Methods = methods;
             Annotations = annotations ?? new List<ItemAnnotation>();
         }

@@ -20,6 +20,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="idisposableTenv.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="idisposableTenv.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="QuickGraph" Version="3.6.61119.7" NoWarn="NU1701" />
@@ -27,8 +35,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="IDisposableNetLibraries.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

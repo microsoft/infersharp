@@ -6,7 +6,9 @@ using Cilsil.Sil;
 using Cilsil.Sil.Types;
 using Mono.Cecil;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Cilsil.Services
 {
@@ -18,11 +20,15 @@ namespace Cilsil.Services
 
         public bool WriteConsoleProgress { get; private set; }
 
+        public bool LoadTypeEnvironment { get; private set; }
+
         public TenvParserService(bool writeConsoleProgress,
+                                 bool loadTenv,
                                  IEnumerable<TypeDefinition> types = null,
                                  IEnumerable<ModuleDefinition> moduleDefinitions = null)
         {
             WriteConsoleProgress = writeConsoleProgress;
+            LoadTypeEnvironment = loadTenv;
             Types = types;
             ModuleDefinitions = moduleDefinitions;
         }
@@ -67,9 +73,21 @@ namespace Cilsil.Services
             }
         }
 
+        private static TypeEnvironment LoadIDisposableTypes()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourcePath = assembly.GetManifestResourceNames()
+                                       .Single(str => str.EndsWith("idisposableTenv.json"));
+            using (Stream stream = assembly.GetManifestResourceStream(resourcePath))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                return TypeEnvironment.FromJson(reader.ReadToEnd());
+            }
+        }
+
         private TypeEnvironment ComputeTypeEnvironment()
         {
-            var tenv = new TypeEnvironment();
+            var tenv = LoadTypeEnvironment ? LoadIDisposableTypes() : new TypeEnvironment();
             Log.WriteLine("Translation stage 2/3: Computing type environment.");
             var i = 0;
             var total = Types.Count();
@@ -101,8 +119,8 @@ namespace Cilsil.Services
             var baseClasses = type.Interfaces.Select(i => i.InterfaceType).Append(type.BaseType);
             var baseInstanceFields = new List<FieldIdentifier>();
             var baseStaticFields = new List<FieldIdentifier>();
-            var baseSupers = new List<string>();
-            var baseTypes = new List<string>();
+            var baseSupers = new List<CsuTypeName>();
+            var baseTypes = new List<CsuTypeName>();
 
             // Aggregates the instance and static fields, the super
             foreach (var baseClass in baseClasses)
@@ -118,8 +136,8 @@ namespace Cilsil.Services
 
                             baseInstanceFields.AddRange(baseTypeEntry.TypeStruct.InstanceFields);
                             baseStaticFields.AddRange(baseTypeEntry.TypeStruct.StaticFields);
-                            baseSupers.AddRange(baseTypeEntry.TypeStruct.Supers.Select(s => s.Name));
-                            baseTypes.Add(baseClass.GetCompatibleFullName());
+                            baseSupers.AddRange(baseTypeEntry.TypeStruct.Supers);
+                            baseTypes.Add(new CsuTypeName(CsuKind.Class, baseClass.GetCompatibleFullName()));
                         }
                     }
                     catch
@@ -137,16 +155,18 @@ namespace Cilsil.Services
             var instanceFields = allFields
                                     .Where(f => !f.IsStatic)
                                     .Select(f => f.Field)
-                                    .Concat(baseInstanceFields);
+                                    .Concat(baseInstanceFields)
+                                    .ToList();
             var staticFields = allFields
                                     .Where(f => f.IsStatic)
                                     .Select(f => f.Field)
-                                    .Concat(baseStaticFields);
-            var procNames = type.Methods.Select(m => new ProcedureName(m));
+                                    .Concat(baseStaticFields)
+                                    .ToList();
+            var procNames = type.Methods.Select(m => new ProcedureName(m)).ToList();
 
             var typeStruct = new Struct(instanceFields,
                                         staticFields,
-                                        baseSupers.Concat(baseTypes),
+                                        baseSupers.Concat(baseTypes).ToList(),
                                         procNames);
 
             var typeEntry = new TypeEntry
