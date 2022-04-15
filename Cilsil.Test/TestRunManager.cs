@@ -158,7 +158,7 @@ namespace Cilsil.Test
 
         public (string, string) RunCilsil(params string[] assemblies)
         {
-            (var cfg, var tenv) = Program.ExecuteTranslation(assemblies);
+            (var cfg, var tenv) = Program.ExecuteTranslation(assemblies, loadTenv: false);
 
             File.WriteAllText(CfgJsonPath, cfg.ToJson());
             File.WriteAllText(TenvJsonPath, tenv.ToJson());
