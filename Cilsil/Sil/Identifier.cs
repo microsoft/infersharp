@@ -80,6 +80,12 @@ namespace Cilsil.Sil
         public int Stamp { get; set; }
 
         /// <summary>
+        /// Describes the identifier for better warning capabilities.
+        /// </summary>
+        [JsonProperty]
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>
         /// Converts to string.
         /// </summary>
         /// <returns>
