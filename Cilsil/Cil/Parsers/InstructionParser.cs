@@ -582,7 +582,7 @@ namespace Cilsil.Cil.Parsers
             var type = Typ.FromTypeReference(newObjectReference);
             var newObjectIdentifier = state.GetIdentifier(
                 Identifier.IdentKind.Normal,
-                description: $"output of {type}::.ctor() at " +
+                description: $"output of {type.StripPointer()}::.ctor() at " +
                              $"{state.CurrentLocation}");
             var callFlags = new Call.CallFlags(isVirtual: false,
                                                noReturn: false,
