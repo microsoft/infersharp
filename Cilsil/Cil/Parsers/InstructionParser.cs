@@ -638,9 +638,7 @@ namespace Cilsil.Cil.Parsers
                          state.CurrentLocation);
 
             var objectConstructorCall =
-                new Call(state.GetIdentifier(Identifier.IdentKind.Normal,
-                                             description: $"output of {typeName}::.ctor() at " +
-                                                          $"{state.CurrentLocation}"),
+                new Call(state.GetIdentifier(Identifier.IdentKind.Normal),
                          new Tvoid(),
                          new ConstExpression(new ProcedureName(".ctor",
                                                                new List<string>(),
