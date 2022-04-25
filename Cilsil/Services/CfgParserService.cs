@@ -6,6 +6,7 @@ using Cilsil.Services.Results;
 using Cilsil.Sil;
 using Cilsil.Utils;
 using Mono.Cecil;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -57,7 +58,16 @@ namespace Cilsil.Services
             {
                 foreach (var method in Methods)
                 {
-                    ComputeMethodCfg(method);
+                    try
+                    {
+                        ComputeMethodCfg(method);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.WriteError(e.Message);
+                        Log.RecordUnfinishedMethod(method.GetCompatibleFullName(),
+                                                   method.Body.Instructions.Count);
+                    }
                     i++;
                     bar.Report((double)i / total);
                     if (WriteConsoleProgress)
