@@ -810,7 +810,9 @@ namespace Cilsil.Cil.Parsers
         /// <param name="method">The method in which the variable is located.</param>
         /// <returns>The string representation.</returns>
         protected string LocalName(int index, MethodDefinition method) =>
-            method.DebugInformation.TryGetName(method.Body.Variables[index], out var name) ? name : $"%{index}";
+            method.DebugInformation.TryGetName(method.Body.Variables[index], out var name) && 
+            !name.Contains("CS$") ? 
+                name : $"%{index}";
 
         /// <summary>
         /// Gets the argument name for the given index and method.
