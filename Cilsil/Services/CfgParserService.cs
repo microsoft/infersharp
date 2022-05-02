@@ -58,16 +58,7 @@ namespace Cilsil.Services
             {
                 foreach (var method in Methods)
                 {
-                    try
-                    {
-                        ComputeMethodCfg(method);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.WriteError(e.Message);
-                        Log.RecordUnfinishedMethod(method.GetCompatibleFullName(),
-                                                   method.Body.Instructions.Count);
-                    }
+                    ComputeMethodCfg(method);
                     i++;
                     bar.Report((double)i / total);
                     if (WriteConsoleProgress)
@@ -126,53 +117,64 @@ namespace Cilsil.Services
 
             if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
-                programState.PushInstruction(methodBody.Instructions.First());
-                do
+                try
                 {
-                    var nextInstruction = programState.PopInstruction();
-                    // Checks if there is a node for the offset that we can reuse.
-                    (var nodeAtOffset, var excessiveVisits) =
-                        programState.GetOffsetNode(
-                            nextInstruction.Offset,
-                            programState.PreviousNode?.BlockEndOffset ??
-                            MethodExceptionHandlers.DefaultHandlerEndOffset);
-                    // We don't reuse nodes of finally handlers.
-                    if (nodeAtOffset != null &&
-                        !programState.MethodExceptionHandlers
-                                     .FinallyOffsetToFinallyHandler
-                                     .ContainsKey(nextInstruction.Offset) &&
-                        !programState.MethodExceptionHandlers
-                                     .CatchOffsetToCatchHandler
-                                     .ContainsKey(nextInstruction.Offset))
+                    programState.PushInstruction(methodBody.Instructions.First());
+                    do
                     {
-                        programState.PreviousNode.Successors.Add(nodeAtOffset);
-                    }
-                    else if (unhandledExceptionCase)
-                    {
-                        Log.WriteWarning($"Unhandled exception-handling.");
-                        Log.RecordUnknownInstruction("unhandled-exception");
-                        Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
-                                                   nextInstruction.RemainingInstructionCount());
-                        translationUnfinished = true;
-                        break;
-                    }
-                    else if (excessiveVisits)
-                    {
-                        TimeoutMethodCount++;
-                        Log.WriteWarning("Translation timeout.");
-                        Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
-                                                   nextInstruction.RemainingInstructionCount());
-                        translationUnfinished = true;
-                        break;
-                    }
-                    else if (!InstructionParser.ParseCilInstruction(nextInstruction, programState))
-                    {
-                        Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
-                                                   nextInstruction.RemainingInstructionCount());
-                        translationUnfinished = true;
-                        break;
-                    }
-                } while (programState.HasInstruction);
+                        var nextInstruction = programState.PopInstruction();
+                        // Checks if there is a node for the offset that we can reuse.
+                        (var nodeAtOffset, var excessiveVisits) =
+                            programState.GetOffsetNode(
+                                nextInstruction.Offset,
+                                programState.PreviousNode?.BlockEndOffset ??
+                                MethodExceptionHandlers.DefaultHandlerEndOffset);
+                        // We don't reuse nodes of finally handlers.
+                        if (nodeAtOffset != null &&
+                            !programState.MethodExceptionHandlers
+                                         .FinallyOffsetToFinallyHandler
+                                         .ContainsKey(nextInstruction.Offset) &&
+                            !programState.MethodExceptionHandlers
+                                         .CatchOffsetToCatchHandler
+                                         .ContainsKey(nextInstruction.Offset))
+                        {
+                            programState.PreviousNode.Successors.Add(nodeAtOffset);
+                        }
+                        else if (unhandledExceptionCase)
+                        {
+                            Log.WriteWarning($"Unhandled exception-handling.");
+                            Log.RecordUnknownInstruction("unhandled-exception");
+                            Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
+                                                       nextInstruction.RemainingInstructionCount());
+                            translationUnfinished = true;
+                            break;
+                        }
+                        else if (excessiveVisits)
+                        {
+                            TimeoutMethodCount++;
+                            Log.WriteWarning("Translation timeout.");
+                            Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
+                                                       nextInstruction.RemainingInstructionCount());
+                            translationUnfinished = true;
+                            break;
+                        }
+                        else if (!InstructionParser.ParseCilInstruction(nextInstruction, programState))
+                        {
+                            Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
+                                                       nextInstruction.RemainingInstructionCount());
+                            translationUnfinished = true;
+                            break;
+                        }
+                    } while (programState.HasInstruction);
+                } 
+                catch (Exception e)
+                {
+                    translationUnfinished = true;
+                    Log.WriteWarning(e.Message);
+                    Log.RecordUnfinishedMethod(method.GetCompatibleFullName(),
+                                               method.Body.Instructions.Count);
+
+                }
             }
 
             // We add method to cfg only if its translation is finished. Otherwise, we skip that
