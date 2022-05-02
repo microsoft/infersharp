@@ -166,7 +166,7 @@ namespace Cilsil.Services
                             break;
                         }
                     } while (programState.HasInstruction);
-                } 
+                }
                 catch (Exception e)
                 {
                     translationUnfinished = true;
