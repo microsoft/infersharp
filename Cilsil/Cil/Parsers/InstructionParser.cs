@@ -811,7 +811,7 @@ namespace Cilsil.Cil.Parsers
         /// <returns>The string representation.</returns>
         protected string LocalName(int index, MethodDefinition method) =>
             method.DebugInformation.TryGetName(method.Body.Variables[index], out var name) && 
-            name != "CS$0$0000" ? 
+            !name.Contains("CS$") ? 
                 name : $"%{index}";
 
         /// <summary>
