@@ -178,6 +178,11 @@ namespace Cilsil
                     Log.WriteError($"Input DLL {e.FileName} not found.");
                     continue;
                 }
+                catch (FileLoadException e)
+                {
+                    Log.WriteError($"Input DLL {e.FileName} could not be loaded.");
+                    continue;
+                }
             }
             return (assemblies, totalSize);
         }
