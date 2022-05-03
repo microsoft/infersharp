@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
+using System.Linq;
 
 namespace Cilsil
 {
@@ -150,6 +151,22 @@ namespace Cilsil
             return (cfg, tenv);
         }
 
+        private static List<string> FilterDuplicateFilenames(List<string> paths)
+        {
+            var filenames = new HashSet<string>();
+            var filteredPaths = new List<string>();
+            foreach (var path in paths)
+            {
+                var filename = Path.GetFileName(path);
+                if (!filenames.Contains(filename))
+                {
+                    filteredPaths.Add(path);
+                }
+                filenames.Add(filename);
+            }
+            return filteredPaths;
+        }
+
         private static (IEnumerable<string>, long) GetAssemblies(IEnumerable<string> paths)
         {
             var assemblies = new List<string>();
@@ -179,7 +196,9 @@ namespace Cilsil
                     continue;
                 }
             }
-            return (assemblies, totalSize);
+            var filteredAssemblies = FilterDuplicateFilenames(assemblies);
+            
+            return (filteredAssemblies, totalSize);
         }
 
         private static void PrintFiles(string[] files = null, string procs = null)
