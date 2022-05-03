@@ -154,6 +154,7 @@ namespace Cilsil
         {
             var filenames = new HashSet<string>();
             var filteredPaths = new List<string>();
+            paths.Sort();
             foreach (var path in paths)
             {
                 var filename = Path.GetFileName(path);
