@@ -3,14 +3,21 @@
 ## Prerequisite
 - [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install).
 
-**Please use the _Ubuntu-20.04_ WSL distribution or the _Debian_ WSL distribution.**
-
-## Setup
-1. From Windows Command Prompt or PowerShell, enter `wsl.exe` to open your default Linux distribution.
-2. Execute the following commands:
+## Getting Started
+1. From Windows Command Prompt, download and set up the InferSharp custom distro by executing the following commands:
 
 ```
-cd ~ && wget https://github.com/microsoft/infersharp/releases/download/v1.2/infersharp-linux64-v1.2.tar.gz && tar -xvzf infersharp-linux64-v1.2.tar.gz && cd infersharp
+wget https://github.com/microsoft/infersharp/releases/download/v1.3/infersharp-wsl-distro-v1.3.tar.gz && wsl --import infersharp1.3 C:\wslDistroStorage\infersharp1.3 infersharp-wsl-distro-v1.3.tar.gz && rm infersharp-wsl-distro-v1.3.tar.gz
+```
+
+2. Launch the InferSharp custrom distro:
+```
+wsl ~ -d infersharp1.3
+```
+
+3. Go to the `infersharp` folder:
+```
+cd infersharp
 ```
 
 3. Run Infer# against your binaries. For example, if the binaries are at `C:\Code\MyApp\bin`
