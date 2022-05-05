@@ -38,7 +38,10 @@ RUN opam init --reinit --bare --disable-sandboxing
 
 # Download the latest Infer master
 RUN cd / && \
-    git clone https://github.com/facebook/infer.git
+    git clone https://github.com/xi-liu-ds/infer.git && \
+    cd infer && \
+    git checkout xi-liu-ds/1.3roll && \
+    cd ..
 
 # build in non-optimized mode by default to speed up build times
 ENV BUILD_MODE=dev
