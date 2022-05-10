@@ -33,9 +33,9 @@ if [ "$#" -gt 1 ]; then
             infer_args_list+=("--enable-issue-type DOTNET_RESOURCE_LEAK")
         elif [ ${!i} == "--enable-thread-safety-violation" ]; then
             infer_args_list+=("--enable-issue-type THREAD_SAFETY_VIOLATION")
-		elif [ ${!i} == "--output-folder" ]; then
-			((i++))
-			output_folder=${!i}
+        elif [ ${!i} == "--output-folder" ]; then
+            ((i++))
+            output_folder=${!i}
         fi
         ((i++))
     done
