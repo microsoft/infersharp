@@ -7,11 +7,12 @@ set -e
 
 # Check if we have enough arguments.
 if [ "$#" -lt 1 ]; then
-    echo "run_infersharp.sh <dll_folder_path> [--enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation --sarif] -- requires 1 argument (dll_folder_path)"
+    echo "run_infersharp.sh <dll_folder_path> [--output-folder <sarif_output_folder_path> --enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation --sarif] -- requires 1 argument (dll_folder_path)"
     exit
 fi
 
 infer_args_list=("--enable-issue-type NULLPTR_DEREFERENCE" "--enable-issue-type DOTNET_RESOURCE_LEAK" "--enable-issue-type THREAD_SAFETY_VIOLATION")
+output_folder=""
 
 # Clear issue types if specific issue is mentioned in arguments
 for v in "$@" 
@@ -32,6 +33,9 @@ if [ "$#" -gt 1 ]; then
             infer_args_list+=("--enable-issue-type DOTNET_RESOURCE_LEAK")
         elif [ ${!i} == "--enable-thread-safety-violation" ]; then
             infer_args_list+=("--enable-issue-type THREAD_SAFETY_VIOLATION")
+		elif [ ${!i} == "--output-folder" ]; then
+			((i++))
+			output_folder=${!i}
         fi
         ((i++))
     done
@@ -61,3 +65,11 @@ echo -e "Code translation completed. Analyzing...\n"
 $parent_path/infer/lib/infer/infer/bin/infer capture
 mkdir infer-out/captured 
 $parent_path/infer/lib/infer/infer/bin/infer $($parent_path/infer/lib/infer/infer/bin/infer help --list-issue-types 2> /dev/null | grep ':true:' | cut -d ':' -f 1 | sed -e 's/^/--disable-issue-type /') $infer_args --pulse --no-biabduction --debug-level 1 --sarif analyzejson --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
+
+if [ "$output_folder" != "" ]; then
+	if [ ! -d "$output_folder" ]; then
+	  mkdir "$output_folder"
+	fi
+    cp infer-out/report.sarif infer-out/report.txt $output_folder/
+	echo -e "\nFull reports available at '$output_folder'\n"
+fi
