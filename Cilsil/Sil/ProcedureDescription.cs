@@ -112,10 +112,22 @@ namespace Cilsil.Sil
 
             Nodes = new List<CfgNode>();
             StartNode = new StartNode(location, this);
-            ExitNode = new ExitNode(Location.FromSequencePoint(methodDefinition
-                                                               .DebugInformation
-                                                               .SequencePoints[1])
-                                    this);
+            if (methodDefinition.DebugInformation.SequencePoints == null || 
+                methodDefinition.DebugInformation.SequencePoints.Count < 2)
+            {
+                ExitNode = new ExitNode(Location.FromSequencePoint(methodDefinition
+                                                                  .DebugInformation
+                                                                  .SequencePoints
+                                                                  .FirstOrDefault()),
+                                        this);
+            }
+            else
+            {
+                ExitNode = new ExitNode(Location.FromSequencePoint(methodDefinition
+                                                                   .DebugInformation
+                                                                   .SequencePoints?.Skip(1).Take(1).SingleOrDefault()),
+                                        this);
+            }
             ExceptionSinkNode = new StatementNode(location,
                                                   StatementNode.StatementNodeKind.ExceptionsSink,
                                                   proc: this);
