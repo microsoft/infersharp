@@ -7,7 +7,7 @@ set -e
 
 # Check if we have enough arguments.
 if [ "$#" -lt 1 ]; then
-    echo "run_infersharp.sh <dll_folder_path> [--output-folder <sarif_output_folder_path> --enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation --sarif --guardian] -- requires 1 argument (dll_folder_path)"
+    echo "run_infersharp.sh <dll_folder_path> [--output-folder <sarif_output_folder_path> --enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation --sarif] -- requires 1 argument (dll_folder_path)"
     exit
 fi
 
@@ -23,7 +23,6 @@ do
 done
 
 # Parse arguments
-infersharp_args=""
 if [ "$#" -gt 1 ]; then
     i=2
     while [ $i -le $# ]
@@ -34,8 +33,6 @@ if [ "$#" -gt 1 ]; then
             infer_args_list+=("--enable-issue-type DOTNET_RESOURCE_LEAK")
         elif [ ${!i} == "--enable-thread-safety-violation" ]; then
             infer_args_list+=("--enable-issue-type THREAD_SAFETY_VIOLATION")
-        elif [ ${!i} == "--guardian" ]; then
-            infersharp_args="--guardian"
         elif [ ${!i} == "--output-folder" ]; then
             ((i++))
             output_folder=${!i}
@@ -63,7 +60,7 @@ cp -r "$1" infer-staging
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."
-./Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt --extprogress $infersharp_args
+./Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt --extprogress
 echo -e "Code translation completed. Analyzing...\n"
 $parent_path/infer/lib/infer/infer/bin/infer capture
 mkdir infer-out/captured 
