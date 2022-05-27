@@ -19,42 +19,42 @@ namespace Cilsil
         /// <summary>
         /// The paths of dlls to translate.
         /// </summary>
-        public string[] paths { get; set; }
+        public string[] Paths { get; set; }
 
         /// <summary>
         /// Output dot file for the control flow graph.
         /// </summary>
-        public string dot { get; set; }
+        public string Dot { get; set; }
 
         /// <summary>
         /// Output CFG JSON file path.
         /// </summary>
-        public string outcfg { get; set; }
+        public string OutCfg { get; set; }
 
         /// <summary>
         /// Output CFG txt file path.
         /// </summary>
-        public string cfgtxt { get; set; }
+        public string CfgTxt { get; set; }
 
         /// <summary>
         /// Output type environment JSON file path.
         /// </summary>
-        public string outtenv { get; set; }
+        public string OutTenv { get; set; }
 
         /// <summary>
         /// Output debug information.
         /// </summary>
-        public bool debug { get; set; }
+        public bool Debug { get; set; }
 
         /// <summary>
         /// Print progress for extension scenario.
         /// </summary>
-        public bool extprogress { get; set; }
+        public bool ExtProgress { get; set; }
 
         /// <summary>
         /// Use guardian setting for resource leak location.
         /// </summary>
-        public bool guardian { get; set; }
+        public bool Guardian { get; set; }
     }
 
     /// <summary>
@@ -108,14 +108,14 @@ namespace Cilsil
                 CommandHandler.Create<TranslationOptions>((TranslationOptions optionInstances) =>
                 {
                     Translate(
-                        optionInstances.paths, 
-                        optionInstances.outcfg, 
-                        optionInstances.cfgtxt,
-                        optionInstances.outtenv,
-                        optionInstances.dot, 
-                        optionInstances.debug,
-                        optionInstances.extprogress,
-                        optionInstances.guardian
+                        optionInstances.Paths, 
+                        optionInstances.OutCfg, 
+                        optionInstances.CfgTxt,
+                        optionInstances.OutTenv,
+                        optionInstances.Dot, 
+                        optionInstances.Debug,
+                        optionInstances.ExtProgress,
+                        optionInstances.Guardian
                     );
                 });
             var printCommand = new Command("print")
