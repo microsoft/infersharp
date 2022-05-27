@@ -191,13 +191,15 @@ namespace Cilsil.Utils
         /// </summary>
         /// <param name="method">The method being translated.</param>
         /// <param name="cfg">The CFG associated with the method.</param>
-        public ProgramState(MethodDefinition method, Cfg cfg)
+        /// <param name="guardian">If <c>true</c>, record resource leak location by locating exit node  
+        /// at the location of the very first instruction of the corresponding method.</param>
+        public ProgramState(MethodDefinition method, Cfg cfg, bool guardian)
         {
             Cfg = cfg;
             ProgramStack = new ProgramStack();
             Method = method;
             ProcName = new ProcedureName(method);
-            ProcDesc = new ProcedureDescription(method, cfg);
+            ProcDesc = new ProcedureDescription(method, cfg, guardian);
             PreviousNode = ProcDesc.StartNode;
 
             CurrentLocation = Location.FromSequencePoint(

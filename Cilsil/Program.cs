@@ -12,6 +12,52 @@ using System.IO;
 namespace Cilsil
 {
     /// <summary>
+    /// Class for translation options.
+    /// </summary>
+    public class TranslationOptions
+    {
+        /// <summary>
+        /// The paths of dlls to translate.
+        /// </summary>
+        public string[] paths { get; set; }
+
+        /// <summary>
+        /// Output dot file for the control flow graph.
+        /// </summary>
+        public string dot { get; set; }
+
+        /// <summary>
+        /// Output CFG JSON file path.
+        /// </summary>
+        public string outcfg { get; set; }
+
+        /// <summary>
+        /// Output CFG txt file path.
+        /// </summary>
+        public string cfgtxt { get; set; }
+
+        /// <summary>
+        /// Output type environment JSON file path.
+        /// </summary>
+        public string outtenv { get; set; }
+
+        /// <summary>
+        /// Output debug information.
+        /// </summary>
+        public bool debug { get; set; }
+
+        /// <summary>
+        /// Print progress for extension scenario.
+        /// </summary>
+        public bool extprogress { get; set; }
+
+        /// <summary>
+        /// Use guardian setting for resource leak location.
+        /// </summary>
+        public bool guardian { get; set; }
+    }
+
+    /// <summary>
     /// Entry point for the CIL to SIL translation pipeline.
     /// </summary>
     public class Program
@@ -51,10 +97,27 @@ namespace Cilsil
                 {
                     Argument = new Argument<bool>(),
                     Description = "Print progress for extension scenario"
+                },
+                new Option("--guardian")
+                {
+                    Argument = new Argument<bool>(),
+                    Description = "Use guardian setting for resource leak location"
                 }
             };
             translateCommand.Handler =
-                CommandHandler.Create<string[], string, string, string, string, bool, bool>(Translate);
+                CommandHandler.Create<TranslationOptions>((TranslationOptions optionInstances) =>
+                {
+                    Translate(
+                        optionInstances.paths, 
+                        optionInstances.outcfg, 
+                        optionInstances.cfgtxt,
+                        optionInstances.outtenv,
+                        optionInstances.dot, 
+                        optionInstances.debug,
+                        optionInstances.extprogress,
+                        optionInstances.guardian
+                    );
+                });
             var printCommand = new Command("print")
             {
                 new Option("--procs", "A comma-separated procedure names to print")
@@ -83,22 +146,25 @@ namespace Cilsil
         /// <param name="outcfg">The CFG output path.</param>
         /// <param name="cfgtxt">The CFG text representation output path.</param>
         /// <param name="outtenv">The type environment output path.</param>
-        /// <param name="dot">The dot file (used for visualizing the computed CFG) output
+        /// <param name="dot">The dot file (used for visualizing the computed CFG) output 
         /// path.</param>
         /// <param name="debug">The flag for printing debug output.</param>
         /// <param name="extprogress">If <c>true</c>, output progress for extension 
         /// scenario when input binaries are adequately large.</param>
+        /// <param name="guardian">If <c>true</c>, record resource leak location by locating exit node  
+        /// at the location of the very first instruction of the corresponding method.</param>
         public static void Translate(string[] paths = null,
                                      string outcfg = null,
                                      string cfgtxt = null,
                                      string outtenv = null,
                                      string dot = null,
                                      bool debug = false,
-                                     bool extprogress = false)
+                                     bool extprogress = false,
+                                     bool guardian = false)
         {
             Log.SetDebugMode(debug);
 
-            (var cfg, var tenv) = ExecuteTranslation(paths, extprogress);
+            (var cfg, var tenv) = ExecuteTranslation(paths, extprogress, guardian);
 
             File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString());
             cfg.WriteToFile(outcfg);
@@ -120,10 +186,13 @@ namespace Cilsil
         /// if the input binaries are adequately large.</param>
         /// <param name="loadTenv"> If <c>true</c>, load types stored in the baseline type 
         /// environment which includes IDisposable types.</param>
+        /// <param name="guardian">If <c>true</c>, record resource leak location by locating exit node  
+        /// at the location of the very first instruction of the corresponding method.</param>
         /// <returns>The computed cfg and type environment.</returns>
         public static (Cfg, TypeEnvironment) ExecuteTranslation(string[] paths, 
                                                                 bool extensionProgress = false,
-                                                                bool loadTenv = true)
+                                                                bool loadTenv = true,
+                                                                bool guardian = false)
         {
             (var assemblies, var totalSize) = GetAssemblies(paths);
 
@@ -133,7 +202,7 @@ namespace Cilsil
 
             var decompilationService = new DecompilationService(assemblies, reportProgressExtension);
             var tenvParser = new TenvParserService(reportProgressExtension, loadTenv);
-            var cfgParser = new CfgParserService(reportProgressExtension);
+            var cfgParser = new CfgParserService(reportProgressExtension, guardian);
 
             var result = decompilationService
                 .Execute()

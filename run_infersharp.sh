@@ -23,6 +23,7 @@ do
 done
 
 # Parse arguments
+infersharp_args=""
 if [ "$#" -gt 1 ]; then
     i=2
     while [ $i -le $# ]
@@ -36,6 +37,8 @@ if [ "$#" -gt 1 ]; then
         elif [ ${!i} == "--output-folder" ]; then
             ((i++))
             output_folder=${!i}
+        elif [ ${!i} == "--guardian" ]; then
+            infersharp_args="--guardian"
         fi
         ((i++))
     done
@@ -60,7 +63,7 @@ cp -r "$1" infer-staging
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."
-./Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt --extprogress
+./Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt --extprogress $infersharp_args
 echo -e "Code translation completed. Analyzing...\n"
 $parent_path/infer/lib/infer/infer/bin/infer capture
 mkdir infer-out/captured 

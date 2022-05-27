@@ -22,14 +22,18 @@ namespace Cilsil.Services
 
         public bool WriteConsoleProgress { get; private set; }
 
+        public bool Guardian { get; private set; }
+
         private Cfg Cfg;
 
         public CfgParserService(bool writeConsoleProgress,
+                                bool guardian,
                                 IEnumerable<MethodDefinition> methods = null,
                                 IEnumerable<TypeDefinition> types = null)
         {
             WriteConsoleProgress = writeConsoleProgress;
             Methods = methods;
+            Guardian = guardian;
             Types = types;
         }
 
@@ -58,7 +62,7 @@ namespace Cilsil.Services
             {
                 foreach (var method in Methods)
                 {
-                    ComputeMethodCfg(method);
+                    ComputeMethodCfg(method, Guardian);
                     i++;
                     bar.Report((double)i / total);
                     if (WriteConsoleProgress)
@@ -90,7 +94,7 @@ namespace Cilsil.Services
             return Execute();
         }
 
-        private void ComputeMethodCfg(MethodDefinition method)
+        private void ComputeMethodCfg(MethodDefinition method, bool guardian)
         {
             var methodName = method.GetCompatibleFullName();
             if (Cfg.Procs.ContainsKey(methodName))
@@ -104,7 +108,7 @@ namespace Cilsil.Services
                 return;
             }
 
-            var programState = new ProgramState(method, Cfg);
+            var programState = new ProgramState(method, Cfg, guardian);
 
             var methodBody = method.Body;
             var unhandledExceptionCase =

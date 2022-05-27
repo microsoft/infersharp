@@ -80,7 +80,9 @@ namespace Cilsil.Sil
         /// <param name="methodDefinition">The <see cref="MethodDefinition"/> from which to create
         /// the description.</param>
         /// <param name="cfg">The CFG with which this procedure description is associated.</param>
-        public ProcedureDescription(MethodDefinition methodDefinition, Cfg cfg)
+        /// <param name="guardian">If <c>true</c>, record resource leak location by locating exit node  
+        /// at the location of the very first instruction of the corresponding method.</param>
+        public ProcedureDescription(MethodDefinition methodDefinition, Cfg cfg, bool guardian)
         {
             PdId = NextId;
 
@@ -112,10 +114,22 @@ namespace Cilsil.Sil
 
             Nodes = new List<CfgNode>();
             StartNode = new StartNode(location, this);
-            ExitNode = new ExitNode(Location.FromSequencePoint(methodDefinition
-                                                               .DebugInformation
-                                                               .SequencePoints.Skip(1).FirstOrDefault()),
-                                    this);
+            if (guardian)
+            {
+                ExitNode = new ExitNode(Location.FromSequencePoint(methodDefinition
+                                                                   .DebugInformation
+                                                                   .SequencePoints.Skip(1).FirstOrDefault()),
+                                        this);
+            }
+            else
+            {
+                ExitNode = new ExitNode(Location.FromSequencePoint(methodDefinition
+                                                                   .DebugInformation
+                                                                   .SequencePoints
+                                                                   .FirstOrDefault()),
+                                        this);
+            }
+
             ExceptionSinkNode = new StatementNode(location,
                                                   StatementNode.StatementNodeKind.ExceptionsSink,
                                                   proc: this);
