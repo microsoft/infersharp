@@ -62,7 +62,7 @@ namespace Cilsil.Services
             {
                 foreach (var method in Methods)
                 {
-                    ComputeMethodCfg(method, Guardian);
+                    ComputeMethodCfg(method);
                     i++;
                     bar.Report((double)i / total);
                     if (WriteConsoleProgress)
@@ -94,7 +94,7 @@ namespace Cilsil.Services
             return Execute();
         }
 
-        private void ComputeMethodCfg(MethodDefinition method, bool guardian)
+        private void ComputeMethodCfg(MethodDefinition method)
         {
             var methodName = method.GetCompatibleFullName();
             if (Cfg.Procs.ContainsKey(methodName))
@@ -108,7 +108,7 @@ namespace Cilsil.Services
                 return;
             }
 
-            var programState = new ProgramState(method, Cfg, guardian);
+            var programState = new ProgramState(method, Cfg, Guardian);
 
             var methodBody = method.Body;
             var unhandledExceptionCase =

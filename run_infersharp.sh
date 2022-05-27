@@ -7,7 +7,7 @@ set -e
 
 # Check if we have enough arguments.
 if [ "$#" -lt 1 ]; then
-    echo "run_infersharp.sh <dll_folder_path> [--output-folder <sarif_output_folder_path> --enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation --sarif] -- requires 1 argument (dll_folder_path)"
+    echo "run_infersharp.sh <dll_folder_path> [--output-folder <sarif_output_folder_path> --enable-null-dereference --enable-dotnet-resource-leak --enable-thread-safety-violation --sarif --guardian] -- requires 1 argument (dll_folder_path)"
     exit
 fi
 
@@ -34,11 +34,11 @@ if [ "$#" -gt 1 ]; then
             infer_args_list+=("--enable-issue-type DOTNET_RESOURCE_LEAK")
         elif [ ${!i} == "--enable-thread-safety-violation" ]; then
             infer_args_list+=("--enable-issue-type THREAD_SAFETY_VIOLATION")
+        elif [ ${!i} == "--guardian" ]; then
+            infersharp_args="--guardian"
         elif [ ${!i} == "--output-folder" ]; then
             ((i++))
             output_folder=${!i}
-        elif [ ${!i} == "--guardian" ]; then
-            infersharp_args="--guardian"
         fi
         ((i++))
     done
