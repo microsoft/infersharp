@@ -1,0 +1,66 @@
+name: "InferSharp-AzurePipelinesExample-Multistage"
+
+jobs:
+# Example of existing build pipeline
+- job: RunExistingBuildPipeline
+  pool:
+    vmImage: 'windows-2019'
+
+  steps:
+  # Build
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet build'
+    inputs:
+      projects: Examples/Examples.sln
+  
+  # Copy binaries to a staging folder
+  - task: CopyFiles@2
+    displayName: 'Copy output binaries'
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)/Examples/Examples/bin/Debug'
+      Contents: '**\?(*.dll|*.pdb|*.exe)'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  
+  # Publish binaries
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish binaries'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'infersharp-input'
+      publishLocation: 'Container'
+
+# Run Infer#
+- job: RunInferSharp
+  dependsOn: 'RunExistingBuildPipeline'
+  pool:
+    vmImage: 'ubuntu-20.04'
+
+  steps:
+  # Download binaries
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download binaries'
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      artifactName: 'infersharp-input'
+      downloadPath: '$(System.ArtifactsDirectory)'
+
+  - task: InferSharp@1
+    inputs:
+      TargetDirectory: '$(Build.ArtifactStagingDirectory)'
+  
+  - task: PublishSecurityAnalysisLogs@3
+    inputs:
+      ArtifactName: 'CodeAnalysisLogs'
+      ArtifactType: 'Container'
+      PublishProcessedResults: true
+      AllTools: true
+      ToolLogsNotFoundAction: 'Standard'
+  
+  # Publish SARIF
+  - task: PublishBuildArtifacts@1
+    displayName: "Publish Infer# SARIF"
+    inputs:
+      PathtoPublish: "$(Build.SourcesDirectory)/infer-out/report.sarif"
+      ArtifactName: "infersharp-output"
+      publishLocation: "Container"
