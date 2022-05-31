@@ -12,8 +12,6 @@ jobs:
     displayName: 'dotnet build'
     inputs:
       projects: Examples/Examples.sln
-  
-  # Copy binaries to a staging folder
 
   - task: InferSharp@1
     inputs:
@@ -26,3 +24,7 @@ jobs:
       PublishProcessedResults: true
       AllTools: true
       ToolLogsNotFoundAction: 'Standard'
+
+  - task: SdtReport@2
+    inputs:
+      GdnExportAllTools: true
