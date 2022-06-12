@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Cilsil
 {
@@ -100,7 +102,14 @@ namespace Cilsil
 
             (var cfg, var tenv) = ExecuteTranslation(paths, extprogress);
 
-            File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString());
+            var Utf8Encoder = Encoding.GetEncoding(
+                "us-ascii",
+                new EncoderReplacementFallback(string.Empty),
+                new DecoderExceptionFallback()
+            );
+
+
+            File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString(), Utf8Encoder);
             cfg.WriteToFile(outcfg);
             tenv.WriteToFile(outtenv);
 
