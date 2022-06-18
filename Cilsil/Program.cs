@@ -103,7 +103,7 @@ namespace Cilsil
 
             var Utf8Encoder = Encoding.GetEncoding(
                 "us-ascii",
-                new EncoderReplacementFallback(string.Empty),
+                new EncoderReplacementFallback("_"),
                 new DecoderExceptionFallback()
             );
 

@@ -77,7 +77,7 @@ namespace Cilsil.Sil
         {
             var ascii = Encoding.GetEncoding(
                 "us-ascii",
-                new EncoderReplacementFallback(string.Empty),
+                new EncoderReplacementFallback("_"),
                 new DecoderExceptionFallback()
             );
 
