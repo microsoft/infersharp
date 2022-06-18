@@ -83,7 +83,7 @@ namespace Cilsil.Sil
 
             var serializer = JsonSerializer.Create(JsonSerializerSettings);
 
-            var output = path ?? "./cfg.json";
+            var output = path ?? "./tenv.json";
             if (File.Exists(output))
             {
                 File.Delete(output);
