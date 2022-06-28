@@ -113,7 +113,7 @@ namespace Cilsil.Sil
             var ascii = Encoding.GetEncoding(
                 "us-ascii",
                 new EncoderReplacementFallback("_"),
-                new DecoderExceptionFallback()
+                new DecoderReplacementFallback("|")
             );
             var serializer = JsonSerializer.Create(JsonSerializerSettings);
 
