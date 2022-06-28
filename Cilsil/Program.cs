@@ -209,7 +209,7 @@ namespace Cilsil
             return (filteredAssemblies, totalSize);
         }
 
-        private static void PrintFiles(string[] files = null, string procs = null)
+        private static void PrintFiles(string[] files, string procs)
         {
             foreach (var file in files)
             {
