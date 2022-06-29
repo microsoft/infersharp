@@ -29,22 +29,7 @@ namespace Cilsil.Cil.Parsers
                     (var value, _) = state.Pop();
                     (var pointerExpression, var pointerType) = state.Pop();
 
-                    if (pointerType is Address address)
-                    {
-                        if (address.AddressType == Address.ReferenceKind.Parameter ||
-                            address.AddressType == Address.ReferenceKind.Field)
-                        {
-                            setExpressionValue = new Store(pointerExpression,
-                                                           value,
-                                                           pointerType.StripPointer(),
-                                                           state.CurrentLocation);
-                            state.PushInstruction(
-                                instruction.Next,
-                                AddMethodBodyInstructionsToCfg(state,
-                                                               setExpressionValue));
-                        }
-                    }
-                    else if (pointerType is Tptr)
+                    if (pointerType is Address || pointerType is Tptr)
                     {
                         setExpressionValue = new Store(pointerExpression,
                                                        value,

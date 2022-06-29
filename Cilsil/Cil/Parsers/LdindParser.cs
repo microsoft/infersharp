@@ -31,7 +31,8 @@ namespace Cilsil.Cil.Parsers
 
                     if (pointerType is Address address)
                     {
-                        if (address.AddressType == Address.ReferenceKind.Field)
+                        if (address.AddressType == Address.ReferenceKind.Field ||
+                            address.AddressType == Address.ReferenceKind.Parameter)
                         {
                             (var loadFieldValue, var valueIdentifier) = address.LoadValue(state);
                             state.PushExpr(new VarExpression(valueIdentifier),
@@ -39,27 +40,6 @@ namespace Cilsil.Cil.Parsers
                             state.PushInstruction(instruction.Next,
                                                   AddMethodBodyInstructionsToCfg(state,
                                                                                  loadFieldValue));
-                        }
-                        else if (address.AddressType == Address.ReferenceKind.Parameter)
-                        {
-                            var argumentIdentifier =
-                                state.GetIdentifier(Identifier.IdentKind.Normal);
-                            var loadArgument = new Load(argumentIdentifier,
-                                                        pointerExpression,
-                                                        pointerType.StripPointer(),
-                                                        state.CurrentLocation);
-                            var valueIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
-                            var loadValue = new Load(valueIdentifier,
-                                                     new VarExpression(argumentIdentifier),
-                                                     pointerType.StripPointer().StripPointer(),
-                                                     state.CurrentLocation);
-                            state.PushExpr(new VarExpression(valueIdentifier),
-                                           pointerType.StripPointer());
-                            state.PushInstruction(instruction.Next,
-                                                  AddMethodBodyInstructionsToCfg(state,
-                                                                                 loadArgument,
-                                                                                 loadValue));
-
                         }
                     }
                     else
