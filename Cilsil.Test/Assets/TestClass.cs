@@ -305,6 +305,9 @@ namespace Cilsil.Test.Assets
             return false;
         }
 
+        // This method is used to identify a case in which we were creating a false positive null
+        // dereference, as a result of passing a reference to result to AssignZeroByReference
+        // rather than its value.
         public bool InvokesAssignZeroAndDerefs(out int result)
         {
             if (!AssignZeroByReference(out result))
