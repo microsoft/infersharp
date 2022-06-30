@@ -299,6 +299,25 @@ namespace Cilsil.Test.Assets
             throw new IOException();
         }
 
+        public bool AssignZeroByReference(out int result)
+        {
+            result = 0;
+            return false;
+        }
+
+        public bool InvokesAssignZeroAndDerefs(out int result)
+        {
+            if (!AssignZeroByReference(out result))
+            {
+                result = GetHashCode();
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         /// <summary>
         /// If input <c>true</c>, a certain exception is thrown which when caught results in a null 
         /// object being returned; otherwise, an instantiated object is returned.
