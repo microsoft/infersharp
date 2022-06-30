@@ -64,7 +64,7 @@ namespace Cilsil.Cil.Parsers
                 foreach (var arg in callArgs)
                 {
                     // If the argument is already passed a reference, we don't want to pass it by
-                    // reference to another another method; pass as value type.
+                    // reference to another another method; we want to pass its value instead.
                     if (arg.Type is Address address &&
                         address.AddressType == Address.ReferenceKind.Parameter)
                     {
