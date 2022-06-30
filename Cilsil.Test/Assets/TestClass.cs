@@ -298,27 +298,18 @@ namespace Cilsil.Test.Assets
         {
             throw new IOException();
         }
-
-        public bool AssignZeroByReference(out int result)
+        public void AssignZeroByReference(out int result)
         {
             result = 0;
-            return false;
         }
 
         // This method is used to identify a case in which we were creating a false positive null
         // dereference, as a result of passing a reference to result to AssignZeroByReference
         // rather than its value.
-        public bool InvokesAssignZeroAndDerefs(out int result)
+        public void InvokesAssignZeroAndDerefs(out int result)
         {
-            if (!AssignZeroByReference(out result))
-            {
-                result = GetHashCode();
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            AssignZeroByReference(out result);
+            result = GetHashCode();
         }
 
         /// <summary>
