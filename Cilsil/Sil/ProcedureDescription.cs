@@ -115,7 +115,7 @@ namespace Cilsil.Sil
             ExitNode = new ExitNode(Location.FromSequencePoint(methodDefinition
                                                                .DebugInformation
                                                                .SequencePoints
-                                                               .FirstOrDefault()),
+                                                               .LastOrDefault()),
                                     this);
             ExceptionSinkNode = new StatementNode(location,
                                                   StatementNode.StatementNodeKind.ExceptionsSink,
