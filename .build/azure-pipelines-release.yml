@@ -13,9 +13,9 @@ steps:
     containerRegistry: 'infersharp-acr-staging'
     repository: 'ci/infersharp'
     command: 'buildAndPush'
-    tags: 'latest'
+    tags: '$(Build.BuildId)'
 
-- bash: docker run -v $(Build.ArtifactStagingDirectory)/release:/release --rm ci/infersharp /bin/bash -c "cd ..; tar -czvf infersharp-linux64-version.tar.gz /infersharp; cp infersharp-linux64-version.tar.gz /release/infersharp-linux64-version.tar.gz"
+- bash: docker run -v $(Build.ArtifactStagingDirectory)/release:/release --rm infersharpstaging.azurecr.io/ci/infersharp:$(Build.BuildId) /bin/bash -c "cd ..; tar -czvf infersharp-linux64-version.tar.gz /infersharp; cp infersharp-linux64-version.tar.gz /release/infersharp-linux64-version.tar.gz"
   displayName: Create release binaries and mount volume
 
 - task: CopyFiles@2
