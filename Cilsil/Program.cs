@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
+using System.Text;
 
 namespace Cilsil
 {
@@ -100,7 +101,14 @@ namespace Cilsil
 
             (var cfg, var tenv) = ExecuteTranslation(paths, extprogress);
 
-            File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString());
+            var Utf8Encoder = Encoding.GetEncoding(
+                "us-ascii",
+                new EncoderReplacementFallback("_"),
+                new DecoderExceptionFallback()
+            );
+
+
+            File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString(), Utf8Encoder);
             cfg.WriteToFile(outcfg);
             tenv.WriteToFile(outtenv);
 
@@ -201,7 +209,7 @@ namespace Cilsil
             return (filteredAssemblies, totalSize);
         }
 
-        private static void PrintFiles(string[] files = null, string procs = null)
+        private static void PrintFiles(string[] files, string procs)
         {
             foreach (var file in files)
             {
