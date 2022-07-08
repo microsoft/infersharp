@@ -17,6 +17,7 @@ RUN apt-get update && \
       libmpfr-dev \
       libsqlite3-dev \
       make \
+      opam \
       openjdk-11-jdk-headless \
       patch \
       patchelf \
@@ -27,10 +28,6 @@ RUN apt-get update && \
       unzip \
       zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
-
-# Install opam 2
-RUN curl -sL https://github.com/ocaml/opam/releases/download/2.0.6/opam-2.0.6-x86_64-linux > /usr/bin/opam && \
-    chmod +x /usr/bin/opam
 
 # Disable sandboxing
 # Without this opam fails to compile OCaml for some reason. We don't need sandboxing inside a Docker container anyway.
@@ -45,13 +42,6 @@ ENV BUILD_MODE=dev
 
 # prevent exiting by compulsively hitting Control-D
 ENV IGNOREEOF=9
-
-# export `opam env`
-ENV OPAM_SWITCH_PREFIX=/root/.opam/4.08.1
-ENV CAML_LD_LIBRARY_PATH=/root/.opam/4.08.1/lib/stublibs:/root/.opam/4.08.1/lib/ocaml/stublibs:/root/.opam/4.08.1/lib/ocaml
-ENV OCAML_TOPLEVEL_PATH=/root/.opam/4.08.1/lib/toplevel
-ENV MANPATH=$MANPATH:/root/.opam/4.08.1/man
-ENV PATH=/root/.opam/4.08.1/bin:$PATH
 
 RUN cd /infer && \
     chmod +x ./build-infer.sh && \
