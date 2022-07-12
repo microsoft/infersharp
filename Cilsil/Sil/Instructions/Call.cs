@@ -95,7 +95,7 @@ namespace Cilsil.Sil.Instructions
             /// <summary>
             /// The argument expression.
             /// </summary>
-            public Expression Expression { get; }
+            public Expression Expression { get; set; }
 
             /// <summary>
             /// The argument type.
