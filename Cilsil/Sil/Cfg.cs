@@ -9,6 +9,7 @@ using QuickGraph.Graphviz.Dot;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Cilsil.Sil
 {
@@ -109,8 +110,20 @@ namespace Cilsil.Sil
         /// <param name="path">The file path.</param>
         public void WriteToFile(string path)
         {
+            var ascii = Encoding.GetEncoding(
+                "us-ascii",
+                new EncoderReplacementFallback("_"),
+                new DecoderReplacementFallback("|")
+            );
             var serializer = JsonSerializer.Create(JsonSerializerSettings);
-            using (var streamWriter = new StreamWriter(path ?? "./cfg.json"))
+
+            var output = path ?? "./cfg.json";
+            if (File.Exists(output))
+            {
+                File.Delete(output);
+            }
+            using (var fs = File.Open(output, FileMode.CreateNew, FileAccess.Write))
+            using (var streamWriter = new StreamWriter(fs, ascii))
             using (var writer = new JsonTextWriter(streamWriter))
             {
                 serializer.Serialize(writer, this);
