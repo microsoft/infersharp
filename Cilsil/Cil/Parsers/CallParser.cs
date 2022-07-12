@@ -61,6 +61,22 @@ namespace Cilsil.Cil.Parsers
                                  out var retId,
                                  out var callArgs,
                                  out var callInstr);
+                foreach (var arg in callArgs)
+                {
+                    // If the argument is already passed a reference, we don't want to pass it by
+                    // reference to another method; we want to pass its value instead.
+                    if (arg.Type is Address address &&
+                        address.AddressType == Address.ReferenceKind.Parameter)
+                    {
+                        var freshIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+                        var valueExp = new VarExpression(freshIdentifier);
+                        instrs.Add(new Load(freshIdentifier, 
+                                            arg.Expression, 
+                                            arg.Type, 
+                                            state.CurrentLocation));
+                        arg.Expression = valueExp;
+                    }
+                }
 
                 instrs.Add(callInstr);
 
