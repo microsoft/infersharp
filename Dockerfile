@@ -70,7 +70,7 @@ COPY . .
 RUN cd /
 RUN chmod +x build_csharp_models.sh && ./build_csharp_models.sh
 RUN cp /infer-out/models.sql /infer-release/usr/local/lib/infer/infer/lib/models.sql
-RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
+# RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
 RUN dotnet publish -c Release Cilsil/Cilsil.csproj -r linux-x64
 RUN dotnet build Examples/Examples/Examples.csproj
 
