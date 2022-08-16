@@ -109,6 +109,12 @@ namespace Cilsil.Sil
                 Loc = location,
                 ProcName = new ProcedureName(methodDefinition)
             };
+            
+            foreach (var attribute in methodDefinition.CustomAttributes)
+            {
+                PdAttributes.MethodAnnotations.AddAnnotationNoParameter(
+                    attribute.AttributeType.ToString());
+            }
 
             Nodes = new List<CfgNode>();
             StartNode = new StartNode(location, this);

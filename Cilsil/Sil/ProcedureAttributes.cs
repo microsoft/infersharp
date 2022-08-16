@@ -167,15 +167,16 @@ namespace Cilsil.Sil
         /// </returns>
         public override string ToString()
         {
-            var formalsString = string.Join(", ", Formals.Select(f => $"({f.ToString()})"));
-            var localsString = string.Join(", ", Locals.Select(l => $"{l.ToString()}"));
+            var formalsString = string.Join(", ", Formals.Select(f => $"({f})"));
+            var localsString = string.Join(", ", Locals.Select(l => $"{l}"));
             return $@"{{
-ProcName: {ProcName.ToString()}
-Access: {Access.ToString()}
+ProcName: {ProcName}
+Access: {Access}
 Formals: {formalsString}
-Location: {Loc.ToString()}
+Location: {Loc}
 Locals: {localsString}
-ReturnType: {RetType.ToString()}
+ReturnType: {RetType}
+MethodAnnotations: {MethodAnnotations}
 }}";
         }
 
