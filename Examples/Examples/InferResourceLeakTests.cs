@@ -287,7 +287,7 @@ public class TakeAndDisposeNotDisposable
 }
 
 
-public class MultipleConstructors // TODO: leak reported here???
+public class MultipleConstructors
 {
     private readonly FileStream _myStream;
 
