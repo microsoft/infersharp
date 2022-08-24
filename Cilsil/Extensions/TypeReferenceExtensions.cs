@@ -35,6 +35,10 @@ namespace Cilsil.Extensions
 
             var genericParams = type.GenericParameters.Select(p => p.Name);
             var genericParamsString = string.Join(",", genericParams);
+            if (genericParamsString == "T")
+            {
+                genericParamsString = "!0";
+            }
 
             return type.HasGenericParameters ? $"{fullName}<{genericParamsString}>" : fullName;
         }
