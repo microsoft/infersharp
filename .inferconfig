@@ -51,6 +51,11 @@
       "method_names": ["set_CommandText"],
       "kinds": ["SQLInjection"]
     },
+    { "class_names": ["System.Data.SqlClient.SqlCommand"],
+      "method_names": [".ctor"],
+      "kinds": ["SQLInjection"],
+      "taint_target": ["ArgumentPositions", [1]]
+    } ,
     { "class_names": ["System.Runtime.Serialization.Formatters.Binary.BinaryFormatter",
                       "System.Runtime.Deserialization.Formatters.Soap.SoapFormatter",
                       "System.Web.UI.ObjectStateFormatter",
