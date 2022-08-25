@@ -135,9 +135,11 @@ namespace Cilsil.Sil
         }
 
         /// <summary>
-        /// 
+        /// This method constructs a method annotation from the given name and adds it to the
+        /// <see cref="ReturnValue"/> field. It does not add parameters to the constructed
+        /// annotation. 
         /// </summary>
-        /// <param name="className"></param>
+        /// <param name="className">The name of the annotation.</param>
         public void AddAnnotationNoParameter(string className)
         {
             var annotation = new Annotation(className, new List<string>());

@@ -112,6 +112,8 @@ namespace Cilsil.Sil
             
             foreach (var attribute in methodDefinition.CustomAttributes)
             {
+                // Although this ignores annotation parameters that may be present, the annotation
+                // parameters are not yet used in any way in the Infer analysis.
                 PdAttributes.MethodAnnotations.AddAnnotationNoParameter(
                     attribute.AttributeType.ToString());
             }
