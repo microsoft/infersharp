@@ -31,6 +31,14 @@ namespace Cilsil.Sil
             ClassName = className;
             Params = parameters;
         }
+
+        /// <summary>
+        /// Converts to string.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="string" /> that represents this instance.
+        /// </returns>
+        public override string ToString() => $"{ClassName}, [{string.Join(", ", Params)}]";
     }
 
     /// <summary>
@@ -41,16 +49,25 @@ namespace Cilsil.Sil
         /// <summary>
         /// The source code annotations.
         /// </summary>
-        public IEnumerable<ItemAnnotationEntry> Annotations { get; }
+        public List<ItemAnnotationEntry> Annotations { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ItemAnnotation"/> class.
         /// </summary>
         /// <param name="annotations">The annotations.</param>
-        public ItemAnnotation(IEnumerable<ItemAnnotationEntry> annotations = null)
+        public ItemAnnotation(List<ItemAnnotationEntry> annotations = null)
         {
             Annotations = annotations ?? new List<ItemAnnotationEntry>();
         }
+
+        /// <summary>
+        /// Converts to string.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="string" /> that represents this instance.
+        /// </returns>
+        public override string ToString() 
+            => $"[{string.Join(", ", Annotations.ConvertAll(x => x.ToString()))}]";
 
         /// <summary>
         /// An individual source code annotation, with visibility.
@@ -79,6 +96,14 @@ namespace Cilsil.Sil
                 Annotation = annotation;
                 Visible = visible;
             }
+
+            /// <summary>
+            /// Converts to string.
+            /// </summary>
+            /// <returns>
+            /// A <see cref="string" /> that represents this instance.
+            /// </returns>
+            public override string ToString() => $"{Annotation} : {Visible}";
         }
     }
 
@@ -95,18 +120,40 @@ namespace Cilsil.Sil
         /// <summary>
         /// The parameters.
         /// </summary>
-        public IEnumerable<ItemAnnotation> Params { get; }
+        public List<ItemAnnotation> Params { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MethodAnnotation"/> class.
         /// </summary>
-        /// <param name="returnValue">The return value.</param>
-        /// <param name="parameters">The parameters.</param>
+        /// <param name="returnValue">The return value</param>
+        /// <param name="parameters">The parameters; not presently used in frontend.</param>
         public MethodAnnotation(ItemAnnotation returnValue = null,
-                                IEnumerable<ItemAnnotation> parameters = null)
+                                List<ItemAnnotation> parameters = null)
         {
             ReturnValue = returnValue ?? new ItemAnnotation();
             Params = parameters ?? new List<ItemAnnotation>();
         }
+
+        /// <summary>
+        /// This method constructs a method annotation from the given name and adds it to the
+        /// <see cref="ReturnValue"/> field. It does not add parameters to the constructed
+        /// annotation. 
+        /// </summary>
+        /// <param name="className">The name of the annotation.</param>
+        public void AddAnnotationNoParameter(string className)
+        {
+            var annotation = new Annotation(className, new List<string>());
+            var itemAnnotationEntry = new ItemAnnotation.ItemAnnotationEntry(annotation, true);
+            ReturnValue.Annotations.Add(itemAnnotationEntry);
+        }
+
+        /// <summary>
+        /// Converts to string.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="string" /> that represents this instance.
+        /// </returns>
+        public override string ToString() => 
+            $"{ReturnValue}";
     }
 }
