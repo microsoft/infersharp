@@ -35,7 +35,10 @@ RUN opam init --reinit --bare --disable-sandboxing
 
 # Download the latest Infer master
 RUN cd / && \
-    git clone https://github.com/facebook/infer.git
+    git clone https://github.com/xi-liu-ds/infer.git && \
+    cd infer && \
+    git checkout xi-liu-ds/pull_incre && \
+    cd ..
 
 # build in non-optimized mode by default to speed up build times
 ENV BUILD_MODE=dev
@@ -67,7 +70,7 @@ COPY . .
 RUN cd /
 RUN chmod +x build_csharp_models.sh && ./build_csharp_models.sh
 RUN cp /infer-out/models.sql /infer-release/usr/local/lib/infer/infer/lib/models.sql
-RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
+#RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
 RUN dotnet publish -c Release Cilsil/Cilsil.csproj -r linux-x64
 RUN dotnet build Examples/Examples/Examples.csproj
 
