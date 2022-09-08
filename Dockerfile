@@ -66,8 +66,12 @@ RUN cd /infer && \
     
 ENV PATH /infer-release/usr/local/bin:${PATH}
 
-COPY . .
-RUN cd /
+RUN cd / && \
+    git clone https://github.com/xi-liu-ds/infersharp.git && \
+    cd infersharp && \
+    git checkout xi-liu-ds/incre_build && \
+    cd ..
+
 RUN chmod +x build_csharp_models.sh && ./build_csharp_models.sh
 RUN cp /infer-out/models.sql /infer-release/usr/local/lib/infer/infer/lib/models.sql
 RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
