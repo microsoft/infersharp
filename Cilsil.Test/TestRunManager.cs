@@ -189,7 +189,7 @@ namespace Cilsil.Test
             Directory.CreateDirectory(Path.Combine(InferOutFolder, "captured"));
             RunCommand(
                 "infer",
-                $"analyzejson --debug --cfg-json {cfgJson} --tenv-json {tenvJson} " +
+                $"run --debug --cfg-json {cfgJson} --tenv-json {tenvJson} " +
                 $"--enable-issue-type CLASS_CAST_EXCEPTION",
                 out stdout,
                 out stderr);
