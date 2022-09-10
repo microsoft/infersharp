@@ -76,6 +76,7 @@ FROM debian:bullseye-slim AS release
 RUN apt-get update && apt-get install --yes --no-install-recommends curl ca-certificates
 WORKDIR infersharp
 COPY --from=backend /infer-release/usr/local /infersharp/infer
+RUN ln -s /infersharp/infer/bin/infer /usr/local/bin/infer
 ENV PATH /infersharp/infer/bin:${PATH}
 COPY --from=backend /Examples/Examples/bin/Debug/net5.0/ /infersharp/Examples/
 COPY --from=backend /Cilsil/bin/Release/net5.0/linux-x64/publish/ /infersharp/Cilsil/
