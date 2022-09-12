@@ -11,6 +11,34 @@ namespace Examples
 {
     public class Program
     {
+        int mBalance = 0;
+        private readonly object balanceLock = new object();
+
+        public void deposit(int amount)
+        {
+            if (amount > 0)
+            {
+                lock (balanceLock)
+                {
+                    mBalance += amount;
+                }
+            }
+        }
+
+        public int withdraw(int amount)
+        {
+            if (amount >= 0 && mBalance - amount >= 0)
+            {
+                mBalance -= amount;
+                return mBalance;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+
         private StreamReader SRGlobal;  
         // Instantiate a StreamWriter instance.
         StreamWriter SWGlobal = new StreamWriter("everwhat.txt");
