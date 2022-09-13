@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim AS base
+FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS base
 
 FROM base AS backend
 # mkdir the man/man1 directory due to Debian bug #863199
@@ -22,7 +22,7 @@ RUN apt-get update && \
       patch \
       patchelf \
       pkg-config \
-      python3.9 \
+      python3.7 \
       python3-distutils \
       sqlite3 \
       unzip \
