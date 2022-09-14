@@ -10,7 +10,7 @@ using subproj;
 using System.Data.SqlTypes;
 using System.Xml;
 
-// Expect 4 TAINT_ERROR for SQL injection flows.
+// Expect 2 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
     [HttpPost]
