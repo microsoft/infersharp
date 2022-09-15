@@ -56,8 +56,7 @@ namespace Cilsil.Cil.Parsers
             }
             var fieldExpression = CreateFieldExpression(fieldOwnerExpression, field);
             // An identifier to store the field expression.
-            var fieldIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal,
-                                                      description: $"{fieldExpression}");
+            var fieldIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
 
             fieldType = Typ.FromTypeReferenceNoPointer(field.FieldType);
 
