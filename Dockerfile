@@ -68,7 +68,7 @@ ENV PATH /infer-release/usr/local/bin:${PATH}
 
 COPY . .
 RUN cd /
-RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
+#RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
 RUN dotnet publish -c Release Cilsil/Cilsil.csproj -r linux-x64
 RUN dotnet build Examples/Examples/Examples.csproj
 
