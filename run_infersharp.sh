@@ -40,7 +40,7 @@ cp -r "$1" infer-staging
 echo -e "Code translation started..."
 ./Cilsil/Cilsil translate infer-staging --outcfg infer-staging/cfg.json --outtenv infer-staging/tenv.json --cfgtxt infer-staging/cfg.txt --extprogress
 echo -e "Code translation completed. Analyzing...\n"
-infer run $infer_args --pulse --no-biabduction --disable-issue-type DOTNET_RESOURCE_LEAK --disable-issue-type PULSE_UNINITIALIZED_VALUE --debug-level 1 --sarif --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
+infer run $infer_args --cfg-json infer-staging/cfg.json --tenv-json infer-staging/tenv.json
 
 if [ "$output_folder" != "" ]; then
     if [ ! -d "$output_folder" ]; then
