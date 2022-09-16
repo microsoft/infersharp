@@ -87,7 +87,8 @@ namespace Cilsil.Cil.Parsers
                 {
                     var thisArg = callArgs.First();
                     if (thisArg.Expression is VarExpression varExpression &&
-                        !varExpression.FromThis)
+                        !varExpression.FromThis &&
+                        !(thisArg.Type is Address))
                     {
                         instrs.Insert(0, CreateDereference(varExpression, thisArg.Type, state));
                     }
