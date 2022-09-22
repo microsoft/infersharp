@@ -47,7 +47,7 @@ namespace Cilsil.Sil
             {
                 var currLocation = new Uri(Directory.GetCurrentDirectory());
                 var fileLocation = new Uri(path);
-                path = currLocation.MakeRelativeUri(fileLocation).OriginalString;
+                path = currLocation.MakeRelativeUri(fileLocation).OriginalString.Replace('\\','/');
             }
 
             return new SourceFile()
