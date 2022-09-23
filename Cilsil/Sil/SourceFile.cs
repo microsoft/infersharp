@@ -41,19 +41,19 @@ namespace Cilsil.Sil
         /// <returns>The file type.</returns>
         public static SourceFile FromSequencePoint(SequencePoint sequencePoint)
         {
-            var path = sequencePoint.Document.Url.Replace('\\','/');
+            var path = sequencePoint.Document.Url;
             // Absolute path on Windows
             if (System.IO.Path.IsPathRooted(path) && path.Contains(":"))
             {
                 var currLocation = new Uri(Directory.GetCurrentDirectory());
                 var fileLocation = new Uri(path);
-                path = currLocation.MakeRelativeUri(fileLocation).OriginalString.Replace('\\','/');
+                path = currLocation.MakeRelativeUri(fileLocation).OriginalString;
             }
 
             return new SourceFile()
             {
                 PathType = PathType.Relative,
-                Path = path
+                Path = path.Replace('\\','/')
             };
         }
     }
