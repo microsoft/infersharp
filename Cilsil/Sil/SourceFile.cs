@@ -41,7 +41,7 @@ namespace Cilsil.Sil
         /// <returns>The file type.</returns>
         public static SourceFile FromSequencePoint(SequencePoint sequencePoint)
         {
-            var path = sequencePoint.Document.Url;
+            var path = sequencePoint.Document.Url.Replace('\\','/');
             // Absolute path on Windows
             if (System.IO.Path.IsPathRooted(path) && path.Contains(":"))
             {
