@@ -103,6 +103,16 @@ class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
 
+    /// <summary>
+    /// The "using" construct applies the generic IDisposable dispose, which is problematic when 
+    /// applied to a custom IDisposable object.
+    /// </summary>
+    public static void UsingWithCustomDisposeFalsePositive()
+    {
+        Stream stream = new FileStream("MyFile", FileMode.Open);
+        using TakeAndDispose tad = new TakeAndDispose(stream);
+    }
+
     public static void UsageCanThrowShouldReport()
     {
         FileStream fs = new FileStream("MyFile.txt", FileMode.Open, FileAccess.Read);
