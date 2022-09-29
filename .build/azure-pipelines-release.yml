@@ -1,79 +1,82 @@
 name: "InferSharp-Release"
 
-pool:
-  vmImage: 'ubuntu-20.04'
+jobs:
+- job: InferSharp-Release
+  timeoutInMinutes: 90
 
-steps:
-- script: sudo apt-get update -y
-  displayName: 'Initialize'
+  pool:
+    vmImage: 'ubuntu-20.04'
 
-- task: Docker@2
-  displayName: 'Build, test and publish'
-  inputs:
-    containerRegistry: 'infersharp-acr-staging'
-    repository: 'ci/infersharp'
-    command: 'buildAndPush'
-    tags: '$(Build.BuildId)'
+  steps:
+  - script: sudo apt-get update -y
+    displayName: 'Initialize'
 
-- bash: docker run -v $(Build.ArtifactStagingDirectory)/release:/release --rm infersharpstaging.azurecr.io/ci/infersharp:$(Build.BuildId) /bin/bash -c "cd ..; tar -czvf infersharp-linux64-version.tar.gz /infersharp; cp infersharp-linux64-version.tar.gz /release/infersharp-linux64-version.tar.gz"
-  displayName: Create release binaries and mount volume
+  - task: Docker@2
+    displayName: 'Build, test and publish'
+    inputs:
+      containerRegistry: 'infersharp-acr-staging'
+      repository: 'ci/infersharp'
+      command: 'buildAndPush'
+      tags: '$(Build.BuildId)'
 
-- task: CopyFiles@2
-  inputs:
-    sourceFolder: '$(Build.ArtifactStagingDirectory)/release/'
-    contents: 'infersharp-linux64-version.tar.gz' 
-    targetFolder: '$(Build.ArtifactStagingDirectory)/infer-release/'
+  - bash: docker run -v $(Build.ArtifactStagingDirectory)/release:/release --rm infersharpstaging.azurecr.io/ci/infersharp:$(Build.BuildId) /bin/bash -c "cd ..; tar -czvf infersharp-linux64-version.tar.gz /infersharp; cp infersharp-linux64-version.tar.gz /release/infersharp-linux64-version.tar.gz"
+    displayName: Create release binaries and mount volume
 
-- bash: tar -xzvf $(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz -C $(Build.ArtifactStagingDirectory)/infer-release/
-  displayName: Extract binaries
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.ArtifactStagingDirectory)/release/'
+      contents: 'infersharp-linux64-version.tar.gz' 
+      targetFolder: '$(Build.ArtifactStagingDirectory)/infer-release/'
 
-- task: EsrpCodeSigning@1
-  inputs:
-    ConnectedServiceName: 'InferSharp ESRP CodeSigning'
-    FolderPath: '$(Build.ArtifactStagingDirectory)/infer-release/'
-    Pattern: '*.dll,*.exe'
-    signConfigType: 'inlineSignParams'
-    inlineOperation: |
-      [
-        {
-          "keyCode": "CP-230012",
-          "operationSetCode": "SigntoolSign",
-          "parameters": [
-            {
-              "parameterName": "OpusName",
-              "parameterValue": "Microsoft"
-            },
-            {
-              "parameterName": "OpusInfo",
-              "parameterValue": "http://www.microsoft.com"
-            },
-            {
-              "parameterName": "PageHash",
-              "parameterValue": "/NPH"
-            },
-            {
-              "parameterName": "FileDigest",
-              "parameterValue": "/fd sha256"
-            },
-            {
-              "parameterName": "TimeStamp",
-              "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            }
-          ],
-          "toolName": "signtool.exe",
-          "toolVersion": "6.2.9304.0"
-        }
-      ]
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
+  - bash: tar -xzvf $(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz -C $(Build.ArtifactStagingDirectory)/infer-release/
+    displayName: Extract binaries
 
-- bash: cd $(Build.ArtifactStagingDirectory)/infer-release/; tar -czvf infersharp-linux64-version.tar.gz infersharp
-  displayName: Archive binaries
+  - task: EsrpCodeSigning@1
+    inputs:
+      ConnectedServiceName: 'InferSharp ESRP CodeSigning'
+      FolderPath: '$(Build.ArtifactStagingDirectory)/infer-release/'
+      Pattern: '*.dll,*.exe'
+      signConfigType: 'inlineSignParams'
+      inlineOperation: |
+        [
+          {
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolSign",
+            "parameters": [
+              {
+                "parameterName": "OpusName",
+                "parameterValue": "Microsoft"
+              },
+              {
+                "parameterName": "OpusInfo",
+                "parameterValue": "http://www.microsoft.com"
+              },
+              {
+                "parameterName": "PageHash",
+                "parameterValue": "/NPH"
+              },
+              {
+                "parameterName": "FileDigest",
+                "parameterValue": "/fd sha256"
+              },
+              {
+                "parameterName": "TimeStamp",
+                "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+              }
+            ],
+            "toolName": "signtool.exe",
+            "toolVersion": "6.2.9304.0"
+          }
+        ]
+      SessionTimeout: '60'
+      MaxConcurrency: '50'
+      MaxRetryAttempts: '5'
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz'
-    ArtifactName: 'release'
-    publishLocation: 'Container'
+  - bash: cd $(Build.ArtifactStagingDirectory)/infer-release/; tar -czvf infersharp-linux64-version.tar.gz infersharp
+    displayName: Archive binaries
 
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz'
+      ArtifactName: 'release'
+      publishLocation: 'Container'
