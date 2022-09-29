@@ -1,7 +1,7 @@
 name: "InferSharp-Release"
 
 jobs:
-- job: InferSharp-Release
+- job: InferSharpRelease
   timeoutInMinutes: 90
 
   pool:
