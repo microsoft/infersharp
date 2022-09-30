@@ -804,37 +804,6 @@ namespace Cilsil.Test.E2E
         }
 
         /// <summary>
-        /// Validates the use of Infer models for pre-compiled code during analysis. The model 
-        /// tested here is String.IsNullOrWhiteSpace, but the purpose of the test is to verify
-        /// that any model can be used in analysis.
-        /// </summary>
-        /// <param name="modelOperator">Defines whether the model's null check is logically 
-        /// negated.</param>
-        /// <param name="expectedError">The expected error.</param>
-        [DataRow("!", InferError.None)]
-        [DataRow("", InferError.NULL_DEREFERENCE)]
-        [DataTestMethod]
-        public void ModelIsNullOrWhitespace(string modelOperator, InferError expectedError)
-        {
-            TestRunManager.Run(
-                InitVars(state: TestClassState.Null,
-                         firstLocalVarType: VarType.Boolean,
-                         firstLocalVarValue: GetString(
-                            ModelMethod.String__IsNullOrWhiteSpace,
-                            args: new string[]
-                            {
-                                "null"
-                            },
-                         withEnding: true)) +
-                    GenerateSingleComparisonIfCondition(BooleanTestType.Unary,
-                            firstOperator: modelOperator,
-                            secondOperator: "==",
-                            "true") +
-                    DerefObject(VarName.Tc),
-                GetString(expectedError));
-        }
-
-        /// <summary>
         /// Validates our translation of CastClass.
         /// </summary>
         /// <param name="testInputCode">Defines the object to be input to the type-checking
