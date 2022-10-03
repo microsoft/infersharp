@@ -14,7 +14,7 @@
   "sarif" : true,
   "pulse" : true,
   "biabduction" : false,
-  "timeout": 60,
+  "timeout": 180,
   "pulse-taint-policies": [
     { "short_description": "SQL injection risk",
       "taint_flows": [
