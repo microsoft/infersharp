@@ -33,12 +33,9 @@ RUN apt-get update && \
 # Without this opam fails to compile OCaml for some reason. We don't need sandboxing inside a Docker container anyway.
 RUN opam init --reinit --bare --disable-sandboxing
 
-# Download the latest Infer master
+# Download the latest Infer main
 RUN cd / && \
-    git clone https://github.com/xi-liu-ds/infer.git && \
-    cd infer && \
-    git checkout xi-liu-ds/pull_incre && \
-    cd ..
+    git clone https://github.com/facebook/infer.git
 
 # build in non-optimized mode by default to speed up build times
 ENV BUILD_MODE=dev
