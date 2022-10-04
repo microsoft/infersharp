@@ -23,7 +23,7 @@ public class IsDisposedBooleanField : IDisposable
     public IsDisposedBooleanField(bool input)
     {
         tok = new CancellationTokenSource();
-        isDisposed = true;
+        isDisposed = input;
     }
 
     public void Dispose()
