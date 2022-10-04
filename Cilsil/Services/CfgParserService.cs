@@ -101,8 +101,9 @@ namespace Cilsil.Services
         /// combat false positive resource leaks that can occur when users declare IDisposable 
         /// objects with a boolean field indicating whether the object has already been disposed.
         /// </summary>
-        /// <param name="state"></param>
-        /// <returns></returns>
+        /// <param name="state">The program state.</param>
+        /// <returns>The node containing the instructions for initializing the boolean fields to 
+        /// their default initializations.</returns>
         private CfgNode InitializeInstanceBooleanFields(ProgramState state)
         {
             var objectFields = state.Method.DeclaringType.Fields;
@@ -123,7 +124,7 @@ namespace Cilsil.Services
 
             foreach (var field in objectFields)
             {
-                if (field.FieldType.FullName == "System.Boolean")
+                if (field.FieldType.FullName == "System.Boolean" && !field.IsStatic)
                 {
                     var falseBoolean = new ConstExpression(new IntRepresentation(0, false, false));
                     var fieldExpression = InstructionParser.CreateFieldExpression(
@@ -170,6 +171,10 @@ namespace Cilsil.Services
                 try
                 {
                     CfgNode initNode = null;
+                    // We trigger the special inlining of instructions for the constructors of
+                    // objects with Boolean fields. Note this logic will end up adding a node with
+                    // only a Load on "this" if the boolean fields are only static, but that should
+                    // be a side effect which is both rare and unproblematic. 
                     if (methodName.Contains(".ctor") && 
                         method.DeclaringType.Fields.Select(
                             p => p.FieldType.FullName).Contains("System.Boolean"))
