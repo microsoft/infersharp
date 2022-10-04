@@ -20,6 +20,12 @@ public class IsDisposedBooleanField : IDisposable
         tok = new CancellationTokenSource();
     }
 
+    public IsDisposedBooleanField(bool input)
+    {
+        tok = new CancellationTokenSource();
+        isDisposed = true;
+    }
+
     public void Dispose()
     {
         if (!isDisposed)
@@ -118,7 +124,7 @@ public class MainClass
     }
 }
 
-// 14 reports expected (15 with --pulse-increase-leak-recall flag)
+// 15 reports expected (16 with --pulse-increase-leak-recall flag)
 class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
@@ -126,6 +132,11 @@ class InferResourceLeakTests
     public static void UsingOnCustomIDisposableWithBooleanFieldOK()
     {
         using (var custom = new IsDisposedBooleanField());
+    }
+
+    public static void UsingOnCustomIDisposableWithBooleanFieldTrueShouldReport()
+    {
+        using (var custom = new IsDisposedBooleanField(true));
     }
 
     /// <summary>
