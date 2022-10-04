@@ -10,6 +10,26 @@ using subproj;
 using System.Data.SqlTypes;
 using System.Xml;
 
+public class IsDisposedBooleanField : IDisposable
+{
+    private bool isDisposed;
+    private CancellationTokenSource tok;
+
+    public IsDisposedBooleanField()
+    {
+        tok = new CancellationTokenSource();
+    }
+
+    public void Dispose()
+    {
+        if (!isDisposed)
+        {
+            isDisposed = true;
+            tok.Dispose();
+        }
+    }
+}
+
 // Expect 2 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
@@ -98,10 +118,15 @@ public class MainClass
     }
 }
 
-// 13 reports expected (14 with --pulse-increase-leak-recall flag)
+// 14 reports expected (15 with --pulse-increase-leak-recall flag)
 class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
+
+    public static void UsingOnCustomIDisposableWithBooleanFieldOK()
+    {
+        using (var custom = new IsDisposedBooleanField());
+    }
 
     /// <summary>
     /// The "using" construct applies the generic IDisposable dispose in the bytecode, which is 
