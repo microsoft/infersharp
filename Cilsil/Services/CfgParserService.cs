@@ -93,6 +93,16 @@ namespace Cilsil.Services
             return Execute();
         }
 
+        /// <summary>
+        /// This method should be invoked before translation of a program begins, if applicable. 
+        /// It is intended for the default initialization of boolean fields to false in the 
+        /// construction of an object, in the absence of there being IL that actually performs this
+        /// (this can happen for uninitialized boolean fields). The purpose of adding this is to
+        /// combat false positive resource leaks that can occur when users declare IDisposable 
+        /// objects with a boolean field indicating whether the object has already been disposed.
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
         private CfgNode InitializeInstanceBooleanFields(ProgramState state)
         {
             var objectFields = state.Method.DeclaringType.Fields;
