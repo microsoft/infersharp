@@ -671,8 +671,8 @@ namespace Cilsil.Cil.Parsers
         /// <param name="fieldReference">A <see cref="FieldReference"/> which describes the field
         /// for which the expression is being created.</param>
         /// <returns>The <see cref="LfieldExpression"/> for the given field.</returns>
-        protected static LfieldExpression CreateFieldExpression(Expression fieldParentExpression,
-                                                                FieldReference fieldReference)
+        public static LfieldExpression CreateFieldExpression(Expression fieldParentExpression,
+                                                             FieldReference fieldReference)
         {
             return new LfieldExpression(fieldParentExpression,
                                         new FieldIdentifier(fieldReference.GetCompatibleFullName(),

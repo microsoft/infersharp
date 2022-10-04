@@ -4,6 +4,9 @@ using Cilsil.Cil.Parsers;
 using Cilsil.Extensions;
 using Cilsil.Services.Results;
 using Cilsil.Sil;
+using Cilsil.Sil.Expressions;
+using Cilsil.Sil.Instructions;
+using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
 using System;
@@ -90,6 +93,43 @@ namespace Cilsil.Services
             return Execute();
         }
 
+        private CfgNode InitializeInstanceBooleanFields(ProgramState state)
+        {
+            var objectFields = state.Method.DeclaringType.Fields;
+            var newNode = new StatementNode(location: state.CurrentLocation,
+                                            kind: StatementNode.StatementNodeKind.MethodBody,
+                                            proc: state.ProcDesc);
+            state.Cfg.RegisterNode(newNode);
+            state.PreviousNode.Successors.Add(newNode);
+            newNode.BlockEndOffset = MethodExceptionHandlers.DefaultHandlerEndOffset;
+
+            var thisExpr = new LvarExpression(new LocalVariable("this", state.Method));
+            var thisType = Typ.FromTypeReference(state.Method.DeclaringType);
+            var thisValueIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            var thisValueExpression = new VarExpression(thisValueIdentifier, true);
+
+            newNode.Instructions.Add(
+                new Load(thisValueIdentifier, thisExpr, thisType, state.CurrentLocation));
+
+            foreach (var field in objectFields)
+            {
+                if (field.FieldType.FullName == "System.Boolean")
+                {
+                    var falseBoolean = new ConstExpression(new IntRepresentation(0, false, false));
+                    var fieldExpression = InstructionParser.CreateFieldExpression(
+                        thisValueExpression, field);
+
+                    var fieldStore = new Store(
+                        fieldExpression, 
+                        falseBoolean, 
+                        Typ.FromTypeReferenceNoPointer(field.DeclaringType), 
+                        state.CurrentLocation);
+                    newNode.Instructions.Add(fieldStore);
+                }
+            }
+            return newNode;
+        }
+
         private void ComputeMethodCfg(MethodDefinition method)
         {
             var methodName = method.GetCompatibleFullName();
@@ -119,7 +159,15 @@ namespace Cilsil.Services
             {
                 try
                 {
-                    programState.PushInstruction(methodBody.Instructions.First());
+                    CfgNode initNode = null;
+                    if (methodName.Contains(".ctor") && 
+                        method.DeclaringType.Fields.Select(
+                            p => p.FieldType.FullName).Contains("System.Boolean"))
+                    {
+                        initNode = InitializeInstanceBooleanFields(programState);
+                    }
+
+                    programState.PushInstruction(methodBody.Instructions.First(), initNode);
                     do
                     {
                         var nextInstruction = programState.PopInstruction();
