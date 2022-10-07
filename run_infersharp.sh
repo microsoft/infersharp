@@ -32,9 +32,10 @@ echo "Processing {$1}"
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$parent_path"
 if [ -d infer-staging ]; then rm -Rf infer-staging; fi
+mkdir infer-staging
 
 echo -e "Copying binaries to a staging folder...\n"
-cp -r "$1" infer-staging
+find "$1" -name '*.dll' -o -name '*.pdb' | xargs -r cp -n -t infer-staging
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."
