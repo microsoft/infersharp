@@ -165,6 +165,7 @@ namespace Cilsil.Services
 
             // True if the translation terminates early, false otherwise.
             var translationUnfinished = false;
+            int iterationCount = 0;
 
             if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
@@ -185,6 +186,7 @@ namespace Cilsil.Services
                     programState.PushInstruction(methodBody.Instructions.First(), initNode);
                     do
                     {
+                        iterationCount++;
                         var nextInstruction = programState.PopInstruction();
                         // Checks if there is a node for the offset that we can reuse.
                         (var nodeAtOffset, var excessiveVisits) =
@@ -220,6 +222,13 @@ namespace Cilsil.Services
                                                        nextInstruction.RemainingInstructionCount());
                             translationUnfinished = true;
                             break;
+                        }
+                        else if (iterationCount > 100000)
+                        {
+                            TimeoutMethodCount++;
+                            Log.WriteWarning("Translation timeout.");
+                            Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
+                                                       nextInstruction.RemainingInstructionCount());
                         }
                         else if (!InstructionParser.ParseCilInstruction(nextInstruction, programState))
                         {
