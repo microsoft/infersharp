@@ -129,6 +129,12 @@ class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
 
+    public async Task<TakeAndDispose> ReturnFileStreamTaskFalsePositive()
+    {
+        var stream = new FileStream("", FileMode.Open);
+        return new TakeAndDispose(stream);
+    }
+
     public static void UsingOnCustomIDisposableWithBooleanFieldOK()
     {
         using (var custom = new IsDisposedBooleanField());
