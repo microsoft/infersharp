@@ -35,7 +35,15 @@ if [ -d infer-staging ]; then rm -Rf infer-staging; fi
 mkdir infer-staging
 
 echo -e "Copying binaries to a staging folder...\n"
-find "$1" -name '*.dll' -o -name '*.pdb' | xargs -r cp -n -t infer-staging
+shopt -s globstar
+# Find all .dlls with matching .pdbs within the same folder and copy them in pairs
+for f in "$1"/**; do
+	if [ "${f##*.}" == "dll" ]; then
+		if [ -f "${f%.*}.pdb" ]; then
+			cp -n "$f" "${f%.*}.pdb" infer-staging
+		fi
+	fi
+done
 
 # Run InferSharp analysis.
 echo -e "Code translation started..."
