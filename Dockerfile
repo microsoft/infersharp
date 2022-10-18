@@ -81,3 +81,4 @@ COPY --from=backend .inferconfig /infersharp/
 COPY --from=backend run_infersharp.sh /infersharp/
 COPY --from=backend /.build/NOTICE.txt /
 COPY --from=backend LICENSE /
+RUN chmod -R 777 .
