@@ -15,6 +15,7 @@ namespace subproj
                 CommandText = "SELECT ProductId FROM Products WHERE ProductName = '" + input + "'",
                 CommandType = CommandType.Text
             };
+            var reader = command.ExecuteReader();
         }
         public DateTime Date { get; set; }
 
