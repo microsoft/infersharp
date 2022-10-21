@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS base
+FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim AS base
 
 FROM base AS backend
 # mkdir the man/man1 directory due to Debian bug #863199
@@ -22,7 +22,7 @@ RUN apt-get update && \
       patch \
       patchelf \
       pkg-config \
-      python3.7 \
+      python3.9 \
       python3-distutils \
       sqlite3 \
       unzip \
@@ -33,7 +33,7 @@ RUN apt-get update && \
 # Without this opam fails to compile OCaml for some reason. We don't need sandboxing inside a Docker container anyway.
 RUN opam init --reinit --bare --disable-sandboxing
 
-# Download the latest Infer master
+# Download the latest Infer main
 RUN cd / && \
     git clone https://github.com/facebook/infer.git
 
@@ -65,19 +65,20 @@ ENV PATH /infer-release/usr/local/bin:${PATH}
 
 COPY . .
 RUN cd /
-RUN chmod +x build_csharp_models.sh && ./build_csharp_models.sh
-RUN cp /infer-out/models.sql /infer-release/usr/local/lib/infer/infer/lib/models.sql
-RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
+#RUN dotnet test Cilsil.Test/Cilsil.Test.csproj
 RUN dotnet publish -c Release Cilsil/Cilsil.csproj -r linux-x64
-RUN dotnet build Examples/Examples/Examples.csproj
+RUN dotnet build Examples/proj/proj.csproj
 
 FROM debian:bullseye-slim AS release
 RUN apt-get update && apt-get install --yes --no-install-recommends curl ca-certificates
 WORKDIR infersharp
 COPY --from=backend /infer-release/usr/local /infersharp/infer
+RUN ln -s /infersharp/infer/bin/infer /usr/local/bin/infer
 ENV PATH /infersharp/infer/bin:${PATH}
-COPY --from=backend /Examples/Examples/bin/Debug/net5.0/ /infersharp/Examples/
-COPY --from=backend /Cilsil/bin/Release/net5.0/linux-x64/publish/ /infersharp/Cilsil/
+COPY --from=backend /Examples/proj/bin/Debug/net6.0/  /infersharp/Examples/
+COPY --from=backend /Cilsil/bin/Release/net6.0/linux-x64/publish/ /infersharp/Cilsil/
+COPY --from=backend .inferconfig /infersharp/
 COPY --from=backend run_infersharp.sh /infersharp/
 COPY --from=backend /.build/NOTICE.txt /
 COPY --from=backend LICENSE /
+RUN chmod -R 777 .

@@ -12,10 +12,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cilsil", "Cilsil\Cilsil.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cilsil.Test", "Cilsil.Test\Cilsil.Test.csproj", "{E4186D5B-317E-47DE-8C3B-317AC0989B00}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InferSharpModels", "InferSharpModels\InferSharpModels.csproj", "{C89AF4A3-AA7C-4DBE-9D57-0F74BDEB54F3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System", "System\System.csproj", "{FB48982C-FD91-4D70-98B3-B49D4A3B47DB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,22 +36,6 @@ Global
 		{E4186D5B-317E-47DE-8C3B-317AC0989B00}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E4186D5B-317E-47DE-8C3B-317AC0989B00}.Release|x64.ActiveCfg = Release|Any CPU
 		{E4186D5B-317E-47DE-8C3B-317AC0989B00}.Release|x64.Build.0 = Release|Any CPU
-		{C89AF4A3-AA7C-4DBE-9D57-0F74BDEB54F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C89AF4A3-AA7C-4DBE-9D57-0F74BDEB54F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C89AF4A3-AA7C-4DBE-9D57-0F74BDEB54F3}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C89AF4A3-AA7C-4DBE-9D57-0F74BDEB54F3}.Debug|x64.Build.0 = Debug|Any CPU
-		{C89AF4A3-AA7C-4DBE-9D57-0F74BDEB54F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C89AF4A3-AA7C-4DBE-9D57-0F74BDEB54F3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C89AF4A3-AA7C-4DBE-9D57-0F74BDEB54F3}.Release|x64.ActiveCfg = Release|Any CPU
-		{C89AF4A3-AA7C-4DBE-9D57-0F74BDEB54F3}.Release|x64.Build.0 = Release|Any CPU
-		{FB48982C-FD91-4D70-98B3-B49D4A3B47DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FB48982C-FD91-4D70-98B3-B49D4A3B47DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FB48982C-FD91-4D70-98B3-B49D4A3B47DB}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{FB48982C-FD91-4D70-98B3-B49D4A3B47DB}.Debug|x64.Build.0 = Debug|Any CPU
-		{FB48982C-FD91-4D70-98B3-B49D4A3B47DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FB48982C-FD91-4D70-98B3-B49D4A3B47DB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FB48982C-FD91-4D70-98B3-B49D4A3B47DB}.Release|x64.ActiveCfg = Release|Any CPU
-		{FB48982C-FD91-4D70-98B3-B49D4A3B47DB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

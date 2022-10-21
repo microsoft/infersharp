@@ -53,7 +53,7 @@ namespace Cilsil.Sil
             return new SourceFile()
             {
                 PathType = PathType.Relative,
-                Path = path
+                Path = path.Replace('\\','/')
             };
         }
     }

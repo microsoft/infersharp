@@ -9,7 +9,12 @@
     }
   ],
   "enable-issue-type" : [ "PULSE_RESOURCE_LEAK",  "TAINT_ERROR", "NULLPTR_DEREFERENCE", "THREAD_SAFETY_VIOLATION" ],
-
+  "disable-issue-type" : [ "DOTNET_RESOURCE_LEAK", "PULSE_UNINITIALIZED_VALUE" ],
+  "debug-level" : 1,
+  "sarif" : true,
+  "pulse" : true,
+  "biabduction" : false,
+  "timeout": 180,
   "pulse-taint-policies": [
     { "short_description": "SQL injection risk",
       "taint_flows": [

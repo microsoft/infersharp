@@ -217,8 +217,7 @@ namespace Cilsil.Sil.Types
         /// identifier in which the expression is stored.</returns>
         public (Load, Identifier) LoadValue(ProgramState state)
         {
-            var expressionIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal,
-                                                           description: $"{Value}");
+            var expressionIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
             return (new Load(expressionIdentifier, Value, Type, state.CurrentLocation),
                     expressionIdentifier);
         }

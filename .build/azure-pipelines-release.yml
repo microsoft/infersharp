@@ -76,4 +76,3 @@ steps:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz'
     ArtifactName: 'release'
     publishLocation: 'Container'
-
