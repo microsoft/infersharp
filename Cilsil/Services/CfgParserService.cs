@@ -4,6 +4,9 @@ using Cilsil.Cil.Parsers;
 using Cilsil.Extensions;
 using Cilsil.Services.Results;
 using Cilsil.Sil;
+using Cilsil.Sil.Expressions;
+using Cilsil.Sil.Instructions;
+using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
 using System;
@@ -90,6 +93,54 @@ namespace Cilsil.Services
             return Execute();
         }
 
+        /// <summary>
+        /// This method should be invoked before translation of a program begins, if applicable. 
+        /// It is intended for the default initialization of boolean fields to false in the 
+        /// construction of an object, in the absence of there being IL that actually performs this
+        /// (this can happen for uninitialized boolean fields). The purpose of adding this is to
+        /// combat false positive resource leaks that can occur when users declare IDisposable 
+        /// objects with a boolean field indicating whether the object has already been disposed.
+        /// </summary>
+        /// <param name="state">The program state.</param>
+        /// <returns>The node containing the instructions for initializing the boolean fields to 
+        /// their default initializations.</returns>
+        private CfgNode InitializeInstanceBooleanFields(ProgramState state)
+        {
+            var objectFields = state.Method.DeclaringType.Fields;
+            var newNode = new StatementNode(location: state.CurrentLocation,
+                                            kind: StatementNode.StatementNodeKind.MethodBody,
+                                            proc: state.ProcDesc);
+            state.Cfg.RegisterNode(newNode);
+            state.PreviousNode.Successors.Add(newNode);
+            newNode.BlockEndOffset = MethodExceptionHandlers.DefaultHandlerEndOffset;
+
+            var thisExpr = new LvarExpression(new LocalVariable("this", state.Method));
+            var thisType = Typ.FromTypeReference(state.Method.DeclaringType);
+            var thisValueIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+            var thisValueExpression = new VarExpression(thisValueIdentifier, true);
+
+            newNode.Instructions.Add(
+                new Load(thisValueIdentifier, thisExpr, thisType, state.CurrentLocation));
+
+            foreach (var field in objectFields)
+            {
+                if (field.FieldType.FullName == "System.Boolean" && !field.IsStatic)
+                {
+                    var falseBoolean = new ConstExpression(new IntRepresentation(0, false, false));
+                    var fieldExpression = InstructionParser.CreateFieldExpression(
+                        thisValueExpression, field);
+
+                    var fieldStore = new Store(
+                        fieldExpression, 
+                        falseBoolean, 
+                        Typ.FromTypeReferenceNoPointer(field.DeclaringType), 
+                        state.CurrentLocation);
+                    newNode.Instructions.Add(fieldStore);
+                }
+            }
+            return newNode;
+        }
+
         private void ComputeMethodCfg(MethodDefinition method)
         {
             var methodName = method.GetCompatibleFullName();
@@ -114,14 +165,28 @@ namespace Cilsil.Services
 
             // True if the translation terminates early, false otherwise.
             var translationUnfinished = false;
+            int iterationCount = 0;
 
             if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
                 try
                 {
-                    programState.PushInstruction(methodBody.Instructions.First());
+                    CfgNode initNode = null;
+                    // We trigger the special inlining of instructions for the constructors of
+                    // objects with Boolean fields. Note this logic will end up adding a node with
+                    // only a Load on "this" if the boolean fields are only static, but that should
+                    // be a side effect which is both rare and unproblematic. 
+                    if (methodName.Contains(".ctor") && 
+                        method.DeclaringType.Fields.Select(
+                            p => p.FieldType.FullName).Contains("System.Boolean"))
+                    {
+                        initNode = InitializeInstanceBooleanFields(programState);
+                    }
+
+                    programState.PushInstruction(methodBody.Instructions.First(), initNode);
                     do
                     {
+                        iterationCount++;
                         var nextInstruction = programState.PopInstruction();
                         // Checks if there is a node for the offset that we can reuse.
                         (var nodeAtOffset, var excessiveVisits) =
@@ -157,6 +222,13 @@ namespace Cilsil.Services
                                                        nextInstruction.RemainingInstructionCount());
                             translationUnfinished = true;
                             break;
+                        }
+                        else if (iterationCount > 100000)
+                        {
+                            TimeoutMethodCount++;
+                            Log.WriteWarning("Translation timeout.");
+                            Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
+                                                       nextInstruction.RemainingInstructionCount());
                         }
                         else if (!InstructionParser.ParseCilInstruction(nextInstruction, programState))
                         {

@@ -581,9 +581,7 @@ namespace Cilsil.Cil.Parsers
         {
             var type = Typ.FromTypeReference(newObjectReference);
             var newObjectIdentifier = state.GetIdentifier(
-                Identifier.IdentKind.Normal,
-                description: $"output of {type.StripPointer()}::.ctor() at " +
-                             $"{state.CurrentLocation}");
+                Identifier.IdentKind.Normal);
             var callFlags = new Call.CallFlags(isVirtual: false,
                                                noReturn: false,
                                                isObjCBlock: false);
@@ -673,8 +671,8 @@ namespace Cilsil.Cil.Parsers
         /// <param name="fieldReference">A <see cref="FieldReference"/> which describes the field
         /// for which the expression is being created.</param>
         /// <returns>The <see cref="LfieldExpression"/> for the given field.</returns>
-        protected static LfieldExpression CreateFieldExpression(Expression fieldParentExpression,
-                                                                FieldReference fieldReference)
+        public static LfieldExpression CreateFieldExpression(Expression fieldParentExpression,
+                                                             FieldReference fieldReference)
         {
             return new LfieldExpression(fieldParentExpression,
                                         new FieldIdentifier(fieldReference.GetCompatibleFullName(),
@@ -705,6 +703,7 @@ namespace Cilsil.Cil.Parsers
                                                out Call methodCall,
                                                bool isConstructorCall = false)
         {
+            ProcedureName procName;
             callArgs = new List<Call.CallArg>();
             returnType = calledMethod.ReturnType;
             var paramCount = calledMethod.Parameters.Count;
@@ -717,15 +716,35 @@ namespace Cilsil.Cil.Parsers
                 callArgs.Add(new Call.CallArg(thisExpr, thisType));
                 paramCount--;
             }
-            var funcExp = new ConstExpression(new ProcedureName(calledMethod));
             callArgs.AddRange(state.PopMany(paramCount)
                                    .Select(p => new Call.CallArg(p.Item1, p.Item2))
                                    .ToList());
+            var x = calledMethod.GetCompatibleFullName();
+            // When objects are handled using C#'s using construct, the compiler invokes the
+            // System.IDisposable method for dispose. This is problematic when applied to
+            // user-defined types with custom dispose, as then we will not apply the spec computed
+            // for the user-defined dispose.
+            if (calledMethod.GetCompatibleFullName().Contains("System.IDisposable::Dispose") &&
+                callArgs.First().Type is Tptr objectPtr &&
+                objectPtr.Type is Tstruct disposeType)
+            {
+                procName = new ProcedureName(
+                    calledMethod.Name,
+                    calledMethod.Parameters.Select(
+                        p => p.ParameterType.GetCompatibleFullName()).ToList(),
+                    disposeType.StructName,
+                    calledMethod.ReturnType.GetCompatibleFullName(),
+                    !calledMethod.HasThis);
+                isVirtual = false;
+            }
+            else
+            {
+                procName = new ProcedureName(calledMethod);
+            }
+            var funcExp = new ConstExpression(procName);
+
             var callFlags = new Call.CallFlags(isVirtual, false, false);
-            returnVariable = state.GetIdentifier(Identifier.IdentKind.Normal,
-                                                 description: "returned from " +
-                                                    calledMethod.GetCompatibleFullName() + 
-                                                    $" at {state.CurrentLocation}");
+            returnVariable = state.GetIdentifier(Identifier.IdentKind.Normal);
             methodCall = new Call(returnId: returnVariable,
                                   returnType: Typ.FromTypeReference(returnType),
                                   functionExpression: funcExp,
