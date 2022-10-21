@@ -7,7 +7,7 @@ To contribute, fork InferSharp and file a [pull request](https://github.com/micr
 
 ### Prerequisites
 
-* [.NET 5.0](https://dotnet.microsoft.com/download/dotnet/5.0)
+* [.NET 6.0](https://dotnet.microsoft.com/download/dotnet/6.0)
 
 * Packages listed in our dockerfile [here](https://github.com/microsoft/infersharp/blob/main/Dockerfile)
 
@@ -44,7 +44,7 @@ For C# library models (optional but highly recommended for reducing false positi
 To obtain an analysis on a directory tree of .NET binaries (comprised of both DLLs and PDBs), execute the following commands from the repository root:
 ```bash
 # Extract CFGs from binary files.
-dotnet Cilsil/bin/Debug/net5.0/Cilsil.dll translate {directory_to_binary_files} \
+dotnet Cilsil/bin/Debug/net6.0/Cilsil.dll translate {directory_to_binary_files} \
                                                 --outcfg {output_directory}/cfg.json \
                                                 --outtenv {output_directory}/tenv.json \
                                                 --cfgtxt {output_directory}/cfg.txt
