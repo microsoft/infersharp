@@ -124,7 +124,7 @@ public class MainClass
     }
 }
 
-// 15 reports expected (16 with --pulse-increase-leak-recall flag)
+// 16 reports expected (17 with --pulse-increase-leak-recall flag)
 class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
