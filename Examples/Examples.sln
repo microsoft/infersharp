@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples", "WebApplication1\Examples.csproj", "{B80CB034-FCD4-4225-A907-1B1B12C0A133}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "proj", "WebApplication1\proj.csproj", "{B80CB034-FCD4-4225-A907-1B1B12C0A133}"
 	ProjectSection(ProjectDependencies) = postProject
 		{110382B7-86A0-4AE8-8040-066C6E4B556F} = {110382B7-86A0-4AE8-8040-066C6E4B556F}
 	EndProjectSection
