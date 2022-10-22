@@ -124,22 +124,37 @@ public class MainClass
     }
 }
 
-// 16 reports expected (17 with --pulse-increase-leak-recall flag)
+// 17 reports expected (18 with --pulse-increase-leak-recall flag)
 class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
 
+    /// <summary>
+    /// This is a false positive that occurs when we return a class that owns IDisposable types.
+    /// This occurs because the setter method at the end of the async MoveNext() method which
+    /// retains the new object (and therefore the underlying IDisposable type) in memory is not
+    /// modeled.
+    /// </summary>
     public async Task<TakeAndDispose> ReturnFileStreamTaskFalsePositive()
     {
         var stream = new FileStream("", FileMode.Open);
         return new TakeAndDispose(stream);
     }
 
+    /// <summary>
+    /// Validates that default initializations of boolean fields i.e. indicating disposal to false
+    /// is taken into account and applied to conditional disposal.
+    /// </summary>
     public static void UsingOnCustomIDisposableWithBooleanFieldOK()
     {
         using (var custom = new IsDisposedBooleanField());
     }
 
+    /// <summary>
+    /// Validates that default initializations of boolean fields i.e. indicating disposal to false
+    /// is taken into account and applied to conditional disposal. Should report because the bool
+    /// is initialized to true, not false, and therefore disposal occurs.
+    /// </summary>
     public static void UsingOnCustomIDisposableWithBooleanFieldTrueShouldReport()
     {
         using (var custom = new IsDisposedBooleanField(true));
@@ -157,6 +172,10 @@ class InferResourceLeakTests
         using TakeAndDispose tad = new TakeAndDispose(stream);
     }
 
+    /// <summary>
+    /// Tests that the model of Write for throwing an exception (thus resource not getting
+    /// disposed) works.
+    /// </summary>
     public static void UsageCanThrowShouldReport()
     {
         FileStream fs = new FileStream("MyFile.txt", FileMode.Open, FileAccess.Read);
@@ -164,6 +183,9 @@ class InferResourceLeakTests
         fs.Dispose();
     }
 
+    /// <summary>
+    /// Tests that using (finally) correctly handles disposal despite possible exception.
+    /// </summary>
     public static void UsageCanThrowOk()
     {
         using (var fs = new FileStream("MyFile.txt", FileMode.Open, FileAccess.Read))
@@ -172,6 +194,9 @@ class InferResourceLeakTests
         }
     }
 
+    /// <summary>
+    /// Tests that an exception getting thrown causes the leak to be reported.
+    /// </summary>
     public static void ThrowBetweenConstructionAndDisposeShouldReport()
     {
         var stream1 = new FileStream("MyFile.txt", FileMode.Open);
@@ -179,6 +204,9 @@ class InferResourceLeakTests
         stream1.Dispose();
     }
 
+    /// <summary>
+    /// False negative: the throw that occurs in another method doesn't get propagated here.
+    /// </summary>
     public static void CallThrowingMethodBetweenConstructionAndDisposeShouldReport()
     { // this doesn't report since the fact that doesThrow() doesn't get propageted here.
         var stream1 = new FileStream("MyFile.txt", FileMode.Open);
@@ -186,6 +214,9 @@ class InferResourceLeakTests
         stream1.Dispose();
     }
 
+    /// <summary>
+    /// Tests that conditional exception (with a boolean value inducing it) works. 
+    /// </summary>
     public static void CallThrowingMethodBetweenConstructionAndDisposeShouldReport2()
     {
         var stream1 = new FileStream("MyFile.txt", FileMode.Open);
@@ -207,12 +238,19 @@ class InferResourceLeakTests
 
         s.Dispose();
     }
+
+    /// <summary>
+    /// Basic allocation/dispose -- should be not report an issue.
+    /// </summary>
     public static void ConstructingOneOk()
     {
         var stream1 = new FileStream("NotAFile.bad", FileMode.Open);
         stream1.Dispose();
     }
 
+    /// <summary>
+    /// Validates that delegation of the underlying stream to StreamReader works properly.
+    /// </summary>
     public static void DelegatingToConstructorOk()
     {
         var stream1 = new FileStream("SomeFile.txt", FileMode.Open);
@@ -221,6 +259,9 @@ class InferResourceLeakTests
         stream2.Dispose();
     }
 
+    /// <summary>
+    /// Validates that the first allocation of the resource is correctly reported as lost.
+    /// </summary>
     public static void DelegatingResourceToResourceShouldReport()
     {
         // this first filestream is lost and never disposed, this is where we should report
@@ -230,7 +271,11 @@ class InferResourceLeakTests
         var sr = new StreamReader(fs);
         sr.Dispose();
     }
-
+    
+    /// <summary>
+    /// Validates that IDisposable resources which are exceptions that shouldn't be reported on
+    /// indeed are not reported.
+    /// </summary>
     public static void UsagesNotTrackedOk()
     {
         MemoryStream ms = new MemoryStream(10);
@@ -246,6 +291,9 @@ class InferResourceLeakTests
         // If we did this with almost any other resource we should report.
     }
 
+    /// <summary>
+    /// Further validation of exceptions to disposing of IDisposables.
+    /// </summary>
     public static void UsageNotTrackedDelegatedOk()
     {
         var stream1 = new MemoryStream();
@@ -254,6 +302,9 @@ class InferResourceLeakTests
         streamReader.Dispose();
     }
 
+    /// <summary>
+    /// Validates that the exception getting thrown (preventing the dispose) is correctly interpreted.
+    /// </summary>
     public static void UsageNotTrackedDelegatedShouldReport()
     {
         var stream1 = new MemoryStream();
@@ -267,17 +318,26 @@ class InferResourceLeakTests
         streamReader.Dispose();
     }
 
+    /// <summary>
+    /// Validates that interprocedural allocation and disposal is correctly handled.
+    /// </summary>
     public static void UseMethodToCreateStreamAndDisposeOk()
     {
         var fs = CreateStreamOk();
         fs.Close();
     }
 
+    /// <summary>
+    /// Validates that interprocedural allocation (no disposal) is correctly reported.
+    /// </summary>
     public static void UseMethodToCreateStreamAndLeakShouldReport()
     {
         var fs = CreateStreamOk();
     }
 
+    /// <summary>
+    /// Validates that a returned StreamReader/underlying stream is not reported.
+    /// </summary>
     public static StreamReader CreateStreamReaderAndReturnOk()
     {
         var fs = new FileStream("SomeFile.txt", FileMode.Append);
@@ -290,17 +350,26 @@ class InferResourceLeakTests
         return new FileStream("MyFile.txt", FileMode.Create);
     }
 
+    /// <summary>
+    /// Validates that a user-defined IDisposable is reported.
+    /// </summary>
     public static void LeakCustomDisposableShouldReport()
     {
         var tad = new TakeAndDispose(CreateStreamOk());
     }
 
+    /// <summary>
+    /// Validates that delegation to user-defined IDisposable is handled.
+    /// </summary>
     public static TakeAndDispose PassDisposableToCustomDisposableOk()
     {
         Stream stream = new FileStream("MyFile", FileMode.Open);
         return new TakeAndDispose(stream);
     }
 
+    /// <summary>
+    /// Validates that delegation to and disposal of a user-defined IDisposable is handled.
+    /// </summary>
     public static void PassDisposableToCustomDisposableAndDisposeOk()
     {
         Stream stream = new FileStream("MyFile", FileMode.Open);
@@ -308,6 +377,10 @@ class InferResourceLeakTests
         tad.Dispose();
     }
 
+    /// <summary>
+    /// Validates that failure to dispose of a user-defined IDisposable (with delegated resource)
+    /// is reported.
+    /// </summary>
     public static void PassDisposableToCustomDisposableAndDisposeShouldReport()
     {
         Stream stream = new FileStream("MyFile", FileMode.Open);
@@ -315,12 +388,20 @@ class InferResourceLeakTests
         stream.Dispose();
     }
 
+    /// <summary>
+    /// Validates that delegation to user-defined IDisposable (no Dispose of underlying) is 
+    /// handled.
+    /// </summary>
     public static TakeWithoutDispose PassDisposableToCustomDisposable2Ok()
     {
         Stream stream = new FileStream("MyFile", FileMode.Open);
         return new TakeWithoutDispose(stream);
     }
 
+    /// <summary>
+    /// Validates that delegation to user-defined IDisposable (no Dispose of underlying) is
+    /// correctly handled.
+    /// </summary>
     public static void PassDisposableToCustomDisposableAndDispose2ShouldReport()
     {
         Stream stream = new FileStream("MyFile", FileMode.Open);
@@ -328,6 +409,9 @@ class InferResourceLeakTests
         twd.Dispose();
     }
 
+    /// <summary>
+    /// Validates that delegation to user-defined non-IDisposable is correctly handled.
+    /// </summary>
     public static void PassDisposableToCustomClassWithDisposeAndDisposeOk()
     {
         Stream stream = new FileStream("MyFile", FileMode.Open);
@@ -335,12 +419,18 @@ class InferResourceLeakTests
         tadnd.Dispose();
     }
 
+    /// <summary>
+    /// Validates that return of delegated stream to non-IDisposable is correctly handled.
+    /// </summary>
     public static TakeAndDisposeNotDisposable PassDisposableToCustomClassWithDisposeOk()
     {
         Stream stream = new FileStream("MyFile", FileMode.Open);
         return new TakeAndDisposeNotDisposable(stream);
     }
 
+    /// <summary>
+    /// Validates that upward casting of stream to IDisposable is not reported on.
+    /// </summary>
     public static IDisposable CastingOk()
     {
         FileStream myStream = new FileStream("MyFile", FileMode.Open);
@@ -349,7 +439,9 @@ class InferResourceLeakTests
     }
 
 
-    // out variables
+    /// <summary>
+    /// Validates that initialization of out variable is correctly not reported on.
+    /// </summary>
     public static void OutStreamOk(out FileStream myStream)
     {
         myStream = new FileStream("myFile.txt", FileMode.OpenOrCreate);
@@ -466,6 +558,14 @@ public class MultipleConstructors
 
         _myStream = myStream;
     }
+
+    /// <summary>
+    /// Although the field is indeed stored, the object goes out of scope and leaks the field. 
+    /// </summary>
+    public void InvokeConstructorFalseBooleanShouldReport()
+    {
+        var x = new MultipleConstructors("test", false);
+    }
 }
 
 
@@ -473,6 +573,9 @@ internal class ArrayTest
 {
     public static readonly int ArraySize = 5;
 
+    /// <summary>
+    /// Should not report, stream gets closed.
+    /// </summary>
     public static void straightLineCodeOk()
     {
         FileStream[] streams = new FileStream[ArraySize];
@@ -482,6 +585,9 @@ internal class ArrayTest
         streams[0].Close();
     }
 
+    /// <summary>
+    /// Should not report, stream is returned in array.
+    /// </summary>
     public static FileStream[] straightLineCodeReturnedOk()
     {
         FileStream[] streams = new FileStream[ArraySize];
@@ -491,6 +597,9 @@ internal class ArrayTest
         return streams;
     }
 
+    /// <summary>
+    /// Should not report, underlying stream gets closed.
+    /// </summary>
     public static void straightLineCodeWithVariantOk()
     {
         FileStream[] streams = new FileStream[ArraySize];
@@ -501,6 +610,9 @@ internal class ArrayTest
         stream.Close();
     }
 
+    /// <summary>
+    /// Should not report, stream gets allocated/freed in loop.
+    /// </summary>
     public static void LoopingCodeOk()
     {
         FileStream[] streams = new FileStream[ArraySize];
@@ -516,6 +628,9 @@ internal class ArrayTest
         }
     }
 
+    /// <summary>
+    /// Should not report, streams allocated in loop and returned.
+    /// </summary>
     public static FileStream[] LoopingCodeReturnedOk()
     {
         FileStream[] streams = new FileStream[ArraySize];
@@ -536,7 +651,10 @@ internal class ListTest
 
     public static readonly int ListSize = 5;
 
-    public static void straightLineCodeOk()
+    /// <summary>
+    /// Should not report, stream is closed (false positive -- ElementAt model)
+    /// </summary>
+    public static void straightLineCodeFalsePositive()
     { // reports as no model for ElementAt().
         List<FileStream> streams = new List<FileStream>();
 
@@ -545,6 +663,9 @@ internal class ListTest
         streams.ElementAt(0).Close();
     }
 
+    /// <summary>
+    /// Should not report, stream is returned in list.
+    /// </summary>
     public static List<FileStream> straightLineCodeReturnedOk()
     {
         List<FileStream> streams = new List<FileStream>();
@@ -554,6 +675,9 @@ internal class ListTest
         return streams;
     }
 
+    /// <summary>
+    /// Should not report, underlying stream closed.
+    /// </summary>
     public static void straightLineCodeWithVariantOk()
     {
         List<FileStream> streams = new List<FileStream>();
@@ -564,7 +688,10 @@ internal class ListTest
         stream.Close();
     }
 
-    public static void LoopingCodeOk()
+    /// <summary>
+    /// Should not report, streams allocated/closed in loop (false positive -- ElementAt model).
+    /// </summary>
+    public static void LoopingCodeFalsePositive()
     { // reports as no model for ElementAt()
         List<FileStream> streams = new List<FileStream>();
 
@@ -579,6 +706,10 @@ internal class ListTest
         }
     }
 
+    /// <summary>
+    /// Should not report, streams allocated/stored in loop, returned.
+    /// </summary>
+    /// <returns></returns>
     public static List<FileStream> LoopingCodeReturnedOk()
     {
         List<FileStream> streams = new List<FileStream>();
@@ -590,18 +721,11 @@ internal class ListTest
 
         return streams;
     }
+
+    /// <summary>
+    /// Should not report, streams added to instance collection.
+    /// </summary>
     public void AddToFieldOk()
-    {
-        FileStream stream = new FileStream("hi", FileMode.Create);
-
-        _streamList.Add(stream);
-
-        FileStream stream2 = new FileStream("hi", FileMode.Create);
-
-        _streamDict.Add("mykey", stream2);
-    }
-
-    public async Task AddToFieldAsyncOk()
     {
         FileStream stream = new FileStream("hi", FileMode.Create);
 
