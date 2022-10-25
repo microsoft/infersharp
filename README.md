@@ -15,12 +15,12 @@ The latest version is ![GitHub release (latest by date including pre-releases)](
 
 ## Get Started
 
-[VS Extension](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp)\
-[VSCode Extension](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext)\
-[Windows Subsystem for Linux](/RUNNING_INFERSHARP_ON_WINDOWS.md)\
-[GitHub Action](https://github.com/marketplace/actions/infersharp)\
-[Azure Pipelines](/.build/azure-pipelines-example-multistage.yml)\
-[Docker](/RUNNING_IN_DOCKER.md)
+- [VS Extension](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp)
+- [VSCode Extension](https://marketplace.visualstudio.com/items?itemName=matthew-jin.infersharp-ext)
+- [Windows Subsystem for Linux](/RUNNING_INFERSHARP_ON_WINDOWS.md)
+- [GitHub Action](https://github.com/marketplace/actions/infersharp)
+- [Azure Pipelines](/.build/azure-pipelines-example-multistage.yml)
+- [Docker](/RUNNING_IN_DOCKER.md)
 
 ## Build from Source
 Use this [Dockerfile](/Dockerfile) to build images and binaries from source. It builds the latest code from `microsoft/infersharp:main` + `facebook/infer:main` by default.
