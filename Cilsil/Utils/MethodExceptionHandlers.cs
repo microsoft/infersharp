@@ -149,19 +149,22 @@ namespace Cilsil.Utils
                 }
             }
 
+            // need to redo here.
             foreach (var catchTry in TryBoundsToCatchHandlers.Keys)
             {
-                foreach (var finallyTry in TryBoundsToFinallyHandlers.Keys)
+                var catchHandler = TryBoundsToCatchHandlers[catchTry][0].ExceptionHandler;
+                // For a try-catch-finally block, the end of the finally block should be the target
+                // of the catch blocks; the beginnings of the trys of the catch/finally blocks
+                // should also match.
+                var catchEnd = (Instruction) catchHandler.HandlerEnd.Previous.Operand;
+                var catchStart = catchHandler.TryStart;
+                if (TryBoundsToFinallyHandlers.ContainsKey((catchStart, catchEnd)))
                 {
-                    if (InstructionBlockWithinBounds(catchTry, finallyTry))
+                    foreach (var handlerNode in TryBoundsToCatchHandlers[catchTry])
                     {
-                        foreach (var handler in TryBoundsToCatchHandlers[catchTry])
-                        {
-                            handler.FinallyBlock = TryBoundsToFinallyHandlers[finallyTry];
-                        }
+                        handlerNode.FinallyBlock = 
+                            TryBoundsToFinallyHandlers[(catchStart, catchEnd)];
                     }
-                    // Each set of handlers can map to only one finally block.
-                    continue;
                 }
             }
 
