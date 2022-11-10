@@ -242,8 +242,8 @@ namespace Cilsil.Utils
             // and the previous node is from a different handler block, we empty the saved stack,
             // as there should not be anything on the stack when transferring control between
             // different handler blocks.
-            if (!MethodExceptionHandlers.CatchOffsetToCatchHandler
-                                        .ContainsKey(CurrentInstruction.Offset) &&
+            if (MethodExceptionHandlers.GetMapTypeFromInstruction(CurrentInstruction) != 
+                    MethodExceptionHandlers.MapType.CatchToCatch &&
                 node.BlockEndOffset != PreviousNode.BlockEndOffset)
             {
                 OffsetToNode

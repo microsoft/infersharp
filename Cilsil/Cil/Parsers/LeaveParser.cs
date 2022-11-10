@@ -21,6 +21,7 @@ namespace Cilsil.Cil.Parsers
                 case Code.Leave_S:
                 case Code.Throw:
                     var exnInfo = state.MethodExceptionHandlers;
+                    var mapType = exnInfo.GetMapTypeFromInstruction(instruction);
                     // This is null if the instruction is throw.
                     var target = instruction.Operand as Instruction;
 
@@ -34,7 +35,7 @@ namespace Cilsil.Cil.Parsers
                     }
 
                     // Leave within try of catch-block.
-                    if (exnInfo.TryOffsetToCatchHandlers.ContainsKey(instruction.Offset))
+                    if (mapType == MethodExceptionHandlers.MapType.TryToCatch)
                     {
                         if (state.NodesToLinkWithExceptionBlock.Count > 0)
                         {
@@ -43,7 +44,8 @@ namespace Cilsil.Cil.Parsers
                             if (!state.LeaveToExceptionEntryNode.ContainsKey(instruction))
                             {
                                 (entryNode, exceptionIdentifier) = GetHandlerEntryNode(
-                                    state, exnInfo.TryOffsetToCatchHandlers[instruction.Offset][0]
+                                    state, exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
+                                                  .Item1[0]
                                                   .ExceptionHandler);
                                 state.LeaveToExceptionEntryNode[instruction] =
                                     (entryNode, exceptionIdentifier);
@@ -53,7 +55,8 @@ namespace Cilsil.Cil.Parsers
                                 // translation from the handler's catch variable load node. 
                                 CreateCatchHandlerEntryBlock(
                                     state,
-                                    exnInfo.TryOffsetToCatchHandlers[instruction.Offset][0],
+                                    exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
+                                           .Item1[0],
                                     entryNode,
                                     exceptionIdentifier);
                             }
@@ -70,9 +73,10 @@ namespace Cilsil.Cil.Parsers
                         }
                     }
                     // Leave occurs within catch block.
-                    else if (exnInfo.CatchOffsetToCatchHandler.ContainsKey(instruction.Offset))
+                    else if (mapType == MethodExceptionHandlers.MapType.CatchToCatch)
                     {
-                        var currentHandler = exnInfo.CatchOffsetToCatchHandler[instruction.Offset];
+                        var currentHandler = 
+                            exnInfo.CatchOffsetToCatchHandler[instruction.Offset].Item1;
 
                         // Exceptional control flow routes through the finally block, if present,
                         // prior to routing control flow to leave.
@@ -100,12 +104,11 @@ namespace Cilsil.Cil.Parsers
                             }
                         }
                     }
-                    // Leave occurs within try of finally block (we leave this as the last option,
-                    // as the try block of a finally encompasses all of the try-catch bytecode, in
-                    // the case of try-catch-finally.
-                    else if (exnInfo.TryOffsetToFinallyHandler.ContainsKey(instruction.Offset))
+                    // Narrowest containing interval for offset is the try of a finally block.
+                    else
                     {
-                        var finallyHandler = exnInfo.TryOffsetToFinallyHandler[instruction.Offset];
+                        var finallyHandler = 
+                            exnInfo.TryOffsetToFinallyHandler[instruction.Offset].Item1;
                         if (state.NodesToLinkWithExceptionBlock.Count > 0)
                         {
                             var finallyEntryNode =

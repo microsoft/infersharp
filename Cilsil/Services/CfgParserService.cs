@@ -195,12 +195,12 @@ namespace Cilsil.Services
                                 MethodExceptionHandlers.DefaultHandlerEndOffset);
                         // We don't reuse nodes of finally handlers.
                         if (nodeAtOffset != null &&
-                            !programState.MethodExceptionHandlers
-                                         .FinallyOffsetToFinallyHandler
-                                         .ContainsKey(nextInstruction.Offset) &&
-                            !programState.MethodExceptionHandlers
-                                         .CatchOffsetToCatchHandler
-                                         .ContainsKey(nextInstruction.Offset))
+                            programState.MethodExceptionHandlers
+                                        .GetMapTypeFromInstruction(nextInstruction) 
+                                != MethodExceptionHandlers.MapType.FinallyToFinally &&
+                            programState.MethodExceptionHandlers
+                                        .GetMapTypeFromInstruction(nextInstruction)
+                                != MethodExceptionHandlers.MapType.CatchToCatch)
                         {
                             programState.PreviousNode.Successors.Add(nodeAtOffset);
                         }

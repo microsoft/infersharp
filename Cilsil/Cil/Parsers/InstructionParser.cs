@@ -124,8 +124,8 @@ namespace Cilsil.Cil.Parsers
             state.Cfg.RegisterNode(node);
             state.PreviousNode.Successors.Add(node);
             node.BlockEndOffset = state.MethodExceptionHandlers
-                                       .GetBlockEndOffsetFromOffset(
-                                            state.CurrentInstruction.Offset);
+                                       .GetBlockEndOffsetFromInstruction(
+                                            state.CurrentInstruction);
             if (state.MethodExceptionHandlers.GetExceptionHandlerAtInstruction(
                     state.CurrentInstruction) != null)
             {
@@ -521,11 +521,11 @@ namespace Cilsil.Cil.Parsers
                 isInstCall, pruneFalseInstruction
             });
             pruneTrueNode.BlockEndOffset = state.MethodExceptionHandlers
-                                                  .GetBlockEndOffsetFromOffset(
-                                                       state.CurrentInstruction.Offset);
+                                                  .GetBlockEndOffsetFromInstruction(
+                                                       state.CurrentInstruction);
             pruneFalseNode.BlockEndOffset = state.MethodExceptionHandlers
-                                                   .GetBlockEndOffsetFromOffset(
-                                                        state.CurrentInstruction.Offset);
+                                                   .GetBlockEndOffsetFromInstruction(
+                                                        state.CurrentInstruction);
             state.Cfg.RegisterNode(pruneTrueNode);
             state.Cfg.RegisterNode(pruneFalseNode);
             return (pruneTrueNode, pruneFalseNode);
