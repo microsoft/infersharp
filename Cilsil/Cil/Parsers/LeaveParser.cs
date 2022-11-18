@@ -39,33 +39,7 @@ namespace Cilsil.Cil.Parsers
                     {
                         if (state.NodesToLinkWithExceptionBlock.Count > 0)
                         {
-                            CfgNode entryNode;
-                            Identifier exceptionIdentifier;
-                            if (!state.LeaveToExceptionEntryNode.ContainsKey(instruction))
-                            {
-                                (entryNode, exceptionIdentifier) = GetHandlerEntryNode(
-                                    state, exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
-                                                  .Item1[0]
-                                                  .ExceptionHandler);
-                                state.LeaveToExceptionEntryNode[instruction] =
-                                    (entryNode, exceptionIdentifier);
-                                // Exceptional control flow routes through the first of the set of
-                                // associated catch handlers; this invocation pushes the catch
-                                // handler's first instruction onto the stack and continues the
-                                // translation from the handler's catch variable load node. 
-                                CreateCatchHandlerEntryBlock(
-                                    state,
-                                    exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
-                                           .Item1[0],
-                                    entryNode,
-                                    exceptionIdentifier);
-                            }
-                            else
-                            {
-                                (entryNode, _) =
-                                    state.LeaveToExceptionEntryNode[instruction];
-                            }
-                            CreateExceptionalEdges(state, entryNode);
+                            CreateCatchHandlerExceptionalEdges(state, instruction);
                         }
                         if (target != null)
                         {
@@ -75,26 +49,37 @@ namespace Cilsil.Cil.Parsers
                     // Leave occurs within catch block.
                     else if (mapType == MethodExceptionHandlers.MapType.CatchToCatch)
                     {
-                        var currentHandler = 
-                            exnInfo.CatchOffsetToCatchHandler[instruction.Offset].Item1;
+                        var exceptionHandler = 
+                            exnInfo.GetExceptionHandlerAtInstruction(instruction);
 
-                        // Exceptional control flow routes through the finally block, if present,
-                        // prior to routing control flow to leave.
-                        if (currentHandler.FinallyBlock != null &&
+                        // Here we handle exceptional control flow.
+                        if (exceptionHandler != null && 
                             state.NodesToLinkWithExceptionBlock.Count > 0)
                         {
-                            var finallyEntryNode = CreateFinallyExceptionalEntryBlock(
-                                state, currentHandler.FinallyBlock);
-                            CreateExceptionalEdges(state, finallyEntryNode);
+                            // Exceptional control flow routes through the finally block for this
+                            // catch (nested in try of finally handler).
+                            if (exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
+                            {
+                                var finallyEntryNode = CreateFinallyExceptionalEntryBlock(
+                                    state, exceptionHandler);
+                                CreateExceptionalEdges(state, finallyEntryNode);
+                            }
+                            // Catch nested in try of another catch handler.
+                            else
+                            {
+                                CreateCatchHandlerExceptionalEdges(state, instruction);
+                            }
                         }
+                        // We now handle regular control flow to the target. 
                         if (target != null)
                         {
-                            if (currentHandler.FinallyBlock != null)
+                            if (exceptionHandler != null &&
+                                exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
                             {
                                 state.PushInstruction(
-                                    currentHandler.FinallyBlock.HandlerStart,
+                                    exceptionHandler.HandlerStart,
                                     CreateFinallyHandlerNonExceptionalEntry(
-                                        state, currentHandler.FinallyBlock, target));
+                                        state, exceptionHandler, target));
                             }
                             else
                             {
@@ -104,7 +89,8 @@ namespace Cilsil.Cil.Parsers
                             }
                         }
                     }
-                    // Narrowest containing interval for offset is the try of a finally block.
+                    // Narrowest containing interval for offset is the try of a finally block,
+                    // since leave can't occur within a finally handler.
                     else
                     {
                         var finallyHandler = 

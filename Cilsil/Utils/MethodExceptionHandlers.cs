@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil.Cil;
 using System.Collections.Generic;
+using static Cilsil.Utils.MethodExceptionHandlers;
 
 namespace Cilsil.Utils
 {
@@ -122,7 +123,6 @@ namespace Cilsil.Utils
             {
                 mapType = MapType.FinallyToFinally;
             }
-            //TODO: CHECK THAT ALL THE LEAVE/ENDFINALLY MAP TO CORRECT HANDLER
             return mapType;
         }
 
@@ -210,25 +210,10 @@ namespace Cilsil.Utils
                 }
             }
 
-            // need to redo here.
-            foreach (var catchTry in TryBoundsToCatchHandlers.Keys)
-            {
-                var catchHandler = TryBoundsToCatchHandlers[catchTry][0].ExceptionHandler;
-                // For a try-catch-finally block, the end of the finally block should be the target
-                // of the catch blocks; the beginnings of the trys of the catch/finally blocks
-                // should also match.
-                var catchEnd = (Instruction) catchHandler.HandlerEnd.Previous.Operand;
-                var catchStart = catchHandler.TryStart;
-                if (TryBoundsToFinallyHandlers.ContainsKey((catchStart, catchEnd)))
-                {
-                    foreach (var handlerNode in TryBoundsToCatchHandlers[catchTry])
-                    {
-                        handlerNode.FinallyBlock = 
-                            TryBoundsToFinallyHandlers[(catchStart, catchEnd)];
-                    }
-                }
-            }
-
+            // A different offset does not necessarily indicate a different instruction -- there
+            // are key values (offsets) in these dictionaries which don't actually refer to
+            // instructions. This doesn't create any issue with the representation of actual
+            // existing instructions.
             TryOffsetToCatchHandlers = ConvertBoundsToOffsets(TryBoundsToCatchHandlers);
             TryOffsetToFinallyHandler = ConvertBoundsToOffsets(TryBoundsToFinallyHandlers);
             CatchOffsetToCatchHandler = ConvertBoundsToOffsets(CatchBoundsToCatchHandler);
@@ -236,11 +221,7 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
-        /// Returns the exception handler associated with the instruction -- a catch handler in the
-        /// case of an instruction within the try block of a try-catch or try-catch-finally or a
-        /// finally handler for try-finally, and a finally handler in the case of a catch
-        /// instruction in try-catch-finally. We assume there is no try-catch nested within a
-        /// finally block or in a catch-block.
+        /// Returns the most nested exception handler associated with the instruction. 
         /// </summary>
         /// <param name="instruction">The instruction from which to determine the
         /// exception-handling control flow.</param>
@@ -255,7 +236,26 @@ namespace Cilsil.Utils
                 case MapType.TryToFinally:
                     return TryOffsetToFinallyHandler[offset].Item1;
                 case MapType.CatchToCatch:
-                    return CatchOffsetToCatchHandler[offset].Item1.ExceptionHandler;
+                case MapType.FinallyToFinally:
+                    // Both handlers; we select the narrower handler. 
+                    if (TryOffsetToCatchHandlers.ContainsKey(offset) &&
+                        TryOffsetToFinallyHandler.ContainsKey(offset))
+                    {
+                        return TryOffsetToCatchHandlers[offset].Item2 < TryOffsetToFinallyHandler[offset].Item2 ?
+                                   TryOffsetToCatchHandlers[offset].Item1[0].ExceptionHandler :
+                                   TryOffsetToFinallyHandler[offset].Item1;
+                    }
+                    // Catch handler but no finally handler.
+                    if (TryOffsetToCatchHandlers.ContainsKey(offset))
+                    {
+                        return TryOffsetToCatchHandlers[offset].Item1[0].ExceptionHandler;
+                    }
+                    // Finally handler but no catch handler.
+                    if (TryOffsetToFinallyHandler.ContainsKey(offset))
+                    {
+                        return TryOffsetToFinallyHandler[offset].Item1;
+                    }
+                    return null;
                 default:
                     return null;
             }

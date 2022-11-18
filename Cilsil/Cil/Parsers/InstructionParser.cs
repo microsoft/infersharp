@@ -10,6 +10,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using ProcStack = System.Collections.Generic.Stack<(Cilsil.Sil.Expressions.Expression Expression,
@@ -325,14 +326,21 @@ namespace Cilsil.Cil.Parsers
             // exception type-matching node.
             else
             {
-                if (handlerNode.FinallyBlock != null)
+                var exceptionHandler =
+                    state.MethodExceptionHandlers
+                         .GetExceptionHandlerAtInstruction(handlerNode.ExceptionHandler
+                                                                      .HandlerStart);
+                // If there is a finally exception handler associated with this catch handler, we
+                // route regular control flow through the finally block.
+                if (exceptionHandler != null &&
+                    exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
                 {
                     var finallyBranchNode = CreateFinallyExceptionBranchNode(
                         state, handlerNode.ExceptionHandler);
                     falseBranch.Successors
                                .Add(finallyBranchNode);
                     (var finallyLoadCatchVar, _) = GetHandlerCatchVarNode(
-                        state, handlerNode.FinallyBlock);
+                        state, exceptionHandler);
                     finallyBranchNode.Successors.Add(finallyLoadCatchVar);
                 }
                 else
@@ -565,6 +573,46 @@ namespace Cilsil.Cil.Parsers
                 node.ExceptionNodes.Add(entryNode);
             }
             state.NodesToLinkWithExceptionBlock = new List<CfgNode>();
+        }
+
+        /// <summary>
+        /// Creates the corresponding exceptional edges to a catch handler.
+        /// flow.
+        /// </summary>
+        /// <param name="state">The state.</param>
+        /// <param name="instruction">The instruction for which we are potentially creating
+        /// exceptional control flow.</param>
+        protected static void CreateCatchHandlerExceptionalEdges(ProgramState state, 
+                                                                 Instruction instruction)
+        {
+            CfgNode entryNode;
+            Identifier exceptionIdentifier;
+            var exnInfo = state.MethodExceptionHandlers;
+            if (!state.LeaveToExceptionEntryNode.ContainsKey(instruction))
+            {
+                (entryNode, exceptionIdentifier) = GetHandlerEntryNode(
+                    state, exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
+                                  .Item1[0]
+                                  .ExceptionHandler);
+                state.LeaveToExceptionEntryNode[instruction] =
+                    (entryNode, exceptionIdentifier);
+                // Exceptional control flow routes through the first of the set of
+                // associated catch handlers; this invocation pushes the catch
+                // handler's first instruction onto the stack and continues the
+                // translation from the handler's catch variable load node. 
+                CreateCatchHandlerEntryBlock(
+                    state,
+                    exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
+                           .Item1[0],
+                    entryNode,
+                    exceptionIdentifier);
+            }
+            else
+            {
+                (entryNode, _) =
+                    state.LeaveToExceptionEntryNode[instruction];
+            }
+            CreateExceptionalEdges(state, entryNode);
         }
 
         /// <summary>

@@ -21,10 +21,6 @@ namespace Cilsil.Utils
         /// </summary>
         public ExceptionHandlerNode PreviousCatchBlock;
         /// <summary>
-        /// The finally block.
-        /// </summary>
-        public ExceptionHandler FinallyBlock;
-        /// <summary>
         /// The first catch handler.
         /// </summary>
         public ExceptionHandler FirstCatchHandler = null;
@@ -36,12 +32,10 @@ namespace Cilsil.Utils
         /// <param name="nextCatchBlock">The next catch clause.</param>
         /// <param name="finallyBlock">The finally block.</param>
         public ExceptionHandlerNode(ExceptionHandler exceptionHandler,
-                                    ExceptionHandlerNode nextCatchBlock = null,
-                                    ExceptionHandler finallyBlock = null)
+                                    ExceptionHandlerNode nextCatchBlock = null)
         {
             ExceptionHandler = exceptionHandler;
             NextCatchBlock = nextCatchBlock;
-            FinallyBlock = finallyBlock;
         }
     }
 

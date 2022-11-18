@@ -18,6 +18,29 @@ namespace Cilsil.Cil.Parsers
                     // This instruction was reached through non-exceptional control flow.
                     if (!state.FinallyExceptionalTranslation)
                     {
+                        var exceptionHandler =
+                            state.MethodExceptionHandlers
+                                 .GetExceptionHandlerAtInstruction(instruction);
+
+                        // Here we handle exceptional control flow.
+                        if (state.NodesToLinkWithExceptionBlock.Count > 0 && 
+                            exceptionHandler != null)
+                        {
+                            // Exceptional control flow routes through the finally block for this
+                            // finally (nested in try of another finally handler).
+                            if (exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
+                            {
+                                var finallyEntryNode = CreateFinallyExceptionalEntryBlock(
+                                    state, exceptionHandler);
+                                CreateExceptionalEdges(state, finallyEntryNode);
+                            }
+                            // This finally block is nested in try of another catch handler.
+                            else
+                            {
+                                CreateCatchHandlerExceptionalEdges(state, instruction);
+                            }
+                        }
+
                         // We continue translation with that operand from the end of the finally
                         // block, now that finally block has been translated.
                         state.PushInstruction(state.EndfinallyControlFlow);
