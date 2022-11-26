@@ -127,10 +127,17 @@ namespace Cilsil.Cil.Parsers
             node.BlockEndOffset = state.MethodExceptionHandlers
                                        .GetBlockEndOffsetFromInstruction(
                                             state.CurrentInstruction);
-            if (state.MethodExceptionHandlers.GetExceptionHandlerAtInstruction(
-                    state.CurrentInstruction) != null)
+
+            var exceptionHandler = state.MethodExceptionHandlers
+                                        .GetExceptionHandlerAtInstruction(state.CurrentInstruction);
+
+            if (exceptionHandler != null)
             {
-                state.NodesToLinkWithExceptionBlock.Add(node);
+                var exceptionHandlerEntryNode = GetHandlerExceptionalEntryBlock(state, exceptionHandler);
+                if (exceptionHandlerEntryNode != null)
+                {
+                    node.ExceptionNodes.Add(exceptionHandlerEntryNode);
+                }
             }
             if (RememberNodeOffset)
             {
@@ -380,7 +387,7 @@ namespace Cilsil.Cil.Parsers
             return state.ExceptionHandlerToCatchVarNode[handler];
         }
 
-        protected static CfgNode CreateFinallyExceptionalEntryBlock(ProgramState state,
+        private static CfgNode CreateFinallyExceptionalEntryBlock(ProgramState state,
                                                                     ExceptionHandler handler)
         {
             (var entryNode, _) = GetHandlerEntryNode(state, handler);
@@ -460,6 +467,8 @@ namespace Cilsil.Cil.Parsers
             state.Cfg.RegisterNode(exceptionReturnNode);
             state.PreviousNode.Successors.Add(exceptionReturnNode);
             return exceptionReturnNode;
+            // TODO: LOOK AT THE FINALLY ROUTING FROM THIS NODE -- SHOULD BE SAME AS
+            // EXIT TO FINALLY OUT OF LAST CATCH HANDLER (VALIDATE THAT TOO)_!!!
         }
 
         protected static (CfgNode, CfgNode) CreateExceptionTypeCheckBranchNodes(
@@ -566,53 +575,56 @@ namespace Cilsil.Cil.Parsers
             return retNode;
         }
 
-        protected static void CreateExceptionalEdges(ProgramState state, CfgNode entryNode)
-        {
-            foreach (var node in state.NodesToLinkWithExceptionBlock)
-            {
-                node.ExceptionNodes.Add(entryNode);
-            }
-            state.NodesToLinkWithExceptionBlock = new List<CfgNode>();
-        }
-
         /// <summary>
-        /// Creates the corresponding exceptional edges to a catch handler.
+        /// Gets the entry node for the exception handler, creating the entry block if needed.
         /// flow.
         /// </summary>
         /// <param name="state">The state.</param>
-        /// <param name="instruction">The instruction for which we are potentially creating
+        /// <param name="handler">The catch handler for which we are potentially creating
         /// exceptional control flow.</param>
-        protected static void CreateCatchHandlerExceptionalEdges(ProgramState state, 
-                                                                 Instruction instruction)
+        protected static CfgNode GetHandlerExceptionalEntryBlock(ProgramState state, 
+                                                                 ExceptionHandler handler)
         {
+            if (!(handler.HandlerType == ExceptionHandlerType.Catch || 
+                  handler.HandlerType == ExceptionHandlerType.Finally))
+            {
+                return null;
+            }
             CfgNode entryNode;
             Identifier exceptionIdentifier;
             var exnInfo = state.MethodExceptionHandlers;
-            if (!state.LeaveToExceptionEntryNode.ContainsKey(instruction))
+            var instruction = handler.TryEnd.Previous;
+
+            if (!state.ExceptionHandlerSetToEntryNode.ContainsKey(handler))
             {
-                (entryNode, exceptionIdentifier) = GetHandlerEntryNode(
-                    state, exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
-                                  .Item1[0]
-                                  .ExceptionHandler);
-                state.LeaveToExceptionEntryNode[instruction] =
-                    (entryNode, exceptionIdentifier);
-                // Exceptional control flow routes through the first of the set of
-                // associated catch handlers; this invocation pushes the catch
-                // handler's first instruction onto the stack and continues the
-                // translation from the handler's catch variable load node. 
-                CreateCatchHandlerEntryBlock(
-                    state,
-                    exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
-                           .Item1[0],
-                    entryNode,
-                    exceptionIdentifier);
+                if (handler.HandlerType == ExceptionHandlerType.Catch)
+                {
+                    (entryNode, exceptionIdentifier) = GetHandlerEntryNode(
+                        state, exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
+                                        .Item1[0]
+                                        .ExceptionHandler);
+                    // Exceptional control flow routes through the first of the set of
+                    // associated catch handlers; this invocation pushes the catch
+                    // handler's first instruction onto the stack and continues the
+                    // translation from the handler's catch variable load node. 
+                    CreateCatchHandlerEntryBlock(
+                        state,
+                        exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
+                                .Item1[0],
+                        entryNode,
+                        exceptionIdentifier);
+                }
+                // Is a finally handler.
+                else 
+                {
+                    entryNode = CreateFinallyExceptionalEntryBlock(state, handler);
+                }
             }
             else
             {
-                (entryNode, _) =
-                    state.LeaveToExceptionEntryNode[instruction];
+                (entryNode, _) = state.ExceptionHandlerSetToEntryNode[handler];
             }
-            CreateExceptionalEdges(state, entryNode);
+            return entryNode;
         }
 
         /// <summary>

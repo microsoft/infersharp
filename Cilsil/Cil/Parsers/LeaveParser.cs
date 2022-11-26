@@ -37,10 +37,6 @@ namespace Cilsil.Cil.Parsers
                     // Leave within try of catch-block.
                     if (mapType == MethodExceptionHandlers.MapType.TryToCatch)
                     {
-                        if (state.NodesToLinkWithExceptionBlock.Count > 0)
-                        {
-                            CreateCatchHandlerExceptionalEdges(state, instruction);
-                        }
                         if (target != null)
                         {
                             state.PushInstruction(target);
@@ -52,24 +48,6 @@ namespace Cilsil.Cil.Parsers
                         var exceptionHandler = 
                             exnInfo.GetExceptionHandlerAtInstruction(instruction);
 
-                        // Here we handle exceptional control flow.
-                        if (exceptionHandler != null && 
-                            state.NodesToLinkWithExceptionBlock.Count > 0)
-                        {
-                            // Exceptional control flow routes through the finally block for this
-                            // catch (nested in try of finally handler).
-                            if (exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
-                            {
-                                var finallyEntryNode = CreateFinallyExceptionalEntryBlock(
-                                    state, exceptionHandler);
-                                CreateExceptionalEdges(state, finallyEntryNode);
-                            }
-                            // Catch nested in try of another catch handler.
-                            else
-                            {
-                                CreateCatchHandlerExceptionalEdges(state, instruction);
-                            }
-                        }
                         // We now handle regular control flow to the target. 
                         if (target != null)
                         {
@@ -95,12 +73,6 @@ namespace Cilsil.Cil.Parsers
                     {
                         var finallyHandler = 
                             exnInfo.TryOffsetToFinallyHandler[instruction.Offset].Item1;
-                        if (state.NodesToLinkWithExceptionBlock.Count > 0)
-                        {
-                            var finallyEntryNode =
-                                CreateFinallyExceptionalEntryBlock(state, finallyHandler);
-                            CreateExceptionalEdges(state, finallyEntryNode);
-                        }
                         if (target != null)
                         {
                             state.PushInstruction(finallyHandler.HandlerStart,
@@ -133,7 +105,10 @@ namespace Cilsil.Cil.Parsers
                 state.PreviousNode.Successors.Add(finallyHandlerStartNode);
                 state.AppendToPreviousNode = true;
             }
-            state.EndfinallyControlFlow = leaveTarget;
+            if (leaveTarget != null)
+            {
+                state.EndfinallyControlFlow = leaveTarget;
+            }
             return finallyHandlerStartNode;
         }
 

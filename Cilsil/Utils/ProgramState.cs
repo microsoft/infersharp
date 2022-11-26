@@ -130,13 +130,6 @@ namespace Cilsil.Utils
         private int NextAvailableSyntheticVariableId;
 
         /// <summary>
-        /// List of nodes to link to an exception block when a leave instruction is encountered. If
-        /// the translation state is not in a try or catch block, translated body nodes don't need 
-        /// to be recorded.
-        /// </summary>
-        public List<CfgNode> NodesToLinkWithExceptionBlock;
-
-        /// <summary>
         /// <c>true</c> if the top instruction is in a try or catch block; <c>false</c> otherwise. 
         /// </summary>
         public bool InstructionInTryOrCatch;
@@ -170,12 +163,6 @@ namespace Cilsil.Utils
         public Instruction EndfinallyControlFlow;
 
         /// <summary>
-        /// Maps a leave instruction offset to the exceptional entry node created for it, as well
-        /// as the associated identifier for the unwrapped exception.
-        /// </summary>
-        public Dictionary<Instruction, (CfgNode, Identifier)> LeaveToExceptionEntryNode;
-
-        /// <summary>
         /// Contains information about the program's exception handlers.
         /// </summary>
         public MethodExceptionHandlers MethodExceptionHandlers;
@@ -207,7 +194,6 @@ namespace Cilsil.Utils
             ParsedInstructions = new List<Instruction>();
 
             MethodExceptionHandlers = new MethodExceptionHandlers(method.Body);
-            NodesToLinkWithExceptionBlock = new List<CfgNode>();
             InstructionInTryOrCatch = false;
 
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack, int)>>();
@@ -219,7 +205,6 @@ namespace Cilsil.Utils
             FinallyHandlerToExceptionExit = new Dictionary<ExceptionHandler, CfgNode>();
             ExceptionHandlerSetToEntryNode = new Dictionary<ExceptionHandler,
                                                             (CfgNode node, Identifier id)>();
-            LeaveToExceptionEntryNode = new Dictionary<Instruction, (CfgNode, Identifier)>();
 
             FinallyExceptionalTranslation = false;
 

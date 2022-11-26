@@ -30,7 +30,6 @@ namespace Cilsil.Utils
         /// </summary>
         /// <param name="exceptionHandler">The exception handler.</param>
         /// <param name="nextCatchBlock">The next catch clause.</param>
-        /// <param name="finallyBlock">The finally block.</param>
         public ExceptionHandlerNode(ExceptionHandler exceptionHandler,
                                     ExceptionHandlerNode nextCatchBlock = null)
         {

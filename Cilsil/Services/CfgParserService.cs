@@ -196,18 +196,18 @@ namespace Cilsil.Services
                         // We don't reuse nodes of finally handlers.
                         if (nodeAtOffset != null &&
                             programState.MethodExceptionHandlers
-                                        .GetMapTypeFromInstruction(nextInstruction) 
-                                != MethodExceptionHandlers.MapType.FinallyToFinally &&
+                                        .GetMapTypeFromInstruction(nextInstruction)
+                                != MethodExceptionHandlers.MapType.CatchToCatch &&
                             programState.MethodExceptionHandlers
                                         .GetMapTypeFromInstruction(nextInstruction)
-                                != MethodExceptionHandlers.MapType.CatchToCatch)
+                                != MethodExceptionHandlers.MapType.FinallyToFinally)
                         {
                             programState.PreviousNode.Successors.Add(nodeAtOffset);
                         }
                         else if (unhandledExceptionCase)
                         {
                             Log.WriteWarning($"Unhandled exception-handling.");
-                            Log.RecordUnknownInstruction("unhandled-exception");
+                           Log.RecordUnknownInstruction("unhandled-exception");
                             Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                        nextInstruction.RemainingInstructionCount());
                             translationUnfinished = true;
