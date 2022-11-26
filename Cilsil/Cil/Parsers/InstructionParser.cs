@@ -571,7 +571,6 @@ namespace Cilsil.Cil.Parsers
                                      Typ.FromTypeReference(retType),
                                      location);
             retNode.Instructions.Add(retInstr);
-            retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
             return retNode;
         }
 

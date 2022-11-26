@@ -197,10 +197,7 @@ namespace Cilsil.Services
                         if (nodeAtOffset != null &&
                             programState.MethodExceptionHandlers
                                         .GetMapTypeFromInstruction(nextInstruction)
-                                != MethodExceptionHandlers.MapType.CatchToCatch &&
-                            programState.MethodExceptionHandlers
-                                        .GetMapTypeFromInstruction(nextInstruction)
-                                != MethodExceptionHandlers.MapType.FinallyToFinally)
+                                != MethodExceptionHandlers.MapType.CatchToCatch)
                         {
                             programState.PreviousNode.Successors.Add(nodeAtOffset);
                         }
