@@ -36,12 +36,20 @@ mkdir infer-staging
 
 echo -e "Copying binaries to a staging folder...\n"
 shopt -s globstar
+
 # Find all .dlls with matching .pdbs within the same folder and copy them in pairs
 for f in "$1"/**; do
 	if [ "${f##*.}" == "dll" ]; then
 		if [ -f "${f%.*}.pdb" ]; then
 			cp -n "$f" "${f%.*}.pdb" infer-staging
 		fi
+	fi
+done
+
+# Iterate again to copy all .dlls that have no matching .pdbs to cover the scenario where .pdb is embedded in .dll
+for f in "$1"/**; do
+	if [ "${f##*.}" == "dll" ]; then
+		cp -n "$f" infer-staging
 	fi
 done
 
