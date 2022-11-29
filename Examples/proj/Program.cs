@@ -36,7 +36,7 @@ public class IsDisposedBooleanField : IDisposable
     }
 }
 
-// Expect 2 TAINT_ERROR for SQL injection flows.
+// Expect 3 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
     [HttpPost]
@@ -62,6 +62,32 @@ public class PulseTaintTests
     {
         subproj.WeatherForecast.runSqlCommandStoredProcedure(InputParameter.ToString());
     }
+
+    [HttpGet]
+    public void SearchRawData(string query)
+    {
+        var queryPrefix = "prefix";
+        using (var conn = new SqlConnection("readerConnectionString"))
+        {
+            using (var command = new SqlCommand(queryPrefix + query))
+            {
+                try
+                {
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        Console.Write("Hello");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.Write(ex.Message);
+                    return;
+                }
+            }
+        }
+    }
+
 }
 
 
@@ -426,6 +452,26 @@ class InferResourceLeakTests
     {
         Stream stream = new FileStream("MyFile", FileMode.Open);
         return new TakeAndDisposeNotDisposable(stream);
+    }
+
+    /// <summary>
+    /// Should be no leak, as all resources are allocated via using.
+    /// </summary>
+    public static string NestedUsingWithThrownException()
+    {
+        using (var x = new StreamReader(""))
+        {
+            Console.Write("in first using");
+            using (var y = new StreamReader("2"))
+            {
+                Console.Write("hello world again");
+                if (y != null)
+                {
+                    throw new Exception();
+                }
+            }
+        }
+        return "done";
     }
 
     /// <summary>
