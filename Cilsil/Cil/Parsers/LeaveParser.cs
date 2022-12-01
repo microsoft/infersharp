@@ -69,7 +69,7 @@ namespace Cilsil.Cil.Parsers
                     }
                     // Narrowest containing interval for offset is the try of a finally block,
                     // since leave can't occur within a finally handler.
-                    else
+                    else if (mapType == MethodExceptionHandlers.MapType.TryToFinally)
                     {
                         var finallyHandler = 
                             exnInfo.TryOffsetToFinallyHandler[instruction.Offset].Item1;

@@ -168,20 +168,20 @@ namespace Cilsil.Cil.Parsers
             var callArgs = new List<Call.CallArg> { new Call.CallArg(arg.Item1, arg.Item2) };
 
             return setLockedAttribute ? new Call(returnIdentifier,
-                                        new Tvoid(),
-                                        new ConstExpression(
-                                           ProcedureName.BuiltIn__set_locked_attribute),
-                                           callArgs,
-                                           callFlags,
-                                           state.CurrentLocation)
-                                     : new Call(returnIdentifier,
-                                                new Tvoid(),
-                                                new ConstExpression(
-                                                    ProcedureName.
-                                                        BuiltIn__delete_locked_attribute),
-                                                callArgs,
-                                                callFlags,
-                                                state.CurrentLocation);
+                                                 new Tvoid(),
+                                                 new ConstExpression(
+                                                    ProcedureName.BuiltIn__set_locked_attribute),
+                                                    callArgs,
+                                                    callFlags,
+                                                    state.CurrentLocation)
+                                         : new Call(returnIdentifier,
+                                                    new Tvoid(),
+                                                    new ConstExpression(
+                                                        ProcedureName.
+                                                            BuiltIn__delete_locked_attribute),
+                                                    callArgs,
+                                                    callFlags,
+                                                    state.CurrentLocation);
         }
     }
 }

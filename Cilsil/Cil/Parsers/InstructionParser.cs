@@ -570,7 +570,15 @@ namespace Cilsil.Cil.Parsers
                                      new ExnExpression(returnValue),
                                      Typ.FromTypeReference(retType),
                                      location);
+            var builtinFunctionExpression = new ConstExpression(ProcedureName.BuiltIn__throw);
+            var throwCall = new Call(state.GetIdentifier(Identifier.IdentKind.Normal),
+                                     new Tvoid(),
+                                     builtinFunctionExpression,
+                                     new List<Call.CallArg>(),
+                                     new Call.CallFlags(),
+                                     state.CurrentLocation);
             retNode.Instructions.Add(retInstr);
+            retNode.Instructions.Add(throwCall);
             return retNode;
         }
 

@@ -262,23 +262,6 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
-        /// Used for excluding translation of methods with finally blocks ending in throw.
-        /// </summary>
-        /// <returns><c>true</c> if there is no finally block that ends with throw, <c>false</c>
-        /// otherwise.</returns>
-        public bool NoFinallyEndWithThrow()
-        {
-            foreach (var finallyEnd in FinallyEndToHandler.Keys)
-            {
-                if (finallyEnd.OpCode.Code == Code.Throw)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
         /// Gets the end offset for the most immediate surrounding exception handling block at a 
         /// given offset; returns the default handler end offset if the offset is not found within 
         /// exception handlers. Note the order of checks; for example, if an offset is in the try 

@@ -461,10 +461,10 @@ class InferResourceLeakTests
     {
         using (var x = new StreamReader(""))
         {
-            Console.Write("in first using");
-            using (var y = new StreamReader("2"))
+            Console.Write("First using");
+            using (var y = new StreamReader(""))
             {
-                Console.Write("hello world again");
+                Console.Write("Second using");
                 if (y != null)
                 {
                     throw new Exception();
