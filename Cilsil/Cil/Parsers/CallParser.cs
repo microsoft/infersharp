@@ -174,14 +174,14 @@ namespace Cilsil.Cil.Parsers
                                                     callArgs,
                                                     callFlags,
                                                     state.CurrentLocation)
-                                         : new Call(returnIdentifier,
-                                                    new Tvoid(),
-                                                    new ConstExpression(
-                                                        ProcedureName.
-                                                            BuiltIn__delete_locked_attribute),
-                                                    callArgs,
-                                                    callFlags,
-                                                    state.CurrentLocation);
+                                      : new Call(returnIdentifier,
+                                                 new Tvoid(),
+                                                 new ConstExpression(
+                                                     ProcedureName.
+                                                        BuiltIn__delete_locked_attribute),
+                                                 callArgs,
+                                                 callFlags,
+                                                 state.CurrentLocation);
         }
     }
 }
