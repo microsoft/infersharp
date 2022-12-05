@@ -136,6 +136,72 @@ public class ThreadSafety
     {
         return null;
     }
+
+    public static void TestNullDerefExpectError()
+    {
+        object x = new object();
+
+        try
+        {
+            Console.Write("First try catch");
+            throw new Exception();
+        }
+        catch (Exception)
+        {
+            try
+            {
+                Console.Write("Before finally");
+                throw new Exception();
+            }
+            catch (Exception)
+            {
+                x = new object();
+            }
+            finally
+            {
+                Console.Write("Inner try catch finally");
+                x = null;
+            }
+        }
+        finally
+        {
+            Console.Write("Outer try catch finally");
+            x.GetHashCode();
+        }
+    }
+
+    public static void TestNullDerefExpectNoError()
+    {
+        object x = new object();
+
+        try
+        {
+            Console.Write("First try catch");
+            throw new Exception();
+        }
+        catch (Exception)
+        {
+            try
+            {
+                Console.Write("Before finally");
+                throw new Exception();
+            }
+            catch (Exception)
+            {
+                x = null;
+            }
+            finally
+            {
+                Console.Write("Inner try catch finally");
+                x = new object();
+            }
+        }
+        finally
+        {
+            Console.Write("Outer try catch finally");
+            x.GetHashCode();
+        }
+    }
 }
 
 public class MainClass
@@ -150,10 +216,37 @@ public class MainClass
     }
 }
 
-// 17 reports expected (18 with --pulse-increase-leak-recall flag)
+// 18 reports expected (19 with --pulse-increase-leak-recall flag)
 class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
+
+    /// <summary>
+    /// Validates that even though the Dispose occurs within a finally block, the exceptional
+    /// control flow is handled so that the analysis sees that the Dispose is not invoked. Also
+    /// gets coverage over finally blocks ending with throw instead of endfinally.
+    /// </summary>
+    public static void TryFinallyThrow()
+    {
+        var fs = new FileStream("", FileMode.Open);
+        var y = new FileStream("", FileMode.Open);
+        try
+        {
+            Console.Write("hello");
+        }
+        finally
+        {
+            if (fs != null)
+            {
+                fs.Dispose();
+            }
+            throw new Exception();
+        }
+        if (y != null)
+        {
+            y.Dispose();
+        }
+    }
 
     /// <summary>
     /// This is a false positive that occurs when we return a class that owns IDisposable types.

@@ -22,7 +22,6 @@ namespace Cilsil.Cil.Parsers
                         // block, now that finally block has been translated.
                         state.PushInstruction(state.EndfinallyControlFlow);
                     }
-                    // This instruction was reached through exceptional control flow.
                     else
                     {
                         var handler =

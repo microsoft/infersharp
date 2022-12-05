@@ -467,8 +467,6 @@ namespace Cilsil.Cil.Parsers
             state.Cfg.RegisterNode(exceptionReturnNode);
             state.PreviousNode.Successors.Add(exceptionReturnNode);
             return exceptionReturnNode;
-            // TODO: LOOK AT THE FINALLY ROUTING FROM THIS NODE -- SHOULD BE SAME AS
-            // EXIT TO FINALLY OUT OF LAST CATCH HANDLER (VALIDATE THAT TOO)_!!!
         }
 
         protected static (CfgNode, CfgNode) CreateExceptionTypeCheckBranchNodes(
@@ -570,15 +568,20 @@ namespace Cilsil.Cil.Parsers
                                      new ExnExpression(returnValue),
                                      Typ.FromTypeReference(retType),
                                      location);
-            var builtinFunctionExpression = new ConstExpression(ProcedureName.BuiltIn__throw);
-            var throwCall = new Call(state.GetIdentifier(Identifier.IdentKind.Normal),
-                                     new Tvoid(),
-                                     builtinFunctionExpression,
-                                     new List<Call.CallArg>(),
-                                     new Call.CallFlags(),
-                                     state.CurrentLocation);
+
+
             retNode.Instructions.Add(retInstr);
-            retNode.Instructions.Add(throwCall);
+            if (state.CurrentInstruction.OpCode.Code == Code.Throw)
+            {
+                var builtinFunctionExpression = new ConstExpression(ProcedureName.BuiltIn__throw);
+                var throwCall = new Call(state.GetIdentifier(Identifier.IdentKind.Normal),
+                                         new Tvoid(),
+                                         builtinFunctionExpression,
+                                         new List<Call.CallArg>(),
+                                         new Call.CallFlags(),
+                                         state.CurrentLocation);
+                retNode.Instructions.Add(throwCall);
+            }
             return retNode;
         }
 
