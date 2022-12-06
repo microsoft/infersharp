@@ -136,36 +136,42 @@ public class ThreadSafety
     {
         return null;
     }
-
     public static void TestNullDerefExpectError()
     {
         object x = new object();
-
         try
-        {
-            Console.Write("First try catch");
-            throw new Exception();
-        }
-        catch (Exception)
         {
             try
             {
-                Console.Write("Before finally");
+                Console.Write("First try catch");
                 throw new Exception();
             }
             catch (Exception)
             {
-                x = new object();
+                try
+                {
+                    Console.Write("Before finally");
+                    throw new Exception();
+                }
+                catch (Exception)
+                {
+                    x = new object();
+                }
+                finally
+                {
+                    Console.Write("Inner try catch finally");
+                    x = null;
+                }
             }
             finally
             {
-                Console.Write("Inner try catch finally");
-                x = null;
+                Console.Write("Outer try catch finally");
+                throw new Exception();
             }
+            Console.Write("Last instruction of outer try catch");
         }
-        finally
+        catch (Exception)
         {
-            Console.Write("Outer try catch finally");
             x.GetHashCode();
         }
     }
@@ -173,38 +179,44 @@ public class ThreadSafety
     public static void TestNullDerefExpectNoError()
     {
         object x = new object();
-
         try
-        {
-            Console.Write("First try catch");
-            throw new Exception();
-        }
-        catch (Exception)
         {
             try
             {
-                Console.Write("Before finally");
+                Console.Write("First try catch");
                 throw new Exception();
             }
             catch (Exception)
             {
-                x = null;
+                try
+                {
+                    Console.Write("Before finally");
+                    throw new Exception();
+                }
+                catch (Exception)
+                {
+                    x = null;
+                }
+                finally
+                {
+                    Console.Write("Inner try catch finally");
+                    x = new object();
+                }
             }
             finally
             {
-                Console.Write("Inner try catch finally");
-                x = new object();
+                Console.Write("Outer try catch finally");
+                throw new Exception();
             }
+            Console.Write("Last instruction of outer try catch");
         }
-        finally
+        catch (Exception)
         {
-            Console.Write("Outer try catch finally");
             x.GetHashCode();
         }
     }
-}
 
-public class MainClass
+    public class MainClass
 {
     public static void Main(string[] args)
     {
