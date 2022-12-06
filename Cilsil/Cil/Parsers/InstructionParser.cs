@@ -281,6 +281,11 @@ namespace Cilsil.Cil.Parsers
 
                     node.ExceptionNodes.Add(entryNode);
 
+                    // Note: this isn't a perfect way of trying to separate exceptional control
+                    // flow from regular control flow; because translation proceeds via DFS, this
+                    // distinction may not work in the event of i.e. nested finally blocks.
+                    // However, this seems not to pose a material issue for correct detection of
+                    // issues. 
                     state.FinallyExceptionalTranslation = true;
                     state.PushInstruction(handler.HandlerStart, node);
                     state.FinallyExceptionalTranslation = false;
