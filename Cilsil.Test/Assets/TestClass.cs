@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+using System;
 using System.IO;
 
 namespace Cilsil.Test.Assets
@@ -301,6 +302,23 @@ namespace Cilsil.Test.Assets
         public void AssignZeroByReference(out int result)
         {
             result = 0;
+        }
+   
+        /// <summary>
+        /// Conditionally creates a null dereference; this method content covers the assignment and
+        /// retrieval of array length. 
+        /// </summary>
+        /// <param name="nullDeref">If <c>true</c>, the null dereference occurs; otherwise, it 
+        /// doesn't.</param>
+        public static void ArrayConditionalNullDeref(bool nullDeref)
+        {
+            var length = nullDeref ? 6 : 5;
+            object nullObj = null;
+            String[] paths = new String[5];
+            if (paths.Length < length)
+            {
+                nullObj.GetHashCode();
+            }
         }
 
         // This method is used to identify a case in which we were creating a false positive null

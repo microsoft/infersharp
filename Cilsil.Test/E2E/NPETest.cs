@@ -824,5 +824,29 @@ namespace Cilsil.Test.E2E
                                  inputObjectString
                              })), GetString(expectedError));
         }
+
+        /// <summary>
+        /// Validates translation of ldlen. NOTE: Pulse seems not to yet interpret array length and
+        /// thus an error occurs in both cases. 
+        /// </summary>
+        /// <param name="doNullDeref">If <c>true</c>, invoked method creates the null 
+        /// deref. Else, does not.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(false, InferError.NULL_DEREFERENCE)]
+        [DataRow(true, InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
+        public void NullExceptionTestLdlen(bool doNullDeref, InferError expectedError)
+        {
+            TestRunManager.Run(
+                InitVars(firstLocalVarType: VarType.TestClass,
+                         firstLocalVarValue: CallTestClassMethod(
+                             TestClassMethod.ArrayConditionalNullDeref,
+                             false,
+                             args: new string[]
+                             {
+                                 doNullDeref.ToString()
+                                            .ToLower()
+                             })), GetString(expectedError));
+        }
     }
 }
