@@ -827,12 +827,12 @@ namespace Cilsil.Test.E2E
 
         /// <summary>
         /// Validates translation of ldlen. NOTE: Pulse seems not to yet interpret array length and
-        /// thus an error occurs in both cases. 
+        /// thus an error occurs in both cases. However, biabduction does.
         /// </summary>
         /// <param name="doNullDeref">If <c>true</c>, invoked method creates the null 
         /// deref. Else, does not.</param>
         /// <param name="expectedError">The expected error.</param>
-        [DataRow(false, InferError.NULL_DEREFERENCE)]
+        [DataRow(false, InferError.None)]
         [DataRow(true, InferError.NULL_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionTestLdlen(bool doNullDeref, InferError expectedError)
