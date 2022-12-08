@@ -837,13 +837,13 @@ namespace Cilsil.Test.E2E
         public void NullExceptionTestNestedException(bool doNullDeref, InferError expectedError)
         {
             TestRunManager.Run(CallTestClassMethod(
-                               TestClassMethod.NestedExceptionConditionalNullDeref,
-                               false,
-                               args: new string[]
-                               {
-                                   doNullDeref.ToString()
-                                              .ToLower()
-                               }), GetString(expectedError));
+                                   TestClassMethod.NestedExceptionConditionalNullDeref,
+                                   false,
+                                   args: new string[]
+                                   {
+                                       doNullDeref.ToString()
+                                                  .ToLower()
+                                   }), GetString(expectedError));
         }
     }
 }
