@@ -834,18 +834,16 @@ namespace Cilsil.Test.E2E
         [DataRow(false, InferError.None)]
         [DataRow(true, InferError.NULL_DEREFERENCE)]
         [DataTestMethod]
-        public void NullExceptionTestLdlen(bool doNullDeref, InferError expectedError)
+        public void NullExceptionTestNestedException(bool doNullDeref, InferError expectedError)
         {
-            TestRunManager.Run(
-                InitVars(firstLocalVarType: VarType.TestClass,
-                         firstLocalVarValue: CallTestClassMethod(
-                             TestClassMethod.NestedExceptionConditionalNullDeref,
-                             false,
-                             args: new string[]
-                             {
-                                 doNullDeref.ToString()
-                                            .ToLower()
-                             })), GetString(expectedError));
+            TestRunManager.Run(CallTestClassMethod(
+                               TestClassMethod.NestedExceptionConditionalNullDeref,
+                               false,
+                               args: new string[]
+                               {
+                                   doNullDeref.ToString()
+                                              .ToLower()
+                               }), GetString(expectedError));
         }
     }
 }
