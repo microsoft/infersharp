@@ -36,7 +36,7 @@ public class IsDisposedBooleanField : IDisposable
     }
 }
 
-// Expect 3 TAINT_ERROR for SQL injection flows.
+// Expect 4 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
     [HttpPost]
@@ -215,8 +215,9 @@ public class ThreadSafety
             x.GetHashCode();
         }
     }
+}
 
-    public class MainClass
+public class MainClass
 {
     public static void Main(string[] args)
     {
