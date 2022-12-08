@@ -27,7 +27,7 @@ steps:
 - bash: tar -xzvf $(Build.ArtifactStagingDirectory)/infer-release/infersharp-linux64-version.tar.gz -C $(Build.ArtifactStagingDirectory)/infer-release/
   displayName: Extract binaries
 
-- task: EsrpCodeSigning@1
+- task: EsrpCodeSigning@2
   inputs:
     ConnectedServiceName: 'InferSharp ESRP CodeSigning'
     FolderPath: '$(Build.ArtifactStagingDirectory)/infer-release/'

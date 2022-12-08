@@ -806,7 +806,7 @@ namespace Cilsil.Test.E2E
         /// <summary>
         /// Validates our translation of CastClass.
         /// </summary>
-        /// <param name="testInputCode">Defines the object to be input to the type-checking
+        /// <param name="inputObjectString">Defines the object to be input to the type-checking
         /// TestClass method; 0 for successful casting operation. 1 for casting exception.</param>
         /// <param name="expectedError">The expected error.</param>
         [DataRow("new TestClass()", InferError.None)]
@@ -824,6 +824,28 @@ namespace Cilsil.Test.E2E
                                  inputObjectString
                              })), GetString(expectedError));
         }
+
+        /// <summary>
+        /// Validates translation of nested exception handler control flow.
+        /// </summary>
+        /// <param name="doNullDeref">If <c>true</c>, invoked method creates the null 
+        /// deref. Else, does not.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(false, InferError.None)]
+        [DataRow(true, InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
+        public void NullExceptionTestNestedException(bool doNullDeref, InferError expectedError)
+        {
+            TestRunManager.Run(CallTestClassMethod(
+                                   TestClassMethod.NestedExceptionConditionalNullDeref,
+                                   false,
+                                   args: new string[]
+                                   {
+                                       doNullDeref.ToString()
+                                                  .ToLower()
+                                   }), GetString(expectedError));
+        }
+
 
         /// <summary>
         /// Validates translation of ldlen. NOTE: Pulse seems not to yet interpret array length and
