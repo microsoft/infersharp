@@ -36,7 +36,7 @@ public class IsDisposedBooleanField : IDisposable
     }
 }
 
-// Expect 3 TAINT_ERROR for SQL injection flows.
+// Expect 6 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
     [HttpPost]
@@ -85,6 +85,24 @@ public class PulseTaintTests
                     return;
                 }
             }
+        }
+    }
+
+    [HttpGet]
+    public static void PropagateTaintArrayIterator(string[] roleIds)
+    {
+        foreach (var roleId in roleIds)
+        {
+            using var command = new SqlCommand(roleId);
+        }
+    }
+
+    [HttpGet]
+    public static void PropagateTaintArrayIterateByIndex(string[] roleIds)
+    {
+        for (int i = 0; i < roleIds.Length; i++)
+        {
+            using var command = new SqlCommand(roleIds[i]);
         }
     }
 
