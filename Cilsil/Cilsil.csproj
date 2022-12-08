@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="QuickGraph" Version="3.6.61119.7" NoWarn="NU1701" />
     <PackageReference Include="System.CommandLine.Experimental" Version="0.3.0-alpha.19317.1" />
   </ItemGroup>
