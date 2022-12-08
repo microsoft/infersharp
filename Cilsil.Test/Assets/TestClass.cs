@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+using System;
 using System.IO;
 
 namespace Cilsil.Test.Assets
@@ -377,6 +378,51 @@ namespace Cilsil.Test.Assets
                 returnValue = output;
             }
             return returnValue;
+        }
+
+        /// <summary>
+        /// Tests control flow translation for a method with nested exception handlers.
+        /// </summary>
+        /// <param name="createNullDeref">If <c>true</c>, the method logic yields a null 
+        /// dereference. Otherwise, it does not.</param>
+        public static void NestedExceptionConditionalNullDeref(bool createNullDeref)
+        {
+            object x = new object();
+            try
+            {
+                try
+                {
+                    Console.Write("First try catch");
+                    throw new Exception();
+                }
+                catch (Exception)
+                {
+                    try
+                    {
+                        Console.Write("Before finally");
+                        throw new Exception();
+                    }
+                    catch (Exception)
+                    {
+                        x = createNullDeref ? new object() : null;
+                    }
+                    finally
+                    {
+                        Console.Write("Inner try catch finally");
+                        x = createNullDeref ? null : new object();
+                    }
+                }
+                finally
+                {
+                    Console.Write("Outer try catch finally");
+                    throw new Exception();
+                }
+                Console.Write("Last instruction of outer try catch");
+            }
+            catch (Exception)
+            {
+                x.GetHashCode();
+            }
         }
 
         /// <summary>
