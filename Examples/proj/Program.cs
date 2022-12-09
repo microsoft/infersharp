@@ -36,11 +36,7 @@ public class IsDisposedBooleanField : IDisposable
     }
 }
 
-<<<<<<< HEAD
-// Expect 6 TAINT_ERROR for SQL injection flows.
-=======
-// Expect 4 TAINT_ERROR for SQL injection flows.
->>>>>>> 5048e6612b8f49f9d1e8de1c62376d18e2317291
+// Expect 7 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
     [HttpPost]
