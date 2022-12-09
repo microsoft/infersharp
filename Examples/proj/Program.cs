@@ -36,7 +36,7 @@ public class IsDisposedBooleanField : IDisposable
     }
 }
 
-// Expect 7 TAINT_ERROR for SQL injection flows.
+// Expect 5 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
     [HttpPost]
@@ -247,7 +247,7 @@ public class MainClass
     }
 }
 
-// 18 reports expected (19 with --pulse-increase-leak-recall flag)
+// 19 reports expected (20 with --pulse-increase-leak-recall flag)
 class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
