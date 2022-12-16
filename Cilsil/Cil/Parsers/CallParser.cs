@@ -34,23 +34,60 @@ namespace Cilsil.Cil.Parsers
             var instrs = new List<SilInstruction>();
 
             var calledMethod = instruction.Operand as MethodReference;
-            if (calledMethod.GetCompatibleFullName()
-                            .Contains("System.Void System.Threading.Monitor::Enter"))
+            var calledMethodName = calledMethod.GetCompatibleFullName();
+            if (calledMethodName.Contains("System.Void System.Threading.Monitor::Enter"))
             {
                 state.ProcDesc.PdAttributes.IsCSharpSynchronizedMethod = true;
                 instrs.Add(CreateLockedAttributeCall(true, calledMethod.Parameters.Count, state));
             }
-            else if (calledMethod.GetCompatibleFullName()
-                                 .Contains("System.Void System.Threading.Monitor::Exit"))
+            else if (calledMethodName.Contains("System.Void System.Threading.Monitor::Exit"))
             {
                 instrs.Add(CreateLockedAttributeCall(false, calledMethod.Parameters.Count, state));
             }
-            else if (calledMethod.GetCompatibleFullName().Contains("op_") && 
+            else if (calledMethodName.Contains("op_") && 
                      HandleOperatorMethod(calledMethod.GetCompatibleFullName(), state))
             {
                 
                 state.PushInstruction(instruction.Next);
                 return true;
+            }
+            else if (MethodDeclaringTypeIsDelegateType(calledMethod) && 
+                     calledMethod.Name == "Invoke")
+            {
+                // We create an SIL call to represent the delegate's "Invoke" method, where the
+                // method being called is actually that referred to by the function pointer.
+                CreateMethodCall(state,
+                                 isVirtual,
+                                 calledMethod,
+                                 out var _,
+                                 out var retId,
+                                 out var callArgs,
+                                 out var _);
+                // The function type is the first argument, which will be of type Tfun in this
+                // case.
+                if (!(callArgs[0].Type is Tfun methodType))
+                {
+                    Log.WriteError("Unexpected arg on stack: expected function");
+                    return false;
+                }
+                else
+                {
+                    var methodExpression = callArgs[0].Expression;
+                    // The remaining arguments are the actual arguments of the method.
+                    callArgs.RemoveAt(0);
+                    var methodReturnType = Typ.FromTypeReference(methodType.Method.ReturnType);
+                    var callInstr = new Call(retId,
+                                             methodReturnType,
+                                             methodExpression,
+                                             callArgs,
+                                             new Call.CallFlags(isVirtual),
+                                             state.CurrentLocation);
+                    instrs.Add(callInstr);
+                    if (!(methodReturnType is Tvoid))
+                    {
+                        state.PushExpr(new VarExpression(retId), methodReturnType);
+                    }
+                }
             }
             else
             {

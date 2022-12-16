@@ -468,5 +468,32 @@ namespace Cilsil.Test.Assets
                 ThrowsIOException();
             }
         }
+
+        delegate void ExampleDelegate(object x, int y);
+
+        /// <summary>
+        /// Dereferences the first parameter if the second is equal to 1.
+        /// </summary>
+        /// <param name="x">The object parameter to possibly dereference.</param>
+        /// <param name="y">The int parameter whose value to check.</param>
+        public static void PossiblyDereference(object x, int y)
+        {
+            if (y == 1)
+            {
+                x.GetHashCode();
+            }
+        }
+
+        /// <summary>
+        /// If the input boolean is true, create a null dereference via a delegate function.
+        /// </summary>
+        /// <param name="createDeref">If <c>true</c>, creates a null dereference; otherwise, no 
+        /// dereference occurs.</param>
+        public static void CreatePossibleDelegateNullDeref(bool createDeref)
+        {
+            var intInput = createDeref ? 1 : 0;
+            var handler = new ExampleDelegate(PossiblyDereference);
+            handler(null, intInput);
+        }
     }
 }

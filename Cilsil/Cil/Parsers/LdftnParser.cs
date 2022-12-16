@@ -15,17 +15,18 @@ namespace Cilsil.Cil.Parsers
         {
             switch (instruction.OpCode.Code)
             {
-                // Treat it like new object creation, create type of System.Intptr
-                // seems like it usually gets followed by a newobj command.
-                // In the event that this gets followed by a "calli" command, the function this refers to gets invoked
                 // TODO: should later add case Code.Ldvirtftn.
                 case Code.Ldftn:
+                    // We handle these similarly to how they are handled in the clang frontend. We
+                    // push the function pointer onto the stack. It can be later stored into a
+                    // register if necessary, which would then function similarly to a clang
+                    // function pointer.
                     var method = instruction.Operand as Mono.Cecil.MethodReference;
-                    var funcExp = new ConstExpression(new ProcedureName(method));
-                    var funcPointer = new Tptr(Tptr.PtrKind.Pk_pointer, new Tfun());
-                    state.PushExpr(funcExp, funcPointer);
+                    state.PushExpr(
+                        new ConstExpression(new ProcedureName(method)), 
+                                            new Tptr(Tptr.PtrKind.Pk_pointer, new Tfun(method)));
                     state.PushInstruction(instruction.Next);
-                    return false;
+                    return true;
                 default:
                     return false;
             }

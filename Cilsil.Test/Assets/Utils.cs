@@ -70,6 +70,7 @@ namespace Cilsil.Test.Assets
             ArrayConditionalNullDeref,
             CleanupStreamReaderObjectField,
             Cast,
+            CreatePossibleDelegateNullDeref,
             ExpectNonNullParam,
             ReturnNullOnFalse,
             IncrementRefParameter,
@@ -502,6 +503,13 @@ namespace Cilsil.Test.Assets
                     {
                         throw new ArgumentException(
                             "NestedExceptionConditionalNullDeref requires 1 argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.CreatePossibleDelegateNullDeref:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException(
+                            "CreatePossibleDelegateNullDeref requires 1 argument.");
                     }
                     return GetMethodCall(true);
                 default:

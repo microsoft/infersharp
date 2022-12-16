@@ -1,13 +1,28 @@
-﻿using Newtonsoft.Json;
+﻿using Mono.Cecil;
+using Newtonsoft.Json;
 
 namespace Cilsil.Sil.Types
 {
     /// <summary>
     /// Represents to a function type.
     /// </summary>
-    [JsonObject]
+    [JsonObject(MemberSerialization.OptIn)]
     public class Tfun : Typ
     {
+        /// <summary>
+        /// The method underlying this type.
+        /// </summary>
+        public MethodReference Method;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Tfun"/> class.
+        /// </summary>
+        /// <param name="method">The method underlying this type.</param>
+        public Tfun(MethodReference method)
+        {
+            Method = method;
+        }
+
         /// <summary>
         /// Converts to string.
         /// </summary>
