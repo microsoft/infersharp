@@ -838,7 +838,7 @@ namespace Cilsil.Test.E2E
         {
             TestRunManager.Run(CallTestClassMethod(
                                    TestClassMethod.NestedExceptionConditionalNullDeref,
-                                   false,
+                                   true,
                                    args: new string[]
                                    {
                                        doNullDeref.ToString()
@@ -861,7 +861,7 @@ namespace Cilsil.Test.E2E
         {
             TestRunManager.Run(CallTestClassMethod(
                                    TestClassMethod.ArrayConditionalNullDeref,
-                                   false,
+                                   true,
                                    args: new string[]
                                    {
                                        doNullDeref.ToString()
