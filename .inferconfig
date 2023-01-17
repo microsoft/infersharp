@@ -46,7 +46,7 @@
     { "class_names": ["System.Web.UI.Page"],
       "method_names": ["get_Request"],
       "kinds": ["UserControlledURI"]},
-    { "class_names": ["System.Web.UI.WebControls.TextBox", "System.Windows.Forms.TextBox"],
+    { "class_names": ["System.Web.UI.WebControls.TextBox", "System.Windows.Forms.TextBox", "System.Windows.Forms.Control"],
       "method_names": ["get_Text"],
       "kinds": ["UserControlledString"]
     }
