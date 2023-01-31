@@ -453,6 +453,15 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
+        /// Checks null-state of the top snapshot instruction of the stack.
+        /// </summary>
+        /// <returns><c>True</c> if instruction null; <c>false</c> otherwise.</returns>
+        public bool IsTopSnapshotInstructionNull()
+        {
+            return InstructionsStack.Peek().Instruction == null;
+        }
+
+        /// <summary>
         /// Pops an instruction to be parsed.
         /// </summary>
         /// <returns>The instruction to be parsed.</returns>

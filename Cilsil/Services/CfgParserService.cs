@@ -167,8 +167,8 @@ namespace Cilsil.Services
 
             if (!method.IsAbstract && methodBody.Instructions.Count > 0)
             {
-                //try
-                //{
+                try
+                {
                     CfgNode initNode = null;
                     // We trigger the special inlining of instructions for the constructors of
                     // objects with Boolean fields. Note this logic will end up adding a node with
@@ -184,6 +184,14 @@ namespace Cilsil.Services
                     programState.PushInstruction(methodBody.Instructions.First(), initNode);
                     do
                     {
+                        if (programState.IsTopSnapshotInstructionNull())
+                        {
+                            Log.WriteWarning("Top instruction is null; terminating translation.");
+                            Log.RecordUnfinishedMethod(method.GetCompatibleFullName(),
+                                                       method.Body.Instructions.Count);
+                            translationUnfinished = true;
+                            break;
+                        }
                         iterationCount++;
                         var nextInstruction = programState.PopInstruction();
                         // Checks if there is a node for the offset that we can reuse.
@@ -233,15 +241,15 @@ namespace Cilsil.Services
                             break;
                         }
                     } while (programState.HasInstruction);
-                //}
-                /*catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     translationUnfinished = true;
                     Log.WriteWarning(e.Message);
                     Log.RecordUnfinishedMethod(method.GetCompatibleFullName(),
                                                method.Body.Instructions.Count);
 
-                }*/
+                }
             }
 
             // We add method to cfg only if its translation is finished. Otherwise, we skip that

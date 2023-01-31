@@ -81,6 +81,17 @@ namespace Cilsil.Cil.Parsers
                         }
                     }
                     return true;
+                case Code.Rethrow:
+                    var exceptionType = state.MethodExceptionHandlers
+                                             .CatchOffsetToCatchHandler[instruction.Offset].Item1.ExceptionHandler.CatchType;
+                    (var memoryAllocationCall, var objectVariable) = CreateMemoryAllocationCall(
+                        exceptionType, state);
+                    state.PreviousNode.Instructions.Add(memoryAllocationCall);
+                    var rethrowNode = CreateExceptionReturnNode(state,
+                                        objectVariable,
+                                        state.CurrentLocation);
+                    RegisterNode(state, rethrowNode);
+                    return true;
                 default:
                     return false;
             }
