@@ -9,6 +9,7 @@ using Cilsil.Sil.Instructions;
 using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -143,15 +144,29 @@ namespace Cilsil.Services
 
         private void ComputeMethodCfg(MethodDefinition method)
         {
-            var methodName = method.GetCompatibleFullName();
-            if (Cfg.Procs.ContainsKey(methodName))
+            string methodName;
+            try
             {
-                Log.WriteWarning($"Method with duplicate full name found: {methodName }");
+                methodName = method.GetCompatibleFullName();
+                if (Cfg.Procs.ContainsKey(methodName))
+                {
+                    Log.WriteWarning($"Method with duplicate full name found: {methodName}");
+                    return;
+                }
+                if (method.DebugInformation.SequencePoints.FirstOrDefault() == null)
+                {
+                    Log.WriteWarning($"Skipping method not found in source code: {methodName}");
+                    return;
+                }
+            } 
+            catch (NotImplementedException e)
+            {
+                Log.WriteError($"Skipping method {method.GetCompatibleFullName()}: {e.Message}");
                 return;
             }
-            if (method.DebugInformation.SequencePoints.FirstOrDefault() == null)
+            catch (NotSupportedException e)
             {
-                Log.WriteWarning($"Skipping method not found in source code: {methodName }");
+                Log.WriteError($"Skipping method {method.GetCompatibleFullName()}: {e.Message}");
                 return;
             }
 
