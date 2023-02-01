@@ -161,12 +161,12 @@ namespace Cilsil.Services
             } 
             catch (NotImplementedException e)
             {
-                Log.WriteError($"Skipping method {method.GetCompatibleFullName()}: {e.Message}");
+                Log.WriteWarning($"Skipping method {method.GetCompatibleFullName()}: {e.Message}");
                 return;
             }
             catch (NotSupportedException e)
             {
-                Log.WriteError($"Skipping method {method.GetCompatibleFullName()}: {e.Message}");
+                Log.WriteWarning($"Skipping method {method.GetCompatibleFullName()}: {e.Message}");
                 return;
             }
 
