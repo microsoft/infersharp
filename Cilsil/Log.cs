@@ -74,22 +74,32 @@ namespace Cilsil
         /// </summary>
         public static void PrintCoverageStats(IEnumerable<MethodDefinition> methods)
         {
-            var totalMethodCount = methods.Count();
-            var failMethodCount = UnfinishedMethods.Count;
-            var succMethodCount = totalMethodCount - failMethodCount;
-            var totalInstr = methods.Sum(m => m.Body.Instructions.Count);
-            var failInstr = UnfinishedMethods.Sum(kv => kv.Value);
-            var succInstr = totalInstr - failInstr;
+            var totalMethodCount = 0;
+            var failMethodCount = 0;
+            var succMethodCount = 0;
+            var totalInstr = 0;
+            var failInstr = 0;
+            var succInstr = 0;
+            try
+            {
+                totalMethodCount = methods.Count();
+                failMethodCount = UnfinishedMethods.Count;
+                succMethodCount = totalMethodCount - failMethodCount;
+                totalInstr = methods.Sum(m => m.Body.Instructions.Count);
+                failInstr = UnfinishedMethods.Sum(kv => kv.Value);
+                succInstr = totalInstr - failInstr;
+            }
+            catch (NotImplementedException ex)
+            {
+                Console.Error.WriteLine();
+                Console.Error.WriteLine(ex.ToString());
+            }
 
             WriteLine("Coverage Statistics:\n");
-            WriteLine($@"Method successfully translated: {succMethodCount} ({
-                ComputePercent(succMethodCount, totalMethodCount)}%)");
-            WriteLine($@"Method partially translated: {failMethodCount} ({
-                ComputePercent(failMethodCount, totalMethodCount)}%)");
-            WriteLine($@"Instructions translated: {succInstr} ({
-                ComputePercent(succInstr, totalInstr)}%)");
-            WriteLine($@"Instructions skipped: {failInstr} ({
-                ComputePercent(failInstr, totalInstr)}%)");
+            WriteLine($@"Method successfully translated: {succMethodCount} ({ComputePercent(succMethodCount, totalMethodCount)}%)");
+            WriteLine($@"Method partially translated: {failMethodCount} ({ComputePercent(failMethodCount, totalMethodCount)}%)");
+            WriteLine($@"Instructions translated: {succInstr} ({ComputePercent(succInstr, totalInstr)}%)");
+            WriteLine($@"Instructions skipped: {failInstr} ({ComputePercent(failInstr, totalInstr)}%)");
             WriteLine("======================================\n");
         }
 
