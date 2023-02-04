@@ -96,10 +96,14 @@ namespace Cilsil
             }
 
             WriteLine("Coverage Statistics:\n");
-            WriteLine($@"Method successfully translated: {succMethodCount} ({ComputePercent(succMethodCount, totalMethodCount)}%)");
-            WriteLine($@"Method partially translated: {failMethodCount} ({ComputePercent(failMethodCount, totalMethodCount)}%)");
-            WriteLine($@"Instructions translated: {succInstr} ({ComputePercent(succInstr, totalInstr)}%)");
-            WriteLine($@"Instructions skipped: {failInstr} ({ComputePercent(failInstr, totalInstr)}%)");
+            WriteLine($@"Method successfully translated: {succMethodCount} ({
+                ComputePercent(succMethodCount, totalMethodCount)}%)");
+            WriteLine($@"Method partially translated: {failMethodCount} ({
+                ComputePercent(failMethodCount, totalMethodCount)}%)");
+            WriteLine($@"Instructions translated: {succInstr} ({
+                ComputePercent(succInstr, totalInstr)}%)");
+            WriteLine($@"Instructions skipped: {failInstr} ({
+                ComputePercent(failInstr, totalInstr)}%)");
             WriteLine("======================================\n");
         }
 
