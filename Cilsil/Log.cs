@@ -91,8 +91,7 @@ namespace Cilsil
             }
             catch (NotImplementedException ex)
             {
-                Console.Error.WriteLine();
-                Console.Error.WriteLine(ex.ToString());
+                WriteWarning(ex.Message);
             }
 
             WriteLine("Coverage Statistics:\n");
