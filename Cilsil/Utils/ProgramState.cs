@@ -168,6 +168,12 @@ namespace Cilsil.Utils
         public Instruction EndfinallyControlFlow;
 
         /// <summary>
+        /// Null by default. When control flow is exited via a throw instruction, this is the throw
+        /// node to be added at the end of the translation of the finally block, when one exists.
+        /// </summary>
+        public CfgNode EndfinallyThrowNode;
+
+        /// <summary>
         /// Contains information about the program's exception handlers.
         /// </summary>
         public MethodExceptionHandlers MethodExceptionHandlers;

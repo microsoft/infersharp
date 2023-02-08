@@ -31,7 +31,21 @@ namespace Cilsil.Cil.Parsers
                         var retNode = CreateExceptionReturnNode(state,
                                                                 returnValue,
                                                                 state.CurrentLocation);
-                        RegisterNode(state, retNode);
+                        // Before control flow leaves this block via the throw, we need to route
+                        // control flow through the finally block.
+                        if (exnInfo.TryOffsetToFinallyHandler.ContainsKey(instruction.Offset))
+                        {
+                            var finallyHandler =
+                                exnInfo.TryOffsetToFinallyHandler[instruction.Offset].Item1;
+                            state.PushInstruction(finallyHandler.HandlerStart,
+                                                  CreateFinallyHandlerNonExceptionalEntry(
+                                                      state, finallyHandler, null, retNode));
+                        }
+                        else
+                        {
+                            RegisterNode(state, retNode);
+                        }
+                        return true;
                     }
 
                     // Leave within try of catch-block.
@@ -39,7 +53,25 @@ namespace Cilsil.Cil.Parsers
                     {
                         if (target != null)
                         {
-                            state.PushInstruction(target);
+                            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
+                                instruction.Offset, out var currentFinallyHandler);
+                            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
+                                target.Offset, out var targetFinallyHandler);
+                            // If target is associated with a different finally handler than is
+                            // the present instruction, then we need to route control flow through
+                            // this finally block first.
+                            if (currentFinallyHandler.Item1?.HandlerStart?.Offset != 
+                                targetFinallyHandler.Item1?.HandlerStart?.Offset)
+                            {
+                                state.PushInstruction(
+                                    currentFinallyHandler.Item1.HandlerStart,
+                                    CreateFinallyHandlerNonExceptionalEntry(
+                                        state, currentFinallyHandler.Item1, target));
+                            }
+                            else
+                            {
+                                state.PushInstruction(target);
+                            }
                         }
                     }
                     // Leave occurs within catch block.
@@ -81,6 +113,41 @@ namespace Cilsil.Cil.Parsers
                         }
                     }
                     return true;
+<<<<<<< Updated upstream
+=======
+                case Code.Rethrow:
+                    var exceptionType = 
+                        state.MethodExceptionHandlers
+                             .CatchOffsetToCatchHandler[instruction.Offset]
+                             .Item1
+                             .ExceptionHandler
+                             .CatchType;
+                    (var memoryAllocationCall, var objectVariable) = CreateMemoryAllocationCall(
+                        exceptionType, state);
+                    state.PreviousNode.Instructions.Add(memoryAllocationCall);
+                    var rethrowNode = CreateExceptionReturnNode(state,
+                                        objectVariable,
+                                        state.CurrentLocation);
+                    // Before control flow leaves this block via the throw, we need to route
+                    // control flow through the finally block.
+                    if (state.MethodExceptionHandlers
+                             .TryOffsetToFinallyHandler
+                             .ContainsKey(instruction.Offset))
+                    {
+                        var finallyHandler =
+                            state.MethodExceptionHandlers
+                                 .TryOffsetToFinallyHandler[instruction.Offset]
+                                 .Item1;
+                        state.PushInstruction(finallyHandler.HandlerStart,
+                                              CreateFinallyHandlerNonExceptionalEntry(
+                                                  state, finallyHandler, null, rethrowNode));
+                    }
+                    else
+                    {
+                        RegisterNode(state, rethrowNode);
+                    }
+                    return true;
+>>>>>>> Stashed changes
                 default:
                     return false;
             }
@@ -89,9 +156,9 @@ namespace Cilsil.Cil.Parsers
         /// <summary>
         /// Creates a new node to ensure finally instructions aren't attached to a body node.
         /// </summary>
-        private static CfgNode CreateFinallyHandlerNonExceptionalEntry(ProgramState state,
-                                                                       ExceptionHandler handler,
-                                                                       Instruction leaveTarget)
+        private static CfgNode CreateFinallyHandlerNonExceptionalEntry(
+            ProgramState state, ExceptionHandler handler, 
+            Instruction leaveTarget, CfgNode endFinallyThrowNode = null)
         {
             CfgNode finallyHandlerStartNode = null;
             (var nodeOffset, _) = state.GetOffsetNode(handler.HandlerStart.Offset);
@@ -108,6 +175,10 @@ namespace Cilsil.Cil.Parsers
             if (leaveTarget != null)
             {
                 state.EndfinallyControlFlow = leaveTarget;
+            }
+            if (endFinallyThrowNode != null)
+            {
+                state.EndfinallyThrowNode = endFinallyThrowNode;
             }
             return finallyHandlerStartNode;
         }
