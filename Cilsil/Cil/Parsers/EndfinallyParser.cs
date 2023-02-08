@@ -28,9 +28,20 @@ namespace Cilsil.Cil.Parsers
                         }
                         else
                         {
-                            // We continue translation with that operand from the end of the finally
-                            // block, now that finally block has been translated.
-                            state.PushInstruction(state.EndfinallyControlFlow);
+                            // In this case, translation of the finally block was prompted by a
+                            // throw instruction; we then terminate the CFG branch with the throw
+                            // node via RegisterNode.
+                            if (state.EndfinallyThrowNode != null)
+                            {
+                                RegisterNode(state, state.EndfinallyThrowNode);
+                                state.EndfinallyThrowNode = null;
+                            }
+                            else
+                            {
+                                // We continue translation with that operand from the end of the
+                                // finally block, now that finally block has been translated.
+                                state.PushInstruction(state.EndfinallyControlFlow);
+                            }
                         }
                     }
                     // This instruction was reached through exceptional control flow.
