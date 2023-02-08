@@ -152,29 +152,5 @@ namespace Cilsil.Cil.Parsers
                 state.PushInstruction(targetInstr);
             }
         }
-
-        private void HandleFinallyControlFlowForThrow(
-            ProgramState state, Instruction instruction, CfgNode throwNode)
-        {
-            // Before control flow leaves this block via the throw, we need to route
-            // control flow through the finally block.
-            if (state.MethodExceptionHandlers
-                     .TryOffsetToFinallyHandler
-                     .ContainsKey(instruction.Offset))
-            {
-                var finallyHandler =
-                    state.MethodExceptionHandlers
-                         .TryOffsetToFinallyHandler[instruction.Offset]
-                         .Item1;
-                state.PushInstruction(finallyHandler.HandlerStart,
-                                      CreateFinallyHandlerNonExceptionalEntry(
-                                          state, finallyHandler, null, throwNode));
-            }
-            else
-            {
-                RegisterNode(state, throwNode);
-            }
-
-        }
     }
 }
