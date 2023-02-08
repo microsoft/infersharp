@@ -453,11 +453,9 @@ namespace Cilsil.Test.Assets
         }
 
         /// <summary>
-        /// There should be no resource leak. We introduce this case for coverage of a false
-        /// positive we encountered; the return statement in the try block was not routing through
-        /// the finally block first, causing a false positive leak on stream.
+        ///  We introduce this case for coverage of a false positive on stream; the return
+        ///  statement in the try block was not routing through the finally block first.
         /// </summary>
-        /// <returns>Dummy.</returns>
         public static int LeaveEndTryCatchNeedToGoFinally()
         {
             var output = new TestClass().GetHashCode();
