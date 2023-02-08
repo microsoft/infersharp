@@ -71,10 +71,10 @@ namespace Cilsil.Cil.Parsers
 
                 case Code.Throw:
                     (var returnValue, _) = state.Pop();
-                    var throwNode = CreateExceptionReturnNode(state,
-                                                              returnValue,
-                                                              state.CurrentLocation);
-                    HandleFinallyControlFlowForThrow(state, instruction, throwNode);
+                    var retNode = CreateExceptionReturnNode(state,
+                                                            returnValue,
+                                                            state.CurrentLocation);
+                    RegisterNode(state, retNode);
                     return true;
                 case Code.Rethrow:
                     var exceptionType = 
@@ -87,9 +87,9 @@ namespace Cilsil.Cil.Parsers
                         exceptionType, state);
                     state.PreviousNode.Instructions.Add(memoryAllocationCall);
                     var rethrowNode = CreateExceptionReturnNode(state,
-                                        objectVariable,
-                                        state.CurrentLocation);
-                    HandleFinallyControlFlowForThrow(state, instruction, rethrowNode);
+                                                                objectVariable,
+                                                                state.CurrentLocation);
+                    RegisterNode(state, rethrowNode);
                     return true;
                 default:
                     return false;
