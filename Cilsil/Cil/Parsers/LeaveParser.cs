@@ -68,10 +68,7 @@ namespace Cilsil.Cil.Parsers
                         }
                     }
                     return true;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
+
                 case Code.Throw:
                     (var returnValue, _) = state.Pop();
                     var throwNode = CreateExceptionReturnNode(state,
@@ -79,7 +76,6 @@ namespace Cilsil.Cil.Parsers
                                                               state.CurrentLocation);
                     HandleFinallyControlFlowForThrow(state, instruction, throwNode);
                     return true;
->>>>>>> Stashed changes
                 case Code.Rethrow:
                     var exceptionType = 
                         state.MethodExceptionHandlers
@@ -95,7 +91,6 @@ namespace Cilsil.Cil.Parsers
                                         state.CurrentLocation);
                     HandleFinallyControlFlowForThrow(state, instruction, rethrowNode);
                     return true;
->>>>>>> Stashed changes
                 default:
                     return false;
             }
