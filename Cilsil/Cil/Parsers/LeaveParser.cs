@@ -19,60 +19,16 @@ namespace Cilsil.Cil.Parsers
                 // Leave for catch block: target instruction immediately after catch block.
                 case Code.Leave:
                 case Code.Leave_S:
-                case Code.Throw:
                     var exnInfo = state.MethodExceptionHandlers;
                     var mapType = exnInfo.GetMapTypeFromInstruction(instruction);
-                    // This is null if the instruction is throw.
+                    // This is null only if the instruction is throw, which is handled in a
+                    // different case.
                     var target = instruction.Operand as Instruction;
-
-                    if (instruction.OpCode.Code == Code.Throw)
-                    {
-                        (var returnValue, _) = state.Pop();
-                        var retNode = CreateExceptionReturnNode(state,
-                                                                returnValue,
-                                                                state.CurrentLocation);
-                        // Before control flow leaves this block via the throw, we need to route
-                        // control flow through the finally block.
-                        if (exnInfo.TryOffsetToFinallyHandler.ContainsKey(instruction.Offset))
-                        {
-                            var finallyHandler =
-                                exnInfo.TryOffsetToFinallyHandler[instruction.Offset].Item1;
-                            state.PushInstruction(finallyHandler.HandlerStart,
-                                                  CreateFinallyHandlerNonExceptionalEntry(
-                                                      state, finallyHandler, null, retNode));
-                        }
-                        else
-                        {
-                            RegisterNode(state, retNode);
-                        }
-                        return true;
-                    }
 
                     // Leave within try of catch-block.
                     if (mapType == MethodExceptionHandlers.MapType.TryToCatch)
                     {
-                        if (target != null)
-                        {
-                            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
-                                instruction.Offset, out var currentFinallyHandler);
-                            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
-                                target.Offset, out var targetFinallyHandler);
-                            // If target is associated with a different finally handler than is
-                            // the present instruction, then we need to route control flow through
-                            // this finally block first.
-                            if (currentFinallyHandler.Item1?.HandlerStart?.Offset != 
-                                targetFinallyHandler.Item1?.HandlerStart?.Offset)
-                            {
-                                state.PushInstruction(
-                                    currentFinallyHandler.Item1.HandlerStart,
-                                    CreateFinallyHandlerNonExceptionalEntry(
-                                        state, currentFinallyHandler.Item1, target));
-                            }
-                            else
-                            {
-                                state.PushInstruction(target);
-                            }
-                        }
+                        HandleFinallyControlFlowForTryToCatchLeave(state, instruction, target);
                     }
                     // Leave occurs within catch block.
                     else if (mapType == MethodExceptionHandlers.MapType.CatchToCatch)
@@ -80,23 +36,22 @@ namespace Cilsil.Cil.Parsers
                         var exceptionHandler = 
                             exnInfo.GetExceptionHandlerAtInstruction(instruction);
 
-                        // We now handle regular control flow to the target. 
-                        if (target != null)
+                        // We now handle regular control flow if there's a finally block. Note,
+                        // theoretically we might use the same helper method as we do for
+                        // TryToCatch, but not completely sure that it would be equivalent.
+                        if (exceptionHandler != null &&
+                            exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
                         {
-                            if (exceptionHandler != null &&
-                                exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
-                            {
-                                state.PushInstruction(
-                                    exceptionHandler.HandlerStart,
-                                    CreateFinallyHandlerNonExceptionalEntry(
-                                        state, exceptionHandler, target));
-                            }
-                            else
-                            {
-                                // Control flow routes directly to the target, as there is no finally
-                                // block through which to first route it.
-                                state.PushInstruction(target);
-                            }
+                            state.PushInstruction(
+                                exceptionHandler.HandlerStart,
+                                CreateFinallyHandlerNonExceptionalEntry(
+                                    state, exceptionHandler, target));
+                        }
+                        else
+                        {
+                            // Control flow routes directly to the target, as there is no finally
+                            // block through which to first route it.
+                            state.PushInstruction(target);
                         }
                     }
                     // Narrowest containing interval for offset is the try of a finally block,
@@ -113,8 +68,14 @@ namespace Cilsil.Cil.Parsers
                         }
                     }
                     return true;
-<<<<<<< Updated upstream
-=======
+
+                case Code.Throw:
+                    (var returnValue, _) = state.Pop();
+                    var throwNode = CreateExceptionReturnNode(state,
+                                                              returnValue,
+                                                              state.CurrentLocation);
+                    HandleFinallyControlFlowForThrow(state, instruction, throwNode);
+                    return true;
                 case Code.Rethrow:
                     var exceptionType = 
                         state.MethodExceptionHandlers
@@ -128,26 +89,8 @@ namespace Cilsil.Cil.Parsers
                     var rethrowNode = CreateExceptionReturnNode(state,
                                         objectVariable,
                                         state.CurrentLocation);
-                    // Before control flow leaves this block via the throw, we need to route
-                    // control flow through the finally block.
-                    if (state.MethodExceptionHandlers
-                             .TryOffsetToFinallyHandler
-                             .ContainsKey(instruction.Offset))
-                    {
-                        var finallyHandler =
-                            state.MethodExceptionHandlers
-                                 .TryOffsetToFinallyHandler[instruction.Offset]
-                                 .Item1;
-                        state.PushInstruction(finallyHandler.HandlerStart,
-                                              CreateFinallyHandlerNonExceptionalEntry(
-                                                  state, finallyHandler, null, rethrowNode));
-                    }
-                    else
-                    {
-                        RegisterNode(state, rethrowNode);
-                    }
+                    HandleFinallyControlFlowForThrow(state, instruction, rethrowNode);
                     return true;
->>>>>>> Stashed changes
                 default:
                     return false;
             }
@@ -183,5 +126,55 @@ namespace Cilsil.Cil.Parsers
             return finallyHandlerStartNode;
         }
 
+        private void HandleFinallyControlFlowForTryToCatchLeave(
+            ProgramState state, Instruction currentInstr, Instruction targetInstr)
+        {
+            var exnInfo = state.MethodExceptionHandlers;
+            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
+                currentInstr.Offset, out var currentFinallyHandler);
+            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
+                targetInstr.Offset, out var targetFinallyHandler);
+            // If target is associated with a different finally handler than is
+            // the present instruction, then we need to route control flow through
+            // this finally block first as we're leaving the finally handler. If we just use
+            // GetExceptionHandlerAtInstruction, this would just yield a catch block, obscuring the
+            // need to first direct flow through the finally block.
+            if (currentFinallyHandler.Item1?.HandlerStart?.Offset !=
+                targetFinallyHandler.Item1?.HandlerStart?.Offset)
+            {
+                state.PushInstruction(
+                    currentFinallyHandler.Item1.HandlerStart,
+                    CreateFinallyHandlerNonExceptionalEntry(
+                        state, currentFinallyHandler.Item1, targetInstr));
+            }
+            else
+            {
+                state.PushInstruction(targetInstr);
+            }
+        }
+
+        private void HandleFinallyControlFlowForThrow(
+            ProgramState state, Instruction instruction, CfgNode throwNode)
+        {
+            // Before control flow leaves this block via the throw, we need to route
+            // control flow through the finally block.
+            if (state.MethodExceptionHandlers
+                     .TryOffsetToFinallyHandler
+                     .ContainsKey(instruction.Offset))
+            {
+                var finallyHandler =
+                    state.MethodExceptionHandlers
+                         .TryOffsetToFinallyHandler[instruction.Offset]
+                         .Item1;
+                state.PushInstruction(finallyHandler.HandlerStart,
+                                      CreateFinallyHandlerNonExceptionalEntry(
+                                          state, finallyHandler, null, throwNode));
+            }
+            else
+            {
+                RegisterNode(state, throwNode);
+            }
+
+        }
     }
 }
