@@ -49,6 +49,10 @@
     { "class_names": ["System.Web.UI.WebControls.TextBox", "System.Windows.Forms.TextBox"],
       "method_names": ["get_Text"],
       "kinds": ["UserControlledString"]
+    },
+    { "class_names": ["System.Console"],
+      "method_names": ["ReadLine"],
+      "kinds": ["UserControlledString"]
     }
   ],
   "pulse-taint-sinks": [
