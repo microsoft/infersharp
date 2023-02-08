@@ -61,7 +61,8 @@ namespace Cilsil.Services
             {
                 foreach (var method in Methods)
                 {
-                    ComputeMethodCfg(method);
+//                    if (method.FullName.Contains("SendEmailNotificationV2Base") || method.FullName.Contains("RequestId"))
+                        ComputeMethodCfg(method);
                     i++;
                     bar.Report((double)i / total);
                     if (WriteConsoleProgress)
