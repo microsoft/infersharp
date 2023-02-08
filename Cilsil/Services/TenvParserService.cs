@@ -92,7 +92,7 @@ namespace Cilsil.Services
             var i = 0;
             var total = Types.Count();
             using (var bar = new ProgressBar())
-            {/*
+            {
                 foreach (var t in Types)
                 {
                     RegisterCilType(t, tenv);
@@ -102,7 +102,7 @@ namespace Cilsil.Services
                     {
                         Log.WriteProgressLine(i, total);
                     }
-                }*/
+                }
             }
             return tenv;
         }
