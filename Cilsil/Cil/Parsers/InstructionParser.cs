@@ -592,7 +592,6 @@ namespace Cilsil.Cil.Parsers
 
         /// <summary>
         /// Gets the entry node for the exception handler, creating the entry block if needed.
-        /// flow.
         /// </summary>
         /// <param name="state">The state.</param>
         /// <param name="handler">The catch handler for which we are potentially creating
