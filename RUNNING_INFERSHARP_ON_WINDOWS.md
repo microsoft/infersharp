@@ -4,7 +4,7 @@
 - [Enable WSL2](https://docs.microsoft.com/en-us/windows/wsl/install).
 
 ## Getting Started
-1. From Windows Command Prompt, download and set up the InferSharp custom distro by executing the following commands:
+1. From Windows PowerShell, download and set up the InferSharp custom distro by executing the following commands:
 
 ```
 wget https://github.com/microsoft/infersharp/releases/download/v1.4/infersharp-wsl-distro-v1.4.tar.gz && wsl --import infersharp1.4 C:\wslDistroStorage\infersharp1.4 infersharp-wsl-distro-v1.4.tar.gz && rm infersharp-wsl-distro-v1.4.tar.gz
