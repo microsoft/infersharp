@@ -889,5 +889,26 @@ namespace Cilsil.Test.E2E
                                                   .ToLower()
                                    }), GetString(expectedError));
         }
+
+        /// <summary>
+        /// Validates translation of switch.
+        /// </summary>
+        /// <param name="input">If the input character is not 'a', 'b', or 'c', then a null
+        /// dereference occurs.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow('a', InferError.None)]
+        [DataRow('b', InferError.None)]
+        [DataRow('c', InferError.None)]
+        [DataRow('d', InferError.NULL_DEREFERENCE)]
+        public void NullExceptionTestSwitch(char input, InferError expectedError)
+        {
+            TestRunManager.Run(CallTestClassMethod(
+                                   TestClassMethod.SwitchStatementReturnsString,
+                                   true,
+                                   args: new string[]
+                                   {
+                                       "'" + input.ToString() + "'"
+                                   }), GetString(expectedError));
+        }
     }
 }

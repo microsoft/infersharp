@@ -92,7 +92,8 @@ namespace Cilsil.Test.Assets
             ReturnInitializedStreamReader,
             ReturnInitializedMemoryStream,
             CatchReturnsNullIfTrue,
-            FinallyReturnsNullIfTrue
+            FinallyReturnsNullIfTrue,
+            SwitchStatementReturnsString
         }
 
         /// <summary>
@@ -510,6 +511,13 @@ namespace Cilsil.Test.Assets
                     {
                         throw new ArgumentException(
                             "CreatePossibleDelegateNullDeref requires 1 argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.SwitchStatementReturnsString:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException(
+                            "SwitchStatementReturnsString requires 1 argument.");
                     }
                     return GetMethodCall(true);
                 default:

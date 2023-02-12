@@ -516,5 +516,26 @@ namespace Cilsil.Test.Assets
                 }
             }
         }
+
+        public static string SwitchStatementReturnsString(char input)
+        {
+            string output;
+            switch (input)
+            {
+                case 'a':
+                    output = "a";
+                    break;
+                case 'b':
+                    output = "b";
+                    break;
+                case 'c':
+                    output = "c";
+                    break;
+                default:
+                    output = null;
+                    break;
+            }
+            return output;
+        }
     }
 }
