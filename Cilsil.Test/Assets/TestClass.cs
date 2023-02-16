@@ -468,5 +468,26 @@ namespace Cilsil.Test.Assets
                 ThrowsIOException();
             }
         }
+
+        /// <summary>
+        ///  We introduce this case for coverage of a false positive on stream; the return
+        ///  statement in the try block was not routing through the finally block first.
+        /// </summary>
+        public static int LeaveEndTryCatchNeedToGoFinally()
+        {
+            var output = new TestClass().GetHashCode();
+            using (var stream = new FileStream("", FileMode.Create))
+            {
+                try
+                {
+                    var x = 5;
+                    return output;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+        }
     }
 }
