@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil.Cil;
 using System.Collections.Generic;
+using static Cilsil.Utils.MethodExceptionHandlers;
 
 namespace Cilsil.Utils
 {
@@ -42,33 +43,93 @@ namespace Cilsil.Utils
         /// <summary>
         /// Maps offsets within try-blocks of try-catch to the corresponding catch handler set.
         /// </summary>
-        public readonly Dictionary<int, List<ExceptionHandlerNode>> TryOffsetToCatchHandlers;
+        public readonly Dictionary<int, 
+                                   (List<ExceptionHandlerNode>, int)> TryOffsetToCatchHandlers;
 
         /// <summary>
         /// Maps offsets within try-blocks of try-finally to the corresponding finally handler.
         /// </summary>
-        public readonly Dictionary<int, ExceptionHandler> TryOffsetToFinallyHandler;
+        public readonly Dictionary<int, (ExceptionHandler, int)> TryOffsetToFinallyHandler;
 
         /// <summary>
         /// Maps offsets within catch-blocks to the corresponding catch handler.
         /// </summary>
-        public readonly Dictionary<int, ExceptionHandlerNode> CatchOffsetToCatchHandler;
+        public readonly Dictionary<int, (ExceptionHandlerNode, int)> CatchOffsetToCatchHandler;
 
         /// <summary>
-        /// Maps offsets within finally-blocks to the corresponding finally handler.
+        /// Maps offsets within finally-blocks to the corresponding finally handler and the .
         /// </summary>
-        public readonly Dictionary<int, ExceptionHandler> FinallyOffsetToFinallyHandler;
+        public readonly Dictionary<int, (ExceptionHandler, int)> FinallyOffsetToFinallyHandler;
         #endregion
+
+        /// <summary>
+        /// Used for describing the most closely nested handler for an offset.
+        /// </summary>
+        public enum MapType
+        {
+            /// <summary>
+            /// Try offset to corresponding catch handler.
+            /// </summary>
+            TryToCatch,
+            /// <summary>
+            /// Try offset to corresponding finally handler.
+            /// </summary>
+            TryToFinally,
+            /// <summary>
+            /// Catch offset to corresponding catch handler.
+            /// </summary>
+            CatchToCatch,
+            /// <summary>
+            /// Finally offset to corresponding finally handler.
+            /// </summary>
+            FinallyToFinally,
+            /// <summary>
+            /// No handler associated with offset.
+            /// </summary>
+            None
+        }
+
+        /// <summary>
+        /// Computes the narrowest interval containing the given offset. 
+        /// </summary>
+        /// <param name="instruction">The offset for which to contain the interval.</param>
+        /// <returns>The MapType corresponding to the narrowest interval at the given 
+        /// offset.</returns>
+        public MapType GetMapTypeFromInstruction(Instruction instruction)
+        {
+            var offset = instruction.Offset;
+            var mapType = MapType.None;
+            var intervalContainingOffsetSize = int.MaxValue;
+            if (TryOffsetToCatchHandlers.ContainsKey(offset) && 
+                TryOffsetToCatchHandlers[offset].Item2 < intervalContainingOffsetSize)
+            {
+                mapType = MapType.TryToCatch;
+                intervalContainingOffsetSize = TryOffsetToCatchHandlers[offset].Item2;
+            }
+            if (TryOffsetToFinallyHandler.ContainsKey(offset) &&
+                TryOffsetToFinallyHandler[offset].Item2 < intervalContainingOffsetSize)
+            {
+                mapType = MapType.TryToFinally;
+                intervalContainingOffsetSize = TryOffsetToFinallyHandler[offset].Item2;
+            }
+            if (CatchOffsetToCatchHandler.ContainsKey(offset) &&
+                CatchOffsetToCatchHandler[offset].Item2 < intervalContainingOffsetSize)
+            {
+                mapType = MapType.CatchToCatch;
+                intervalContainingOffsetSize = CatchOffsetToCatchHandler[offset].Item2;
+            }
+            if (FinallyOffsetToFinallyHandler.ContainsKey(offset) &&
+                FinallyOffsetToFinallyHandler[offset].Item2 < intervalContainingOffsetSize)
+            {
+                mapType = MapType.FinallyToFinally;
+            }
+            return mapType;
+        }
 
         /// <summary>
         /// The default handler end offset, overwritten when it can be found.
         /// </summary>
         public const int DefaultHandlerEndOffset = -1;
-
-        private static bool InstructionBlockWithinBounds(
-            (Instruction start, Instruction end) block,
-            (Instruction start, Instruction end) bounds) =>
-                block.start.Offset >= bounds.start.Offset && block.end.Offset <= bounds.end.Offset;
 
         /// <summary>
         /// <c>true</c> if there is an unsupported exception block; <c>false</c> otherwise.
@@ -149,22 +210,10 @@ namespace Cilsil.Utils
                 }
             }
 
-            foreach (var catchTry in TryBoundsToCatchHandlers.Keys)
-            {
-                foreach (var finallyTry in TryBoundsToFinallyHandlers.Keys)
-                {
-                    if (InstructionBlockWithinBounds(catchTry, finallyTry))
-                    {
-                        foreach (var handler in TryBoundsToCatchHandlers[catchTry])
-                        {
-                            handler.FinallyBlock = TryBoundsToFinallyHandlers[finallyTry];
-                        }
-                    }
-                    // Each set of handlers can map to only one finally block.
-                    continue;
-                }
-            }
-
+            // A different offset does not necessarily indicate a different instruction -- there
+            // are key values (offsets) in these dictionaries which don't actually refer to
+            // instructions. This doesn't create any issue with the representation of actual
+            // existing instructions.
             TryOffsetToCatchHandlers = ConvertBoundsToOffsets(TryBoundsToCatchHandlers);
             TryOffsetToFinallyHandler = ConvertBoundsToOffsets(TryBoundsToFinallyHandlers);
             CatchOffsetToCatchHandler = ConvertBoundsToOffsets(CatchBoundsToCatchHandler);
@@ -172,100 +221,44 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
-        /// Returns the exception handler associated with the instruction -- a catch handler in the
-        /// case of an instruction within the try block of a try-catch or try-catch-finally or a
-        /// finally handler for try-finally, and a finally handler in the case of a catch
-        /// instruction in try-catch-finally. We assume there is no try-catch nested within a
-        /// finally block or in a catch-block.
+        /// Returns the most nested exception handler associated with the instruction. 
         /// </summary>
         /// <param name="instruction">The instruction from which to determine the
         /// exception-handling control flow.</param>
         /// <returns>The exception handler in any of the cases described above.</returns>
         public ExceptionHandler GetExceptionHandlerAtInstruction(Instruction instruction)
         {
-            if (TryOffsetToCatchHandlers.ContainsKey(instruction.Offset))
+            var offset = instruction.Offset;
+            switch (GetMapTypeFromInstruction(instruction))
             {
-                return TryOffsetToCatchHandlers[instruction.Offset][0].ExceptionHandler;
+                case MapType.TryToCatch:
+                    return TryOffsetToCatchHandlers[offset].Item1[0].ExceptionHandler;
+                case MapType.TryToFinally:
+                    return TryOffsetToFinallyHandler[offset].Item1;
+                case MapType.CatchToCatch:
+                case MapType.FinallyToFinally:
+                    // Both handlers; we select the narrower handler. 
+                    if (TryOffsetToCatchHandlers.ContainsKey(offset) &&
+                        TryOffsetToFinallyHandler.ContainsKey(offset))
+                    {
+                        return TryOffsetToCatchHandlers[offset].Item2 < TryOffsetToFinallyHandler[offset].Item2 ?
+                                   TryOffsetToCatchHandlers[offset].Item1[0].ExceptionHandler :
+                                   TryOffsetToFinallyHandler[offset].Item1;
+                    }
+                    // Catch handler but no finally handler.
+                    if (TryOffsetToCatchHandlers.ContainsKey(offset))
+                    {
+                        return TryOffsetToCatchHandlers[offset].Item1[0].ExceptionHandler;
+                    }
+                    // Finally handler but no catch handler.
+                    if (TryOffsetToFinallyHandler.ContainsKey(offset))
+                    {
+                        return TryOffsetToFinallyHandler[offset].Item1;
+                    }
+                    return null;
+                default:
+                    return null;
             }
-            else if (TryOffsetToFinallyHandler.ContainsKey(instruction.Offset))
-            {
-                return TryOffsetToFinallyHandler[instruction.Offset];
-            }
-            else if (CatchOffsetToCatchHandler.ContainsKey(instruction.Offset))
-            {
-                return CatchOffsetToCatchHandler[instruction.Offset].ExceptionHandler;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// This method determines that there are no nested exception-handling blocks, aside from
-        /// the catch block necessarily being nested in the try block of a try-catch-finally.
-        /// </summary>
-        /// <returns><c>true</c> if the catch try, catch, and finally block offsets are all 
-        /// mutually exclusive.</returns>
-        public bool NoNestedTryCatchFinally()
-        {
-            // For any try-catch-finally block, the try associated with the finally block includes
-            // the whole catch block (and therefore also the try associated with the catch block).
-            var boundsList = new List<(int start, int end)>();
-            var finallyBoundsList = new List<(int start, int end)>();
-
-            foreach ((var tryStart, var tryEnd) in TryBoundsToCatchHandlers.Keys)
-            {
-                boundsList.Add((tryStart.Offset, tryEnd.Offset));
-            }
-            foreach (var handler in CatchBoundsToCatchHandler.Values)
-            {
-                boundsList.Add((handler.ExceptionHandler.HandlerStart.Offset,
-                                handler.ExceptionHandler.HandlerEnd.Previous.Offset));
-            }
-            foreach (var handler in TryBoundsToFinallyHandlers.Values)
-            {
-                boundsList.Add((handler.HandlerStart.Offset,
-                                handler.HandlerEnd.Previous.Offset));
-
-                finallyBoundsList.Add((handler.HandlerStart.Offset,
-                                       handler.HandlerEnd.Previous.Offset));
-                finallyBoundsList.Add((handler.TryStart.Offset,
-                                       handler.TryEnd.Previous.Offset));
-            }
-            boundsList.Sort((x, y) => x.end.CompareTo(y.end));
-            finallyBoundsList.Sort((x, y) => x.end.CompareTo(y.end));
-
-            for (int i = 1; i < boundsList.Count; i++)
-            {
-                if (boundsList[i - 1].end > boundsList[i].start)
-                {
-                    return false;
-                }
-            }
-            for (int i = 1; i < finallyBoundsList.Count; i++)
-            {
-                if (finallyBoundsList[i - 1].end > finallyBoundsList[i].start)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Used for excluding translation of methods with finally blocks ending in throw.
-        /// </summary>
-        /// <returns><c>true</c> if there is no finally block that ends with throw, <c>false</c>
-        /// otherwise.</returns>
-        public bool NoFinallyEndWithThrow()
-        {
-            foreach (var finallyEnd in FinallyEndToHandler.Keys)
-            {
-                if (finallyEnd.OpCode.Code == Code.Throw)
-                {
-                    return false;
-                }
-            }
-            return true;
         }
 
         /// <summary>
@@ -275,47 +268,56 @@ namespace Cilsil.Utils
         /// of a try-catch, the try-catch try end is returned, as opposed to the try-finally 
         /// try end if there is an enclosing finally block.
         /// </summary>
-        /// <param name="offset">The offset.</param>
+        /// <param name="instruction">The offset.</param>
         /// <returns>The end offset of the most immediate surrounding exception-handling block; 
         /// returns the default value if the offset is not in a block.</returns>
-        public int GetBlockEndOffsetFromOffset(int offset)
+        public int GetBlockEndOffsetFromInstruction(Instruction instruction)
         {
-            if (TryOffsetToCatchHandlers.ContainsKey(offset))
+            var offset = instruction.Offset;
+            var mapType = GetMapTypeFromInstruction(instruction);
+            if (mapType == MapType.TryToCatch)
             {
-                return TryOffsetToCatchHandlers[offset][0].ExceptionHandler
-                                                          .TryEnd
-                                                          .Previous
-                                                          .Offset;
+                return TryOffsetToCatchHandlers[offset].Item1[0]
+                                                       .ExceptionHandler
+                                                       .TryEnd
+                                                       .Previous
+                                                       .Offset;
             }
-            else if (CatchOffsetToCatchHandler.ContainsKey(offset))
+            else if (mapType == MapType.CatchToCatch)
             {
-                return CatchOffsetToCatchHandler[offset].ExceptionHandler
+                return CatchOffsetToCatchHandler[offset].Item1
+                                                        .ExceptionHandler
                                                         .HandlerEnd
                                                         .Previous
                                                         .Offset;
             }
-            else if (TryOffsetToFinallyHandler.ContainsKey(offset))
+            else if (mapType == MapType.TryToFinally)
             {
-                return TryOffsetToFinallyHandler[offset].TryEnd.Previous.Offset;
+                return TryOffsetToFinallyHandler[offset].Item1.TryEnd.Previous.Offset;
             }
 
-            else if (FinallyOffsetToFinallyHandler.ContainsKey(offset))
+            else if (mapType == MapType.FinallyToFinally)
             {
-                return FinallyOffsetToFinallyHandler[offset].HandlerEnd.Previous.Offset;
+                return FinallyOffsetToFinallyHandler[offset].Item1.HandlerEnd.Previous.Offset;
             }
             return DefaultHandlerEndOffset;
-            ;
         }
 
-        private static Dictionary<int, T> ConvertBoundsToOffsets<T>(
+        private static Dictionary<int, (T, int)> ConvertBoundsToOffsets<T>(
             Dictionary<(Instruction, Instruction), T> boundsToObject)
         {
-            var converted = new Dictionary<int, T>();
+            var converted = new Dictionary<int, (T, int)>();
             foreach ((var start, var end) in boundsToObject.Keys)
             {
+                // We track the narrowest of all of the intervals of this type containing the
+                // offset.
                 for (int i = start.Offset; i <= end.Offset; i++)
                 {
-                    converted[i] = boundsToObject[(start, end)];
+                    if (!converted.ContainsKey(i) ||
+                            end.Offset - start.Offset < converted[i].Item2)
+                    {
+                        converted[i] = (boundsToObject[(start, end)], end.Offset - start.Offset);
+                    }
                 }
             }
             return converted;

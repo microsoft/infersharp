@@ -97,6 +97,16 @@ namespace Cilsil.Sil
                               BuiltInClassName,
                               string.Empty,
                               true);
+
+        /// <summary>
+        /// Standard procedure name for throw calls, interpreted specially by the backend.
+        /// </summary>
+        public static readonly ProcedureName BuiltIn__throw =
+            new ProcedureName("__throw",
+                              new List<string>(),
+                              BuiltInClassName,
+                              string.Empty,
+                              true);
         #endregion
 
         /// <summary>

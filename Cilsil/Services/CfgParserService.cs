@@ -159,9 +159,7 @@ namespace Cilsil.Services
 
             var methodBody = method.Body;
             var unhandledExceptionCase =
-                programState.MethodExceptionHandlers.UnhandledExceptionBlock ||
-                !programState.MethodExceptionHandlers.NoNestedTryCatchFinally() ||
-                !programState.MethodExceptionHandlers.NoFinallyEndWithThrow();
+                programState.MethodExceptionHandlers.UnhandledExceptionBlock;
 
             // True if the translation terminates early, false otherwise.
             var translationUnfinished = false;
@@ -196,19 +194,16 @@ namespace Cilsil.Services
                                 MethodExceptionHandlers.DefaultHandlerEndOffset);
                         // We don't reuse nodes of finally handlers.
                         if (nodeAtOffset != null &&
-                            !programState.MethodExceptionHandlers
-                                         .FinallyOffsetToFinallyHandler
-                                         .ContainsKey(nextInstruction.Offset) &&
-                            !programState.MethodExceptionHandlers
-                                         .CatchOffsetToCatchHandler
-                                         .ContainsKey(nextInstruction.Offset))
+                            programState.MethodExceptionHandlers
+                                        .GetMapTypeFromInstruction(nextInstruction)
+                                != MethodExceptionHandlers.MapType.CatchToCatch)
                         {
                             programState.PreviousNode.Successors.Add(nodeAtOffset);
                         }
                         else if (unhandledExceptionCase)
                         {
                             Log.WriteWarning($"Unhandled exception-handling.");
-                            Log.RecordUnknownInstruction("unhandled-exception");
+                           Log.RecordUnknownInstruction("unhandled-exception");
                             Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                        nextInstruction.RemainingInstructionCount());
                             translationUnfinished = true;
