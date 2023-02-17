@@ -107,6 +107,17 @@ namespace Cilsil.Sil
                               BuiltInClassName,
                               string.Empty,
                               true);
+
+        /// <summary>
+        /// Standard procedure name for getting the length of an array, interpreted specially by
+        /// the backend.
+        /// </summary>
+        public static readonly ProcedureName BuiltIn__get_array_length =
+            new ProcedureName("__get_array_length",
+                              new List<string>(),
+                              BuiltInClassName,
+                              string.Empty,
+                              true);
         #endregion
 
         /// <summary>

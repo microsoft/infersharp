@@ -36,7 +36,7 @@ public class IsDisposedBooleanField : IDisposable
     }
 }
 
-// Expect 4 TAINT_ERROR for SQL injection flows.
+// Expect 5 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
     [HttpPost]
@@ -85,6 +85,24 @@ public class PulseTaintTests
                     return;
                 }
             }
+        }
+    }
+
+    [HttpGet]
+    public static void PropagateTaintArrayIterator(string[] roleIds)
+    {
+        foreach (var roleId in roleIds)
+        {
+            using var command = new SqlCommand(roleId);
+        }
+    }
+
+    [HttpGet]
+    public static void PropagateTaintArrayIterateByIndex(string[] roleIds)
+    {
+        for (int i = 0; i < roleIds.Length; i++)
+        {
+            using var command = new SqlCommand(roleIds[i]);
         }
     }
 
@@ -229,7 +247,7 @@ public class MainClass
     }
 }
 
-// 18 reports expected (19 with --pulse-increase-leak-recall flag)
+// 19 reports expected (20 with --pulse-increase-leak-recall flag)
 class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
