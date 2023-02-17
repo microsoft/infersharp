@@ -74,12 +74,25 @@ namespace Cilsil
         /// </summary>
         public static void PrintCoverageStats(IEnumerable<MethodDefinition> methods)
         {
-            var totalMethodCount = methods.Count();
-            var failMethodCount = UnfinishedMethods.Count;
-            var succMethodCount = totalMethodCount - failMethodCount;
-            var totalInstr = methods.Sum(m => m.Body.Instructions.Count);
-            var failInstr = UnfinishedMethods.Sum(kv => kv.Value);
-            var succInstr = totalInstr - failInstr;
+            var totalMethodCount = 0;
+            var failMethodCount = 0;
+            var succMethodCount = 0;
+            var totalInstr = 0;
+            var failInstr = 0;
+            var succInstr = 0;
+            try
+            {
+                totalMethodCount = methods.Count();
+                failMethodCount = UnfinishedMethods.Count;
+                succMethodCount = totalMethodCount - failMethodCount;
+                totalInstr = methods.Sum(m => m.Body.Instructions.Count);
+                failInstr = UnfinishedMethods.Sum(kv => kv.Value);
+                succInstr = totalInstr - failInstr;
+            }
+            catch (NotImplementedException ex)
+            {
+                WriteWarning(ex.Message);
+            }
 
             WriteLine("Coverage Statistics:\n");
             WriteLine($@"Method successfully translated: {succMethodCount} ({
