@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+using System;
 using System.IO;
 
 namespace Cilsil.Test.Assets
@@ -302,6 +303,23 @@ namespace Cilsil.Test.Assets
         {
             result = 0;
         }
+   
+        /// <summary>
+        /// Conditionally creates a null dereference; this method content covers the assignment and
+        /// retrieval of array length. 
+        /// </summary>
+        /// <param name="nullDeref">If <c>true</c>, the null dereference occurs; otherwise, it 
+        /// doesn't.</param>
+        public static void ArrayConditionalNullDeref(bool nullDeref)
+        {
+            var length = nullDeref ? 6 : 5;
+            object nullObj = null;
+            String[] paths = new String[5];
+            if (paths.Length < length)
+            {
+                nullObj.GetHashCode();
+            }
+        }
 
         // This method is used to identify a case in which we were creating a false positive null
         // dereference, as a result of passing a reference to result to AssignZeroByReference
@@ -380,6 +398,51 @@ namespace Cilsil.Test.Assets
         }
 
         /// <summary>
+        /// Tests control flow translation for a method with nested exception handlers.
+        /// </summary>
+        /// <param name="createNullDeref">If <c>true</c>, the method logic yields a null 
+        /// dereference. Otherwise, it does not.</param>
+        public static void NestedExceptionConditionalNullDeref(bool createNullDeref)
+        {
+            object x = new object();
+            try
+            {
+                try
+                {
+                    Console.Write("First try catch");
+                    throw new Exception();
+                }
+                catch (Exception)
+                {
+                    try
+                    {
+                        Console.Write("Before finally");
+                        throw new Exception();
+                    }
+                    catch (Exception)
+                    {
+                        x = createNullDeref ? new object() : null;
+                    }
+                    finally
+                    {
+                        Console.Write("Inner try catch finally");
+                        x = createNullDeref ? null : new object();
+                    }
+                }
+                finally
+                {
+                    Console.Write("Outer try catch finally");
+                    throw new Exception();
+                }
+                Console.Write("Last instruction of outer try catch");
+            }
+            catch (Exception)
+            {
+                x.GetHashCode();
+            }
+        }
+
+        /// <summary>
         /// No resource leak should be reported, as the allocated stream is closed in finally.
         /// </summary>
         public static void TryFinallyResourceLeak()
@@ -403,6 +466,27 @@ namespace Cilsil.Test.Assets
             using (var stream = new StreamReader("file.txt"))
             {
                 ThrowsIOException();
+            }
+        }
+
+        /// <summary>
+        ///  We introduce this case for coverage of a false positive on stream; the return
+        ///  statement in the try block was not routing through the finally block first.
+        /// </summary>
+        public static int LeaveEndTryCatchNeedToGoFinally()
+        {
+            var output = new TestClass().GetHashCode();
+            using (var stream = new FileStream("", FileMode.Create))
+            {
+                try
+                {
+                    var x = 5;
+                    return output;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
         }
     }

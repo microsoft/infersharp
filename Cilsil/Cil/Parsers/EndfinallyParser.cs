@@ -15,22 +15,55 @@ namespace Cilsil.Cil.Parsers
                 // Throw can end a finally block but it is discouraged by the compiler and should
                 // be rare. 
                 case Code.Endfinally:
+                    var exceptionHandler = state.MethodExceptionHandlers
+                                                .GetExceptionHandlerAtInstruction(instruction);
                     // This instruction was reached through non-exceptional control flow.
                     if (!state.FinallyExceptionalTranslation)
                     {
-                        // We continue translation with that operand from the end of the finally
-                        // block, now that finally block has been translated.
-                        state.PushInstruction(state.EndfinallyControlFlow);
+                        // In this case, we need to route control through the next finally block.
+                        if (exceptionHandler != null &&
+                            exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
+                        {
+                            state.PushInstruction(exceptionHandler.HandlerStart);
+                        }
+                        else
+                        {
+                            // In this case, translation of the finally block was prompted by a
+                            // throw instruction; we then terminate the CFG branch with the throw
+                            // node via RegisterNode.
+                            if (state.EndfinallyThrowNode != null)
+                            {
+                                RegisterNode(state, state.EndfinallyThrowNode);
+                                state.EndfinallyThrowNode = null;
+                            }
+                            else
+                            {
+                                // We continue translation with that operand from the end of the
+                                // finally block, now that finally block has been translated.
+                                state.PushInstruction(state.EndfinallyControlFlow);
+                            }
+                        }
                     }
                     // This instruction was reached through exceptional control flow.
                     else
                     {
-                        var handler =
-                            state.MethodExceptionHandlers.FinallyEndToHandler[instruction];
+                        var handler = state.MethodExceptionHandlers.FinallyEndToHandler[instruction];
                         if (!state.FinallyHandlerToExceptionExit.ContainsKey(handler))
                         {
-                            state.FinallyHandlerToExceptionExit[handler] =
-                                CreateFinallyExceptionExitNode(state, handler);
+                            var exceptionExitNode = CreateFinallyExceptionExitNode(state, handler);
+                            state.FinallyHandlerToExceptionExit[handler] = exceptionExitNode;
+
+                            // We route control flow through the next finally handler, if there is
+                            // one.
+                            if (exceptionHandler != null &&
+                                exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
+                            {
+                                var finallyBranchNode = 
+                                    CreateFinallyExceptionBranchNode(state, handler);
+                                exceptionExitNode.Successors.Add(finallyBranchNode);
+                                state.PushInstruction(exceptionHandler.HandlerStart,
+                                                      finallyBranchNode);
+                            }
                         }
                         else
                         {

@@ -36,7 +36,7 @@ public class IsDisposedBooleanField : IDisposable
     }
 }
 
-// Expect 2 TAINT_ERROR for SQL injection flows.
+// Expect 5 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
     [HttpPost]
@@ -62,6 +62,50 @@ public class PulseTaintTests
     {
         subproj.WeatherForecast.runSqlCommandStoredProcedure(InputParameter.ToString());
     }
+
+    [HttpGet]
+    public void SearchRawData(string query)
+    {
+        var queryPrefix = "prefix";
+        using (var conn = new SqlConnection("readerConnectionString"))
+        {
+            using (var command = new SqlCommand(queryPrefix + query))
+            {
+                try
+                {
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        Console.Write("Hello");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.Write(ex.Message);
+                    return;
+                }
+            }
+        }
+    }
+
+    [HttpGet]
+    public static void PropagateTaintArrayIterator(string[] roleIds)
+    {
+        foreach (var roleId in roleIds)
+        {
+            using var command = new SqlCommand(roleId);
+        }
+    }
+
+    [HttpGet]
+    public static void PropagateTaintArrayIterateByIndex(string[] roleIds)
+    {
+        for (int i = 0; i < roleIds.Length; i++)
+        {
+            using var command = new SqlCommand(roleIds[i]);
+        }
+    }
+
 }
 
 
@@ -110,6 +154,85 @@ public class ThreadSafety
     {
         return null;
     }
+    public static void TestNullDerefExpectError()
+    {
+        object x = new object();
+        try
+        {
+            try
+            {
+                Console.Write("First try catch");
+                throw new Exception();
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    Console.Write("Before finally");
+                    throw new Exception();
+                }
+                catch (Exception)
+                {
+                    x = new object();
+                }
+                finally
+                {
+                    Console.Write("Inner try catch finally");
+                    x = null;
+                }
+            }
+            finally
+            {
+                Console.Write("Outer try catch finally");
+                throw new Exception();
+            }
+            Console.Write("Last instruction of outer try catch");
+        }
+        catch (Exception)
+        {
+            x.GetHashCode();
+        }
+    }
+
+    public static void TestNullDerefExpectNoError()
+    {
+        object x = new object();
+        try
+        {
+            try
+            {
+                Console.Write("First try catch");
+                throw new Exception();
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    Console.Write("Before finally");
+                    throw new Exception();
+                }
+                catch (Exception)
+                {
+                    x = null;
+                }
+                finally
+                {
+                    Console.Write("Inner try catch finally");
+                    x = new object();
+                }
+            }
+            finally
+            {
+                Console.Write("Outer try catch finally");
+                throw new Exception();
+            }
+            Console.Write("Last instruction of outer try catch");
+        }
+        catch (Exception)
+        {
+            x.GetHashCode();
+        }
+    }
 }
 
 public class MainClass
@@ -124,10 +247,37 @@ public class MainClass
     }
 }
 
-// 17 reports expected (18 with --pulse-increase-leak-recall flag)
+// 19 reports expected (20 with --pulse-increase-leak-recall flag)
 class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
+
+    /// <summary>
+    /// Validates that even though the Dispose occurs within a finally block, the exceptional
+    /// control flow is handled so that the analysis sees that the Dispose is not invoked. Also
+    /// gets coverage over finally blocks ending with throw instead of endfinally.
+    /// </summary>
+    public static void TryFinallyThrow()
+    {
+        var fs = new FileStream("", FileMode.Open);
+        var y = new FileStream("", FileMode.Open);
+        try
+        {
+            Console.Write("hello");
+        }
+        finally
+        {
+            if (fs != null)
+            {
+                fs.Dispose();
+            }
+            throw new Exception();
+        }
+        if (y != null)
+        {
+            y.Dispose();
+        }
+    }
 
     /// <summary>
     /// This is a false positive that occurs when we return a class that owns IDisposable types.
@@ -426,6 +576,26 @@ class InferResourceLeakTests
     {
         Stream stream = new FileStream("MyFile", FileMode.Open);
         return new TakeAndDisposeNotDisposable(stream);
+    }
+
+    /// <summary>
+    /// Should be no leak, as all resources are allocated via using.
+    /// </summary>
+    public static string NestedUsingWithThrownException()
+    {
+        using (var x = new StreamReader(""))
+        {
+            Console.Write("First using");
+            using (var y = new StreamReader(""))
+            {
+                Console.Write("Second using");
+                if (y != null)
+                {
+                    throw new Exception();
+                }
+            }
+        }
+        return "done";
     }
 
     /// <summary>

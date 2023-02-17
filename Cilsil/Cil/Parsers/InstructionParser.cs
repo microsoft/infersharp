@@ -10,6 +10,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using ProcStack = System.Collections.Generic.Stack<(Cilsil.Sil.Expressions.Expression Expression,
@@ -124,12 +125,19 @@ namespace Cilsil.Cil.Parsers
             state.Cfg.RegisterNode(node);
             state.PreviousNode.Successors.Add(node);
             node.BlockEndOffset = state.MethodExceptionHandlers
-                                       .GetBlockEndOffsetFromOffset(
-                                            state.CurrentInstruction.Offset);
-            if (state.MethodExceptionHandlers.GetExceptionHandlerAtInstruction(
-                    state.CurrentInstruction) != null)
+                                       .GetBlockEndOffsetFromInstruction(
+                                            state.CurrentInstruction);
+
+            var exceptionHandler = state.MethodExceptionHandlers
+                                        .GetExceptionHandlerAtInstruction(state.CurrentInstruction);
+
+            if (exceptionHandler != null)
             {
-                state.NodesToLinkWithExceptionBlock.Add(node);
+                var exceptionHandlerEntryNode = GetHandlerExceptionalEntryBlock(state, exceptionHandler);
+                if (exceptionHandlerEntryNode != null)
+                {
+                    node.ExceptionNodes.Add(exceptionHandlerEntryNode);
+                }
             }
             if (RememberNodeOffset)
             {
@@ -273,6 +281,11 @@ namespace Cilsil.Cil.Parsers
 
                     node.ExceptionNodes.Add(entryNode);
 
+                    // Note: this isn't a perfect way of trying to separate exceptional control
+                    // flow from regular control flow; because translation proceeds via DFS, this
+                    // distinction may not work in the event of i.e. nested finally blocks.
+                    // However, this seems not to pose a material issue for correct detection of
+                    // issues. 
                     state.FinallyExceptionalTranslation = true;
                     state.PushInstruction(handler.HandlerStart, node);
                     state.FinallyExceptionalTranslation = false;
@@ -325,14 +338,21 @@ namespace Cilsil.Cil.Parsers
             // exception type-matching node.
             else
             {
-                if (handlerNode.FinallyBlock != null)
+                var exceptionHandler =
+                    state.MethodExceptionHandlers
+                         .GetExceptionHandlerAtInstruction(handlerNode.ExceptionHandler
+                                                                      .HandlerStart);
+                // If there is a finally exception handler associated with this catch handler, we
+                // route regular control flow through the finally block.
+                if (exceptionHandler != null &&
+                    exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
                 {
                     var finallyBranchNode = CreateFinallyExceptionBranchNode(
                         state, handlerNode.ExceptionHandler);
                     falseBranch.Successors
                                .Add(finallyBranchNode);
                     (var finallyLoadCatchVar, _) = GetHandlerCatchVarNode(
-                        state, handlerNode.FinallyBlock);
+                        state, exceptionHandler);
                     finallyBranchNode.Successors.Add(finallyLoadCatchVar);
                 }
                 else
@@ -372,7 +392,7 @@ namespace Cilsil.Cil.Parsers
             return state.ExceptionHandlerToCatchVarNode[handler];
         }
 
-        protected static CfgNode CreateFinallyExceptionalEntryBlock(ProgramState state,
+        private static CfgNode CreateFinallyExceptionalEntryBlock(ProgramState state,
                                                                     ExceptionHandler handler)
         {
             (var entryNode, _) = GetHandlerEntryNode(state, handler);
@@ -521,11 +541,11 @@ namespace Cilsil.Cil.Parsers
                 isInstCall, pruneFalseInstruction
             });
             pruneTrueNode.BlockEndOffset = state.MethodExceptionHandlers
-                                                  .GetBlockEndOffsetFromOffset(
-                                                       state.CurrentInstruction.Offset);
+                                                  .GetBlockEndOffsetFromInstruction(
+                                                       state.CurrentInstruction);
             pruneFalseNode.BlockEndOffset = state.MethodExceptionHandlers
-                                                   .GetBlockEndOffsetFromOffset(
-                                                        state.CurrentInstruction.Offset);
+                                                   .GetBlockEndOffsetFromInstruction(
+                                                        state.CurrentInstruction);
             state.Cfg.RegisterNode(pruneTrueNode);
             state.Cfg.RegisterNode(pruneFalseNode);
             return (pruneTrueNode, pruneFalseNode);
@@ -553,18 +573,72 @@ namespace Cilsil.Cil.Parsers
                                      new ExnExpression(returnValue),
                                      Typ.FromTypeReference(retType),
                                      location);
+
+
             retNode.Instructions.Add(retInstr);
-            retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
+            if (state.CurrentInstruction.OpCode.Code == Code.Throw)
+            {
+                var builtinFunctionExpression = new ConstExpression(ProcedureName.BuiltIn__throw);
+                var throwCall = new Call(state.GetIdentifier(Identifier.IdentKind.Normal),
+                                         new Tvoid(),
+                                         builtinFunctionExpression,
+                                         new List<Call.CallArg>(),
+                                         new Call.CallFlags(),
+                                         state.CurrentLocation);
+                retNode.Instructions.Add(throwCall);
+            }
             return retNode;
         }
 
-        protected static void CreateExceptionalEdges(ProgramState state, CfgNode entryNode)
+        /// <summary>
+        /// Gets the entry node for the exception handler, creating the entry block if needed.
+        /// </summary>
+        /// <param name="state">The state.</param>
+        /// <param name="handler">The catch handler for which we are potentially creating
+        /// exceptional control flow.</param>
+        protected static CfgNode GetHandlerExceptionalEntryBlock(ProgramState state, 
+                                                                 ExceptionHandler handler)
         {
-            foreach (var node in state.NodesToLinkWithExceptionBlock)
+            if (!(handler.HandlerType == ExceptionHandlerType.Catch || 
+                  handler.HandlerType == ExceptionHandlerType.Finally))
             {
-                node.ExceptionNodes.Add(entryNode);
+                return null;
             }
-            state.NodesToLinkWithExceptionBlock = new List<CfgNode>();
+            CfgNode entryNode;
+            Identifier exceptionIdentifier;
+            var exnInfo = state.MethodExceptionHandlers;
+            var instruction = handler.TryEnd.Previous;
+
+            if (!state.ExceptionHandlerSetToEntryNode.ContainsKey(handler))
+            {
+                if (handler.HandlerType == ExceptionHandlerType.Catch)
+                {
+                    (entryNode, exceptionIdentifier) = GetHandlerEntryNode(
+                        state, exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
+                                        .Item1[0]
+                                        .ExceptionHandler);
+                    // Exceptional control flow routes through the first of the set of
+                    // associated catch handlers; this invocation pushes the catch
+                    // handler's first instruction onto the stack and continues the
+                    // translation from the handler's catch variable load node. 
+                    CreateCatchHandlerEntryBlock(
+                        state,
+                        exnInfo.TryOffsetToCatchHandlers[instruction.Offset]
+                                .Item1[0],
+                        entryNode,
+                        exceptionIdentifier);
+                }
+                // Is a finally handler.
+                else 
+                {
+                    entryNode = CreateFinallyExceptionalEntryBlock(state, handler);
+                }
+            }
+            else
+            {
+                (entryNode, _) = state.ExceptionHandlerSetToEntryNode[handler];
+            }
+            return entryNode;
         }
 
         /// <summary>

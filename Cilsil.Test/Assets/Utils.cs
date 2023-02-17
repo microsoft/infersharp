@@ -67,6 +67,7 @@ namespace Cilsil.Test.Assets
         public enum TestClassMethod
         {
             None,
+            ArrayConditionalNullDeref,
             CleanupStreamReaderObjectField,
             Cast,
             ExpectNonNullParam,
@@ -78,6 +79,7 @@ namespace Cilsil.Test.Assets
             InitializeInstanceObjectField,
             InitializeStreamReaderObjectField,
             InitializeInstanceObjectFieldViaReference,
+            NestedExceptionConditionalNullDeref,
             ReturnElementFromInstanceArrayField,
             ReturnOneDimArray,
             ReturnTwoDimArray,
@@ -486,6 +488,20 @@ namespace Cilsil.Test.Assets
                     if (args == null || args.Length != 1)
                     {
                         throw new ArgumentException("TestCastClass requires 1 argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.ArrayConditionalNullDeref:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException(
+                            "ArrayConditionalNullDeref requires 1 argument.");
+                    }
+                    return GetMethodCall(true);
+                case TestClassMethod.NestedExceptionConditionalNullDeref:
+                    if (args == null || args.Length != 1)
+                    {
+                        throw new ArgumentException(
+                            "NestedExceptionConditionalNullDeref requires 1 argument.");
                     }
                     return GetMethodCall(true);
                 default:

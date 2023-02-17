@@ -130,13 +130,6 @@ namespace Cilsil.Utils
         private int NextAvailableSyntheticVariableId;
 
         /// <summary>
-        /// List of nodes to link to an exception block when a leave instruction is encountered. If
-        /// the translation state is not in a try or catch block, translated body nodes don't need 
-        /// to be recorded.
-        /// </summary>
-        public List<CfgNode> NodesToLinkWithExceptionBlock;
-
-        /// <summary>
         /// <c>true</c> if the top instruction is in a try or catch block; <c>false</c> otherwise. 
         /// </summary>
         public bool InstructionInTryOrCatch;
@@ -150,7 +143,7 @@ namespace Cilsil.Utils
                          (CfgNode node, LvarExpression variable)> ExceptionHandlerToCatchVarNode;
 
         /// <summary>
-        /// The exception handler to its entry node as well as pthe identifier for the unwrapped 
+        /// The exception handler to its entry node as well as the identifier for the unwrapped 
         /// exception.
         /// </summary>
         public Dictionary<ExceptionHandler,
@@ -170,10 +163,10 @@ namespace Cilsil.Utils
         public Instruction EndfinallyControlFlow;
 
         /// <summary>
-        /// Maps a leave instruction offset to the exceptional entry node created for it, as well
-        /// as the associated identifier for the unwrapped exception.
+        /// Null by default. When control flow is exited via a throw instruction, this is the throw
+        /// node to be added at the end of the translation of the finally block, when one exists.
         /// </summary>
-        public Dictionary<Instruction, (CfgNode, Identifier)> LeaveToExceptionEntryNode;
+        public CfgNode EndfinallyThrowNode;
 
         /// <summary>
         /// Contains information about the program's exception handlers.
@@ -207,7 +200,6 @@ namespace Cilsil.Utils
             ParsedInstructions = new List<Instruction>();
 
             MethodExceptionHandlers = new MethodExceptionHandlers(method.Body);
-            NodesToLinkWithExceptionBlock = new List<CfgNode>();
             InstructionInTryOrCatch = false;
 
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack, int)>>();
@@ -219,7 +211,6 @@ namespace Cilsil.Utils
             FinallyHandlerToExceptionExit = new Dictionary<ExceptionHandler, CfgNode>();
             ExceptionHandlerSetToEntryNode = new Dictionary<ExceptionHandler,
                                                             (CfgNode node, Identifier id)>();
-            LeaveToExceptionEntryNode = new Dictionary<Instruction, (CfgNode, Identifier)>();
 
             FinallyExceptionalTranslation = false;
 
@@ -242,8 +233,8 @@ namespace Cilsil.Utils
             // and the previous node is from a different handler block, we empty the saved stack,
             // as there should not be anything on the stack when transferring control between
             // different handler blocks.
-            if (!MethodExceptionHandlers.CatchOffsetToCatchHandler
-                                        .ContainsKey(CurrentInstruction.Offset) &&
+            if (MethodExceptionHandlers.GetMapTypeFromInstruction(CurrentInstruction) != 
+                    MethodExceptionHandlers.MapType.CatchToCatch &&
                 node.BlockEndOffset != PreviousNode.BlockEndOffset)
             {
                 OffsetToNode

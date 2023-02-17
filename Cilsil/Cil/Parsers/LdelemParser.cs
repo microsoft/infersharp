@@ -14,8 +14,7 @@ namespace Cilsil.Cil.Parsers
         protected override bool ParseCilInstructionInternal(Instruction instruction,
                                                             ProgramState state)
         {
-            Tptr arrayTypeWithPtr;
-            Tarray arrayTypeNoPtr;
+
             switch (instruction.OpCode.Code)
             {
                 case Code.Ldelem_Any:
@@ -30,29 +29,16 @@ namespace Cilsil.Cil.Parsers
                     (var arrayIndex, _) = state.Pop();
                     (var array, var type) = state.Pop();
 
-                    if (!(array is VarExpression arrayVar) || !(type.StripPointer() is Tarray))
-                    {
-                        Log.WriteParserWarning(array, instruction, state);
-                        return false;
-                    }
-                    // Type is either Tarray or a Tptr with a Tarray type underlying it.
-                    if (type is Tarray)
-                    {
-                        arrayTypeWithPtr = new Tptr(Tptr.PtrKind.Pk_pointer, type);
-                        arrayTypeNoPtr = (Tarray)type;
-                    }
-                    else if (type is Tptr)
-                    {
-                        arrayTypeWithPtr = (Tptr)type;
-                        arrayTypeNoPtr = (Tarray)type.StripPointer();
-                    }
-                    else
+                    var typeNoPointer = type.StripPointer();
+
+                    if (!(array is VarExpression arrayVar) || 
+                        !(typeNoPointer is Tarray arrayTypeNoPtr))
                     {
                         Log.WriteParserWarning(type, instruction, state);
                         return false;
                     }
+                    var derefArray = CreateDereference(arrayVar, type, state);
 
-                    var derefArray = CreateDereference(arrayVar, arrayTypeWithPtr, state);
                     var tempIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
                     var arrayIndexLoad = new Load(identifierAssignedTo: tempIdentifier,
                                                   lvalue: new LindexExpression(
