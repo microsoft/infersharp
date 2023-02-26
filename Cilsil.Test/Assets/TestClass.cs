@@ -2,9 +2,31 @@
 // Licensed under the MIT License.
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Cilsil.Test.Assets
 {
+
+    public class StreamWrapper : IDisposable
+    {
+        public FileStream stream;
+        public bool isDisposed;
+
+        public StreamWrapper(string path)
+        {
+            stream = new FileStream(path, FileMode.Open);
+        }
+
+        public void Dispose()
+        {
+            if (!isDisposed)
+            {
+                stream.Dispose();
+                isDisposed = true;
+            }
+        }
+    }
+    
     public class TestClass
     {
         public TestClass InstanceObjectField;
@@ -517,6 +539,54 @@ namespace Cilsil.Test.Assets
             }
         }
 
+        /// <summary>
+        /// We introduce this method to create coverage of a false positive that can occur when
+        /// a developer uses a boolean to indicate whether their custom-written class has been
+        /// disposed or not. It is necessary for us to inline the default initialization of the
+        /// boolean to false.
+        /// </summary>
+        public static void TestDefaultBooleanInitialization()
+        {
+            using (var streamTest = new StreamWrapper("test.txt")) ;
+        }
+
+        /// <summary>
+        /// We introduce this method to create coverage of a false positive resource leak that 
+        /// could occur because when pushing the beginning of a catch handler onto the instruction
+        /// stack; we had also modified the whole program stack by pushing the exception object
+        /// expected by the compiler onto the program stack. This could confuse the ordering of
+        /// items on the stack; the correct approach was to not modify the whole program state, 
+        /// but rather to just push the exception handler start instruction with a program stack
+        /// containing only the exception expression.
+        /// </summary>
+        /// <param name="input">Dummy.</param>
+        /// <returns>Dummy.</returns>
+        public static async Task<object> CatchHandlerExceptionObject(byte[] input)
+        {
+            using var stream = new FileStream("", FileMode.Open);
+            stream.Write(input);
+            return new object();
+        }
+
+        /// <summary>
+        /// We introduce this method to create coverage of a false positive resource leak that
+        /// occurs with using blocks in async methods. The bytecode of the finally block that is
+        /// supposed to dispose of the resource performs the dispose only if the state value is <0.
+        /// This state value is set to -1 in a different initialization method, so Infer is unaware
+        /// of this certainty; we resolve this by inlining that initialization to the MoveNext()
+        /// method.
+        /// </summary>
+        /// <returns>Dummy.</returns>
+        public async Task<object> TestAsyncStateInitializedNegative()
+        {
+            var y = new object();
+            using (var stream = new FileStream("", FileMode.Open))
+            {
+                object x = null;
+            }
+            return y;
+        }
+        
         public static string SwitchStatementReturnsString(char input)
         {
             string output;

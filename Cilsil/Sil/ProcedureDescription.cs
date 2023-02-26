@@ -135,6 +135,43 @@ namespace Cilsil.Sil
         }
 
         /// <summary>
+        /// Helper method for updating a procedure description's associated method.
+        /// </summary>
+        /// <param name="newMethod">The new method.</param>
+        public void UpdateMethodDefinition(MethodDefinition newMethod)
+        {
+            var parameters = newMethod.Parameters.Select(
+                p => new VariableDescription(p.Name, Typ.FromTypeReference(p.ParameterType)));
+            if (!newMethod.IsStatic)
+            {
+                parameters = parameters.Prepend(
+                    new VariableDescription(Identifier.ThisIdentifier,
+                                            Typ.FromTypeReference(
+                                                newMethod.DeclaringType)));
+            }
+
+            var location = Location.FromSequencePoint(
+                newMethod.DebugInformation.SequencePoints.FirstOrDefault());
+
+            PdAttributes.Access = 
+                newMethod.IsPublic ? ProcedureAttributes.ProcedureAccessKind.Public :
+                newMethod.IsPrivate ? ProcedureAttributes.ProcedureAccessKind.Private :
+                                      ProcedureAttributes.ProcedureAccessKind.Default;
+            PdAttributes.Formals = parameters.ToList();
+            PdAttributes.RetType = Typ.FromTypeReference(newMethod.ReturnType);
+            PdAttributes.Loc = location;
+            PdAttributes.ProcName = new ProcedureName(newMethod);
+
+            foreach (var attribute in newMethod.CustomAttributes)
+            {
+                // Although this ignores annotation parameters that may be present, the annotation
+                // parameters are not yet used in any way in the Infer analysis.
+                PdAttributes.MethodAnnotations.AddAnnotationNoParameter(
+                    attribute.AttributeType.ToString());
+            }
+        }
+
+        /// <summary>
         /// Converts to string.
         /// </summary>
         /// <returns>

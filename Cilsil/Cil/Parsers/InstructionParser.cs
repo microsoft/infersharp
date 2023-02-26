@@ -156,7 +156,7 @@ namespace Cilsil.Cil.Parsers
             var methodBodyStartLocation = Location.FromSequencePoint(
                 state.Method.DebugInformation.GetSequencePoint(
                     state.Method.Body.Instructions.First()));
-            return handlerLocation.Line < 10000000 ? handlerLocation : methodBodyStartLocation;
+            return handlerLocation.IsSourceCodeLocation() ? handlerLocation : methodBodyStartLocation;
         }
 
         protected static Location GetHandlerEndLocation(ProgramState state,
@@ -167,7 +167,7 @@ namespace Cilsil.Cil.Parsers
             var methodBodyStartLocation = Location.FromSequencePoint(
                 state.Method.DebugInformation.GetSequencePoint(
                     state.Method.Body.Instructions.First()));
-            return handlerLocation.Line < 10000000 ? handlerLocation : methodBodyStartLocation;
+            return handlerLocation.IsSourceCodeLocation() ? handlerLocation : methodBodyStartLocation;
         }
 
         private static LvarExpression GetHandlerCatchVar(ProgramState state,
@@ -314,12 +314,10 @@ namespace Cilsil.Cil.Parsers
                 // The CIL specification dictates that the exception object is on top of
                 // the stack when the catch handler is entered; the first instruction of
                 // the catch handler will handle the object pushed onto the stack.
-                state.PushExpr(new VarExpression(exceptionIdentifier),
-                               new Tptr(Tptr.PtrKind.Pk_pointer,
-                                        new Tstruct("System.Object")));
-                state.PushInstruction(
+                state.PushInstructionCatchHandlerStart(
                     handlerNode.ExceptionHandler.HandlerStart,
-                    state.ExceptionHandlerToCatchVarNode[handlerNode.ExceptionHandler].node);
+                    state.ExceptionHandlerToCatchVarNode[handlerNode.ExceptionHandler].node,
+                    exceptionIdentifier);
             }
             (var loadCatchVarNode, _) = GetHandlerCatchVarNode(
                 state, handlerNode.ExceptionHandler);

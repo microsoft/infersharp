@@ -239,7 +239,7 @@ namespace Cilsil.Utils
             // and the previous node is from a different handler block, we empty the saved stack,
             // as there should not be anything on the stack when transferring control between
             // different handler blocks.
-            if (MethodExceptionHandlers.GetMapTypeFromInstruction(CurrentInstruction) != 
+            if (MethodExceptionHandlers.GetMapTypeFromInstruction(CurrentInstruction) !=
                     MethodExceptionHandlers.MapType.CatchToCatch &&
                 node.BlockEndOffset != PreviousNode.BlockEndOffset)
             {
@@ -375,9 +375,7 @@ namespace Cilsil.Utils
             if (ProgramStack.Count == 0)
             {
                 throw new ServiceExecutionException(
-                    $@"Popping on empty stack at method: {
-                        Method.GetCompatibleFullName()} instruction: {
-                        CurrentInstruction} location: {CurrentLocation}", this);
+                    $@"Popping on empty stack at method: {Method.GetCompatibleFullName()} instruction: {CurrentInstruction} location: {CurrentLocation}", this);
             }
             return ProgramStack.Pop();
         }
@@ -434,7 +432,7 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
-        /// Pushes an instruction to be parsed.
+        /// Pushes an instruction to be parsed. 
         /// </summary>
         /// <param name="instruction">Instruction to be parsed.</param>
         /// <param name="node">The node to set <see cref="PreviousNode"/> to, i.e. the node from 
@@ -452,6 +450,36 @@ namespace Cilsil.Utils
                     Instruction = instruction,
                     PreviousNode = node ?? PreviousNode,
                     PreviousStack = ProgramStack.Clone(),
+                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
+                    FinallyExceptionalTranslation = FinallyExceptionalTranslation,
+                    EndfinallyControlFlow = EndfinallyControlFlow,
+                });
+        }
+
+        /// <summary>
+        /// Pushes the next instruction to be parsed, but specially for the beginning of a catch
+        /// handler. In this case, the program stack of the snapshot contains only the expression
+        /// referring to the exception, which is exactly what the compiler expects. 
+        /// </summary>
+        /// <param name="instruction">The first instruction of the handler.</param>
+        /// <param name="node">The node beginning the handler from which to continue 
+        /// translation.</param>
+        /// <param name="exceptionIdentifier">The identifier for the exception.</param>
+        public void PushInstructionCatchHandlerStart(Instruction instruction, 
+                                                     CfgNode node, 
+                                                     Identifier exceptionIdentifier)
+        {
+            var handlerStack = new ProgramStack();
+            handlerStack.Push(
+                (new VarExpression(exceptionIdentifier),
+                 new Tptr(Tptr.PtrKind.Pk_pointer,
+                          new Tstruct("System.Object"))));
+            InstructionsStack.Push(
+                new TranslationSnapshot
+                {
+                    Instruction = instruction,
+                    PreviousNode = node ?? PreviousNode,
+                    PreviousStack = handlerStack,
                     NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
                     FinallyExceptionalTranslation = FinallyExceptionalTranslation,
                     EndfinallyControlFlow = EndfinallyControlFlow,
