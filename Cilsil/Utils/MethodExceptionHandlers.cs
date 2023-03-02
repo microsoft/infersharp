@@ -41,23 +41,25 @@ namespace Cilsil.Utils
             new Dictionary<Instruction, ExceptionHandler>();
 
         /// <summary>
-        /// Maps offsets within try-blocks of try-catch to the corresponding catch handler set.
+        /// Maps offsets within try-blocks of try-catch to the corresponding catch handler set and
+        /// the length of the try.
         /// </summary>
         public readonly Dictionary<int, 
                                    (List<ExceptionHandlerNode>, int)> TryOffsetToCatchHandlers;
 
         /// <summary>
-        /// Maps offsets within try-blocks of try-finally to the corresponding finally handler.
+        /// Maps offsets within try-blocks of try-finally to the corresponding finally handler and
+        /// the length of the try.
         /// </summary>
         public readonly Dictionary<int, (ExceptionHandler, int)> TryOffsetToFinallyHandler;
 
         /// <summary>
-        /// Maps offsets within catch-blocks to the corresponding catch handler.
+        /// Maps offsets within catch-blocks to the corresponding catch handler and its length.
         /// </summary>
         public readonly Dictionary<int, (ExceptionHandlerNode, int)> CatchOffsetToCatchHandler;
 
         /// <summary>
-        /// Maps offsets within finally-blocks to the corresponding finally handler and the .
+        /// Maps offsets within finally-blocks to the corresponding finally handler and its length.
         /// </summary>
         public readonly Dictionary<int, (ExceptionHandler, int)> FinallyOffsetToFinallyHandler;
         #endregion

@@ -199,6 +199,14 @@ namespace Cilsil.Services
                     programState.PushInstruction(methodBody.Instructions.First(), initNode);
                     do
                     {
+                        if (programState.IsTopSnapshotInstructionNull())
+                        {
+                            Log.WriteWarning("Top instruction is null; terminating translation.");
+                            Log.RecordUnfinishedMethod(method.GetCompatibleFullName(),
+                                                       method.Body.Instructions.Count);
+                            translationUnfinished = true;
+                            break;
+                        }
                         iterationCount++;
                         var nextInstruction = programState.PopInstruction();
                         // Checks if there is a node for the offset that we can reuse.

@@ -67,7 +67,7 @@ namespace Cilsil.Cil.Parsers
                 // case.
                 if (!(callArgs[0].Type is Tfun methodType))
                 {
-                    Log.WriteError("Unexpected arg on stack: expected function");
+                    Log.WriteWarning("Unexpected arg on stack: expected function");
                     return false;
                 }
                 else
