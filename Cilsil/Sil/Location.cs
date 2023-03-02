@@ -68,6 +68,15 @@ namespace Cilsil.Sil
         }
 
         /// <summary>
+        /// Determines if the source code location is a dummy one.
+        /// </summary>
+        /// <returns><c>true</c> if this is a dummy source code location.</returns>
+        public bool IsDummy()
+        {
+            return Line == 0 && Col == 0;
+        }
+
+        /// <summary>
         /// Converts to string.
         /// </summary>
         /// <returns>

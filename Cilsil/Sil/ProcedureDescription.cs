@@ -74,6 +74,31 @@ namespace Cilsil.Sil
         [JsonProperty("pd_exn_node")]
         public long ExceptionSinkNodeId => ExceptionSinkNode.Id;
 
+        private Location GetEndSourceCodeLocation(
+            MethodDefinition methodDefinition, bool computeFirst)
+        {
+            var defaultInstruction = computeFirst ?
+                methodDefinition.Body.Instructions.First() :
+                methodDefinition.Body.Instructions.Last();
+            var current = defaultInstruction;
+
+            var location = Location.FromSequencePoint(
+                methodDefinition.DebugInformation.GetSequencePoint(current));
+
+            while (!location.IsSourceCodeLocation() || location.IsDummy())
+            {
+                current = computeFirst ? current.Next : current.Previous;
+                if (current == null)
+                {
+                    return Location.FromSequencePoint(
+                        methodDefinition.DebugInformation.GetSequencePoint(defaultInstruction));
+                }
+                location = Location.FromSequencePoint(
+                    methodDefinition.DebugInformation.GetSequencePoint(current));
+            }
+            return location;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcedureDescription"/> class.
         /// </summary>
@@ -94,8 +119,9 @@ namespace Cilsil.Sil
                                                 methodDefinition.DeclaringType)));
             }
 
-            var location = Location.FromSequencePoint(
-                methodDefinition.DebugInformation.SequencePoints.FirstOrDefault());
+            var firstLocation = GetEndSourceCodeLocation(methodDefinition, true);
+            var lastLocation = GetEndSourceCodeLocation(methodDefinition, false);
+            var current = methodDefinition.Body.Instructions.First();
 
             PdAttributes = new ProcedureAttributes()
             {
@@ -106,7 +132,7 @@ namespace Cilsil.Sil
                          ProcedureAttributes.ProcedureAccessKind.Default,
                 Formals = parameters.ToList(),
                 RetType = Typ.FromTypeReference(methodDefinition.ReturnType),
-                Loc = location,
+                Loc = firstLocation,
                 ProcName = new ProcedureName(methodDefinition)
             };
             
@@ -119,13 +145,9 @@ namespace Cilsil.Sil
             }
 
             Nodes = new List<CfgNode>();
-            StartNode = new StartNode(location, this);
-            ExitNode = new ExitNode(Location.FromSequencePoint(methodDefinition
-                                                               .DebugInformation
-                                                               .SequencePoints
-                                                               .LastOrDefault()),
-                                    this);
-            ExceptionSinkNode = new StatementNode(location,
+            StartNode = new StartNode(firstLocation, this);
+            ExitNode = new ExitNode(lastLocation, this);
+            ExceptionSinkNode = new StatementNode(firstLocation,
                                                   StatementNode.StatementNodeKind.ExceptionsSink,
                                                   proc: this);
 
@@ -150,16 +172,12 @@ namespace Cilsil.Sil
                                                 newMethod.DeclaringType)));
             }
 
-            var location = Location.FromSequencePoint(
-                newMethod.DebugInformation.SequencePoints.FirstOrDefault());
-
             PdAttributes.Access = 
                 newMethod.IsPublic ? ProcedureAttributes.ProcedureAccessKind.Public :
                 newMethod.IsPrivate ? ProcedureAttributes.ProcedureAccessKind.Private :
                                       ProcedureAttributes.ProcedureAccessKind.Default;
             PdAttributes.Formals = parameters.ToList();
             PdAttributes.RetType = Typ.FromTypeReference(newMethod.ReturnType);
-            PdAttributes.Loc = location;
             PdAttributes.ProcName = new ProcedureName(newMethod);
 
             foreach (var attribute in newMethod.CustomAttributes)
