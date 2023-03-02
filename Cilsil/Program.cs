@@ -4,6 +4,7 @@ using Cilsil.Cil.Parsers;
 using Cilsil.Services;
 using Cilsil.Services.Results;
 using Cilsil.Sil;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -107,8 +108,15 @@ namespace Cilsil
                 new DecoderExceptionFallback()
             );
 
-
-            File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString(), Utf8Encoder);
+            try
+            {
+                File.WriteAllText(cfgtxt ?? "./cfg.txt", cfg.ToString(), Utf8Encoder);
+            }
+            catch (Exception e)
+            {
+                Log.WriteWarning("Printing string version of CFG failed.");
+                Log.WriteWarning(e.Message);
+            }
             cfg.WriteToFile(outcfg);
             tenv.WriteToFile(outtenv);
 

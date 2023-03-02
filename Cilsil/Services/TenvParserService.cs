@@ -5,6 +5,7 @@ using Cilsil.Services.Results;
 using Cilsil.Sil;
 using Cilsil.Sil.Types;
 using Mono.Cecil;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -95,7 +96,16 @@ namespace Cilsil.Services
             {
                 foreach (var t in Types)
                 {
-                    RegisterCilType(t, tenv);
+                    try
+                    {
+                        RegisterCilType(t, tenv);
+                    }
+                    catch (NotImplementedException e)
+                    {
+                        Log.WriteWarning($"Could not parse type {t.FullName}.");
+                        Log.WriteWarning($"{e.Message}");
+                        continue;
+                    }
                     i++;
                     bar.Report((double)i / total);
                     if (WriteConsoleProgress)

@@ -71,10 +71,10 @@ namespace Cilsil.Cil.Parsers
 
                 case Code.Throw:
                     (var returnValue, _) = state.Pop();
-                    var retNode = CreateExceptionReturnNode(state,
-                                                            returnValue,
-                                                            state.CurrentLocation);
-                    RegisterNode(state, retNode);
+                    var throwNode = CreateExceptionReturnNode(state,
+                                                              returnValue,
+                                                              state.CurrentLocation);
+                    HandleFinallyControlFlowForThrow(state, instruction, throwNode);
                     return true;
                 case Code.Rethrow:
                     var exceptionType = 
@@ -89,7 +89,7 @@ namespace Cilsil.Cil.Parsers
                     var rethrowNode = CreateExceptionReturnNode(state,
                                                                 objectVariable,
                                                                 state.CurrentLocation);
-                    RegisterNode(state, rethrowNode);
+                    HandleFinallyControlFlowForThrow(state, instruction, rethrowNode);
                     return true;
                 default:
                     return false;
@@ -151,6 +151,30 @@ namespace Cilsil.Cil.Parsers
             {
                 state.PushInstruction(targetInstr);
             }
+        }
+
+        private void HandleFinallyControlFlowForThrow(
+            ProgramState state, Instruction instruction, CfgNode throwNode)
+        {
+            // Before control flow leaves this block via the throw, we need to route
+            // control flow through the finally block.
+            if (state.MethodExceptionHandlers
+                     .TryOffsetToFinallyHandler
+                     .ContainsKey(instruction.Offset))
+            {
+                var finallyHandler =
+                    state.MethodExceptionHandlers
+                         .TryOffsetToFinallyHandler[instruction.Offset]
+                         .Item1;
+                state.PushInstruction(finallyHandler.HandlerStart,
+                                      CreateFinallyHandlerNonExceptionalEntry(
+                                          state, finallyHandler, null, throwNode));
+            }
+            else
+            {
+                RegisterNode(state, throwNode);
+            }
+
         }
     }
 }
