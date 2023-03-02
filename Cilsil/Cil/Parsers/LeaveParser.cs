@@ -70,7 +70,7 @@ namespace Cilsil.Cil.Parsers
                     return true;
 
                 case Code.Throw:
-                    (var returnValue, _) = state.Pop()
+                    (var returnValue, _) = state.Pop();
                     var throwNode = CreateExceptionReturnNode(state,
                                                               returnValue,
                                                               state.CurrentLocation);
