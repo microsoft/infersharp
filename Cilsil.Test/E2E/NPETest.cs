@@ -867,5 +867,26 @@ namespace Cilsil.Test.E2E
                                                   .ToLower()
                                    }), GetString(expectedError));
         }
+
+        /// <summary>
+        /// Validates translations of ldftn and delegates.
+        /// </summary>
+        /// <param name="doNullDeref">If <c>true</c>, invoked method creates the null 
+        /// deref. Else, does not.</param>
+        /// <param name="expectedError">The expected error.</param>
+        [DataRow(false, InferError.None)]
+        [DataRow(true, InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
+        public void NullExceptionTestDelegate(bool doNullDeref, InferError expectedError)
+        {
+            TestRunManager.Run(CallTestClassMethod(
+                                   TestClassMethod.CreatePossibleDelegateNullDeref,
+                                   true,
+                                   args: new string[]
+                                   {
+                                       doNullDeref.ToString()
+                                                  .ToLower()
+                                   }), GetString(expectedError));
+        }
     }
 }

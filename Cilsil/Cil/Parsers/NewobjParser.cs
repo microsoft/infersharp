@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 using Cilsil.Extensions;
 using Cilsil.Sil;
+using Cilsil.Sil.Expressions;
 using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
@@ -23,6 +24,27 @@ namespace Cilsil.Cil.Parsers
                 case Code.Newobj:
                     var constructorMethod = instruction.Operand as MethodReference;
                     var objectTypeReference = constructorMethod.DeclaringType;
+
+                    if (!state.ProgramStackIsEmpty())
+                    {
+                        (var value, var type) = state.Peek();
+
+                        // In this case, a delegate wrapper is being created. We simply disregard this
+                        // wrapper creation and directly push the function pointer.
+                        if ((value is ConstExpression expr && expr.ConstValue is ProcedureName) &&
+                            type.StripPointer() is Tfun &&
+                            MethodDeclaringTypeIsDelegateType(constructorMethod) &&
+                            constructorMethod.Parameters.Count == 2)
+                        {
+                            (var functionValue, var functionType) = state.Pop();
+                            // Discard the second parameter of the delegate constructor.
+                            state.Pop();
+                            // We push the function pointer back onto the stack. 
+                            state.PushExpr(functionValue, functionType);
+                            state.PushInstruction(instruction.Next);
+                            return true;
+                        }
+                    }
                     (var memoryAllocationCall, var objectVariable) = CreateMemoryAllocationCall(
                         objectTypeReference, state);
                     state.PushExpr(objectVariable, Typ.FromTypeReference(objectTypeReference));
@@ -41,7 +63,7 @@ namespace Cilsil.Cil.Parsers
                                                     kind: StatementNode.StatementNodeKind.Call,
                                                     proc: state.ProcDesc,
                                                     comment: constructorMethod
-                                                             .GetCompatibleFullName());
+                                                                .GetCompatibleFullName());
                     newNode.Instructions.Add(memoryAllocationCall);
                     newNode.Instructions.Add(constructorCall);
                     RegisterNode(state, newNode);

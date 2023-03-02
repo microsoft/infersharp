@@ -68,6 +68,10 @@ namespace Cilsil.Cil.Parsers
             {
                 variableType = new Tint(Tint.IntKind.IBool, true);
             }
+            else if (state.VariableIndexToFunctionType.ContainsKey(index))
+            {
+                variableType = state.VariableIndexToFunctionType[index];
+            }
 
             if (instruction.OpCode.Code == Code.Ldloca || instruction.OpCode.Code == Code.Ldloca_S)
             {

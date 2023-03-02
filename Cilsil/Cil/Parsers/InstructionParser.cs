@@ -552,6 +552,19 @@ namespace Cilsil.Cil.Parsers
         }
 
         /// <summary>
+        /// Determines if the declaring type associated with the given method derives from
+        /// System.Delegate.
+        /// </summary>
+        /// <param name="method">The method of the declaring type.</param>
+        /// <returns><c>true</c> if the declaring type is from System.Delegate; <c>false</c>
+        /// otherwise.</returns>
+        protected static bool MethodDeclaringTypeIsDelegateType(MethodReference method) =>
+            method.DeclaringType is TypeDefinition objectTypeDefinition &&
+            objectTypeDefinition.BaseType != null &&
+            (objectTypeDefinition.BaseType.FullName == "System.MulticastDelegate" ||
+                objectTypeDefinition.BaseType.FullName == "System.Delegate");
+
+        /// <summary>
         /// Creates a node for returning an exceptional value; does not register the node in the
         /// CFG.
         /// </summary>

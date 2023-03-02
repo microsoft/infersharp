@@ -95,6 +95,11 @@ namespace Cilsil.Utils
         { get; }
 
         /// <summary>
+        /// Maps a variable index to a function type, if there is one stored at the location.
+        /// </summary>
+        public Dictionary<int, Tfun> VariableIndexToFunctionType { get; }
+
+        /// <summary>
         /// Tracks indices at which the expression stored is produced from the translation of the
         /// isinst instruction.
         /// </summary>
@@ -205,6 +210,7 @@ namespace Cilsil.Utils
             OffsetToNode = new Dictionary<int, List<(CfgNode Node, ProgramStack Stack, int)>>();
             VariableIndexToBoxedValueType = new Dictionary<int, BoxedValueType>();
             VariableIndexToNullCheck = new Dictionary<int, (BinopExpression, Typ)>();
+            VariableIndexToFunctionType = new Dictionary<int, Tfun>();
 
             ExceptionHandlerToCatchVarNode = new Dictionary<ExceptionHandler,
                                                             (CfgNode, LvarExpression)>();
@@ -297,6 +303,12 @@ namespace Cilsil.Utils
         /// Returns a shallow copy of the current program stack.
         /// </summary>
         public ProgramStack GetProgramStackCopy() => ProgramStack.Clone();
+
+        /// <summary>
+        /// Returns <c>true</c> if program stack is empty; false otherwise.
+        /// </summary>
+        /// <returns></returns>
+        public bool ProgramStackIsEmpty() => ProgramStack.Count == 0;
 
         /// <summary>
         /// Creates an instruction which loads the input expression into a fresh identifier. 

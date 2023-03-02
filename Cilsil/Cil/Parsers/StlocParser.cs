@@ -78,6 +78,15 @@ namespace Cilsil.Cil.Parsers
             {
                 state.VariableIndexToNullCheck.Remove(index);
             }
+            else if (type.StripPointer() is Tfun functionType)
+            {
+                state.VariableIndexToFunctionType[index] = functionType;
+            }
+            else if (!(type.StripPointer() is Tfun) &&
+                     state.VariableIndexToFunctionType.ContainsKey(index))
+            {
+                state.VariableIndexToFunctionType.Remove(index);
+            }
             else if (type.IsInstReturnType)
             {
                 state.IndicesWithIsInstReturnType.Add(index);
