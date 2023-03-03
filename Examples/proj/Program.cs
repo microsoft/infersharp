@@ -39,6 +39,12 @@ public class IsDisposedBooleanField : IDisposable
 // Expect 5 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
+    static void sqlBadConsoleReadLine()
+    {
+        var input = Console.ReadLine();
+        subproj.WeatherForecast.runSqlCommandBad(input);
+    }
+    
     [HttpPost]
     static void sqlBadInt(int InputParameter)
     {

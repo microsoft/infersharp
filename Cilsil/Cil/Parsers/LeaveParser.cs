@@ -87,8 +87,8 @@ namespace Cilsil.Cil.Parsers
                         exceptionType, state);
                     state.PreviousNode.Instructions.Add(memoryAllocationCall);
                     var rethrowNode = CreateExceptionReturnNode(state,
-                                        objectVariable,
-                                        state.CurrentLocation);
+                                                                objectVariable,
+                                                                state.CurrentLocation);
                     HandleFinallyControlFlowForThrow(state, instruction, rethrowNode);
                     return true;
                 default:
