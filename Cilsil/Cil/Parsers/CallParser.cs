@@ -91,33 +91,42 @@ namespace Cilsil.Cil.Parsers
             }
             // The SetResult method is used to set the output of an async method. To model this for
             // Infer, we simply represent it as a return value.
-            // TODO: have the MoveNext() method return the appropriate value.
-            // repeat for taint (the param is stored in a field w name of param name
-            // i.e. n$15.ConsoleApp1.MyClass$<Example2>d__9.theinputarray
             else if (state.Method.FullName.Contains("MoveNext") && 
-                     calledMethodName.Contains("SetResult"))
+                     calledMethod.Name == "SetResult")
             {
-                Expression returnVariable = new LvarExpression(
-                    new LocalVariable(Identifier.ReturnIdentifier,
-                    state.Method));
-                (var returnValue, var retType) = state.Pop();
-                // TODO: look into this (seems like i can create an empty stack, see example)
-                // TODO: NEED TO LOOK INTO ANNOTATIONS WITH ASYNC
-                // SHOUDL PROBABLY DO SOMETHING THAT LOOKS AT RETURNTYPE INSTEAD
-                if (!state.ProgramStackIsEmpty())
+                var isAsyncNonVoidMethod = 
+                    state.MethodDefinitionToUpdate.ReturnType.GetElementType() != 
+                    state.Method.Module.TypeSystem.Void;
+
+                // We treat the SetResult method identically to how we would treat the ret
+                // instruction on regular method; if the corresponding async method actually has a
+                // return value, we create the return instruction. Otherwise, we simply exit as we
+                // would for the return on a regular void method.
+                if (isAsyncNonVoidMethod)
+                {
+                    Expression returnVariable = new LvarExpression(
+                        new LocalVariable(Identifier.ReturnIdentifier, state.MethodDefinitionToUpdate));
+                    (var returnValue, var retType) = state.Pop();
+
+                    // This refers to the builder argument, which we discard. 
+                    _ = state.Pop();
+                    var retInstr = new Store(returnVariable,
+                                             returnValue,
+                                             retType,
+                                             state.CurrentLocation);
+                    var retNode = new StatementNode(state.CurrentLocation,
+                                                    StatementNode.StatementNodeKind.ReturnStmt,
+                                                    state.ProcDesc);
+                    retNode.Instructions.Add(retInstr);
+                    retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
+                    RegisterNode(state, retNode);
+                }
+                else
                 {
                     _ = state.Pop();
+                    state.PreviousNode.Successors.Add(state.ProcDesc.ExitNode);
+
                 }
-                var retInstr = new Store(returnVariable,
-                     returnValue,
-                     retType,
-                     state.CurrentLocation);
-                var retNode = new StatementNode(state.CurrentLocation,
-                                StatementNode.StatementNodeKind.ReturnStmt,
-                                state.ProcDesc);
-                RegisterNode(state, retNode);
-                retNode.Instructions.Add(retInstr);
-                state.PushInstruction(instruction.Next);
                 return true;
             }
             else

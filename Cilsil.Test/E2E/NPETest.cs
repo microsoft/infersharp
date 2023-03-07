@@ -900,6 +900,7 @@ namespace Cilsil.Test.E2E
         [DataRow('b', InferError.None)]
         [DataRow('c', InferError.None)]
         [DataRow('d', InferError.NULL_DEREFERENCE)]
+        [DataTestMethod]
         public void NullExceptionTestSwitch(char input, InferError expectedError)
         {
             TestRunManager.Run(CallTestClassMethod(

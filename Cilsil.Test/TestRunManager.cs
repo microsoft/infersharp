@@ -190,7 +190,8 @@ namespace Cilsil.Test
             RunCommand(
                 "infer",
                 $"run --debug --cfg-json {cfgJson} --tenv-json {tenvJson} " +
-                $"--enable-issue-type CLASS_CAST_EXCEPTION",
+                $"--enable-issue-type CLASS_CAST_EXCEPTION " +
+                $"--enable-issue-type PULSE_RESOURCE_LEAK ",
                 out stdout,
                 out stderr);
             Trace.TraceError($"\nInfer stderr: \n{stderr}");

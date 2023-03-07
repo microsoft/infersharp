@@ -106,7 +106,7 @@ namespace Cilsil.Sil
         /// <returns>
         /// A <see cref="string" /> that represents this instance.
         /// </returns>
-        public override string ToString() => PvName;
+        public override string ToString() => PvName + "_" + ProcName.MethodName;
 
         /// <summary>
         /// Determines whether the specified <see cref="object" />, is equal to this

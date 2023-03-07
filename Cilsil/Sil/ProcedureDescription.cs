@@ -157,20 +157,23 @@ namespace Cilsil.Sil
         }
 
         /// <summary>
-        /// Helper method for updating a procedure description's associated method.
+        /// Helper method for updating a procedure description's associated method, specifically in
+        /// the case of hacking the description for the MoveNext method.
         /// </summary>
         /// <param name="newMethod">The new method.</param>
-        public void UpdateMethodDefinition(MethodDefinition newMethod)
+        public void UpdateMethodDefinitionForAsync(MethodDefinition newMethod)
         {
             var parameters = newMethod.Parameters.Select(
                 p => new VariableDescription(p.Name, Typ.FromTypeReference(p.ParameterType)));
+
             if (!newMethod.IsStatic)
             {
                 parameters = parameters.Prepend(
-                    new VariableDescription(Identifier.ThisIdentifier,
-                                            Typ.FromTypeReference(
-                                                newMethod.DeclaringType)));
+                    new VariableDescription(
+                        Identifier.ThisIdentifier, 
+                        Typ.FromTypeReference(newMethod.DeclaringType)));
             }
+            
 
             PdAttributes.Access = 
                 newMethod.IsPublic ? ProcedureAttributes.ProcedureAccessKind.Public :

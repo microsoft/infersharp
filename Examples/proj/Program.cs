@@ -36,9 +36,137 @@ public class IsDisposedBooleanField : IDisposable
     }
 }
 
-// Expect 5 TAINT_ERROR for SQL injection flows.
+// Expect 10 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
+
+    [HttpGet]
+    async static void asyncBadSqlInjection(string input)
+    {
+        subproj.WeatherForecast.runSqlCommandBad(input);
+    }
+
+    public async Task<bool> sendStringToSqlAsync(string input)
+    {
+        using (SqlCommand sqlCommand = new SqlCommand())
+        {
+            using (var connection = new SqlConnection())
+            {
+                sqlCommand.CommandText = "SELECT ProductId FROM Products WHERE ProductName = '" + input + "'";
+                sqlCommand.CommandType = CommandType.Text;
+                sqlCommand.ExecuteReader();
+            }
+
+        }
+        return true;
+    }
+
+    public static async Task<bool> sendStringToSqlStaticAsync(string input)
+    {
+        using (SqlCommand sqlCommand = new SqlCommand())
+        {
+            using (var connection = new SqlConnection())
+            {
+                sqlCommand.CommandText = "SELECT ProductId FROM Products WHERE ProductName = '" + input + "'";
+                sqlCommand.CommandType = CommandType.Text;
+                sqlCommand.ExecuteReader();
+            }
+
+        }
+        return true;
+    }
+
+    public static async Task<bool> sendStringToSqlStaticAsyncWithManyArguments(
+        int intInput, object x, string stringInput, object y)
+    {
+        using (var fs = new FileStream(intInput.ToString(), FileMode.Open))
+        {
+            try
+            {
+                x.GetHashCode();
+                y.GetHashCode();
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            using (var sr = new StreamReader(fs))
+            {
+                using (SqlCommand sqlCommand = new SqlCommand())
+                {
+                    using (var connection = new SqlConnection())
+                    {
+                        sqlCommand.CommandText = "SELECT ProductId FROM Products WHERE ProductName = '" + stringInput + "'";
+                        sqlCommand.CommandType = CommandType.Text;
+                        sqlCommand.ExecuteReader();
+                    }
+
+                }
+            }
+        }
+        return true;
+    }
+
+    [HttpGet]
+    public async Task<string> UserControlledInputSourceAsync(string input)
+    {
+        return input;
+    }
+
+    [HttpGet]
+    public string UserControlledInputSourceNotAsync(string input)
+    {
+        return input;
+    }
+
+    public void CreateSqlInjectionFromUserControlledInputSourceNotAsync()
+    {
+        var userInput = UserControlledInputSourceNotAsync("userInput");
+        using (SqlCommand sqlCommand = new SqlCommand())
+        {
+            sqlCommand.CommandText = "SELECT ProductId FROM Products WHERE ProductName = '" + userInput + "'";
+        }
+    }
+
+    public void CreateSqlInjectionFromUserControlledInputSourceAsync()
+    {
+        var userInput = UserControlledInputSourceAsync("userInput");
+        using (SqlCommand sqlCommand = new SqlCommand())
+        {
+            sqlCommand.CommandText = "SELECT ProductId FROM Products WHERE ProductName = '" + userInput + "'";
+        }
+    }
+
+
+    [HttpGet]
+    public async void UserControlledInputSourceVoid(int input)
+    {
+        input.ToString();
+        return;
+    }
+    public async void createBadAsyncSqlInjectionManyArguments()
+    {
+        var userControlledString = UserControlledInputSourceAsync(1.ToString()).Result;
+        var xObject = new object();
+        var yObject = new object();
+        var integerInput = 4;
+
+        var success = await sendStringToSqlStaticAsyncWithManyArguments(integerInput, xObject, userControlledString, yObject);
+    }
+
+
+    [HttpGet]
+    public async void createBadAsyncSqlInjectionAwaitStaticAsync(string name)
+    {
+        var success = await sendStringToSqlStaticAsync(name);
+    }
+
+    [HttpGet]
+    public async void createBadAsyncSqlInjectionAwaitAsync(string name)
+    {
+        var success = await sendStringToSqlAsync(name);
+    }
+
     static void sqlBadConsoleReadLine()
     {
         var input = Console.ReadLine();

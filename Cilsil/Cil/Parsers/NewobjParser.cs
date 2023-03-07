@@ -51,13 +51,13 @@ namespace Cilsil.Cil.Parsers
 
                     // Represents constructor call; we discard the return var as it's not needed.
                     CreateMethodCall(state,
-                                        false,
-                                        constructorMethod,
-                                        out _,
-                                        out _,
-                                        out _,
-                                        out var constructorCall,
-                                        isConstructorCall: true);
+                                     false,
+                                     constructorMethod,
+                                     out _,
+                                     out _,
+                                     out _,
+                                     out var constructorCall,
+                                     isConstructorCall: true);
 
                     var newNode = new StatementNode(location: state.CurrentLocation,
                                                     kind: StatementNode.StatementNodeKind.Call,

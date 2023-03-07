@@ -237,13 +237,14 @@ namespace Cilsil.Services
                     AddDefaultInstanceFieldInitializationInstruction(
                         newNode, thisValueExpression, field, initialState, state);
                 }
-                // Fields storing the input parameters of the field shouldn't have either '<' or
-                // '>'.
+                // Fields storing the input parameters of the method (async methods have their
+                // parameters represented as fields) shouldn't have either '<' or '>'.
                 else if (!(field.Name.Contains('<') || field.Name.Contains('>')))
                 {
                     var localVariableExpression = 
-                        new LvarExpression(new LocalVariable(field.Name, state.Method));
-                    var localVariableType = Typ.FromTypeReferenceNoPointer(field.FieldType);
+                        new LvarExpression(
+                            new LocalVariable(field.Name, state.MethodDefinitionToUpdate));
+                    var localVariableType = Typ.FromTypeReference(field.FieldType);
                     var variableLoadIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
                     var variableLoadExpression = new VarExpression(variableLoadIdentifier);
                     var variableLoad = new Load(
@@ -276,6 +277,13 @@ namespace Cilsil.Services
 
             var programState = new ProgramState(method, Cfg);
 
+            if (MoveNextMethodCompleteNameToMatchedMethodDefinition.ContainsKey(methodName))
+            {
+                var matchedMethod =
+                    MoveNextMethodCompleteNameToMatchedMethodDefinition[methodName];
+                programState.MethodDefinitionToUpdate = matchedMethod;
+            }
+            
             var methodBody = method.Body;
             var unhandledExceptionCase =
                 programState.MethodExceptionHandlers.UnhandledExceptionBlock;
@@ -410,7 +418,7 @@ namespace Cilsil.Services
                 {
                     var matchedMethod =
                         MoveNextMethodCompleteNameToMatchedMethodDefinition[methodName];
-                    programState.ProcDesc.UpdateMethodDefinition(matchedMethod);
+                    programState.ProcDesc.UpdateMethodDefinitionForAsync(matchedMethod);
                     Cfg.Procs.Add(matchedMethod.GetCompatibleFullName(), programState.ProcDesc);
                 }
                 else

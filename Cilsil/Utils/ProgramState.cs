@@ -185,6 +185,13 @@ namespace Cilsil.Utils
         public bool FinallyExceptionalTranslation;
 
         /// <summary>
+        /// Specifically for async methods, this is the method definition that we want to update 
+        /// the async method definition to (for example, needed for when we create program
+        /// variables).
+        /// </summary>
+        public MethodDefinition MethodDefinitionToUpdate = null;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ProgramState"/> class.
         /// </summary>
         /// <param name="method">The method being translated.</param>
