@@ -516,5 +516,27 @@ namespace Cilsil.Test.Assets
                 }
             }
         }
+
+        public static string SwitchStatementReturnsString(string input)
+        {
+            string output;
+            char condition = input.ToCharArray()[0];
+            switch (condition)
+            {
+                case 'a':
+                    output = "a";
+                    break;
+                case 'b':
+                    output = "b";
+                    break;
+                case 'c':
+                    output = "c";
+                    break;
+                default:
+                    output = null;
+                    break;
+            }
+            return output;
+        }
     }
 }
