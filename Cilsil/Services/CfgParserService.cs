@@ -9,6 +9,7 @@ using Cilsil.Sil.Instructions;
 using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -268,10 +269,26 @@ namespace Cilsil.Services
             {
                 return;
             }
-
-            if (Cfg.Procs.ContainsKey(methodName))
+            try 
             {
-                Log.WriteWarning($"Method with duplicate full name found: {methodName }");
+                if (Cfg.Procs.ContainsKey(methodName))
+                {
+                    methodName = method.GetCompatibleFullName();
+                    if (Cfg.Procs.ContainsKey(methodName))
+                    {
+                        Log.WriteWarning($"Method with duplicate full name found: {methodName}");
+                        return;
+                    }
+                    if (method.DebugInformation.SequencePoints.FirstOrDefault() == null)
+                    {
+                        Log.WriteWarning($"Skipping method not found in source code: {methodName}");
+                        return;
+                    }
+                }
+            } 
+            catch (NotImplementedException e)
+            {
+                Log.WriteWarning($"Skipping method {method.GetCompatibleFullName()}: {e.Message}");
                 return;
             }
 
@@ -343,7 +360,7 @@ namespace Cilsil.Services
                         else if (unhandledExceptionCase)
                         {
                             Log.WriteWarning($"Unhandled exception-handling.");
-                            Log.RecordUnknownInstruction("unhandled-exception");
+                           Log.RecordUnknownInstruction("unhandled-exception");
                             Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                        nextInstruction.RemainingInstructionCount());
                             translationUnfinished = true;
