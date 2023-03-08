@@ -36,7 +36,7 @@ public class IsDisposedBooleanField : IDisposable
     }
 }
 
-// Expect 10 TAINT_ERROR for SQL injection flows.
+// Expect 12 TAINT_ERROR for SQL injection flows.
 public class PulseTaintTests
 {
 
@@ -381,7 +381,7 @@ public class MainClass
     }
 }
 
-// 19 reports expected (20 with --pulse-increase-leak-recall flag)
+// 18 reports expected (19 with --pulse-increase-leak-recall flag)
 class InferResourceLeakTests
 {
     private static byte[] myBytes = new byte[] { 10, 4 };
@@ -414,12 +414,12 @@ class InferResourceLeakTests
     }
 
     /// <summary>
-    /// This is a false positive that occurs when we return a class that owns IDisposable types.
-    /// This occurs because the setter method at the end of the async MoveNext() method which
+    /// This was a false positive that occurs when we return a class that owns IDisposable types.
+    /// This occured because the setter method at the end of the async MoveNext() method which
     /// retains the new object (and therefore the underlying IDisposable type) in memory is not
-    /// modeled.
+    /// modeled. However, with the async update to the translation, this is no longer a problem.
     /// </summary>
-    public async Task<TakeAndDispose> ReturnFileStreamTaskFalsePositive()
+    public async Task<TakeAndDispose> ReturnFileStreamTaskOK()
     {
         var stream = new FileStream("", FileMode.Open);
         return new TakeAndDispose(stream);

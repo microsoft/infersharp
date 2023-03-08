@@ -192,7 +192,10 @@ namespace Cilsil.Cil.Parsers
             var handlerStartLocation = GetHandlerStartLocation(state, handler);
             var returnIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
             var returnExpression = new LvarExpression(
-                new LocalVariable(Identifier.ReturnIdentifier, state.Method));
+                new LocalVariable(
+                    Identifier.ReturnIdentifier, 
+                    state.MethodDefinitionToUpdate == null ? state.Method : 
+                                                             state.MethodDefinitionToUpdate));
             var returnType = Typ.FromTypeReference(state.Method.ReturnType);
 
             var getReturnValue = new Load(returnIdentifier,
@@ -230,7 +233,6 @@ namespace Cilsil.Cil.Parsers
             return (node, exceptionIdentifier);
         }
 
-        /// TODO: Need to add is_csharp to Pvar.ml to parse CatchVar accordingly.
         /// <summary>
         /// Helper method for creating a component of the entry block to exception-handling blocks,
         /// in which the thrown exception stored in the CatchVar is handled.
@@ -356,7 +358,9 @@ namespace Cilsil.Cil.Parsers
                 else
                 {
                     var returnVariable = new LvarExpression(
-                        new LocalVariable(Identifier.ReturnIdentifier, state.Method));
+                        new LocalVariable(Identifier.ReturnIdentifier, 
+                        state.MethodDefinitionToUpdate == null ?  state.Method : 
+                                                                  state.MethodDefinitionToUpdate));
                     var retType = state.Method.ReturnType.GetElementType();
                     var retInstr = new Store(
                         returnVariable,
