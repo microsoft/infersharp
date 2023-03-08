@@ -517,10 +517,11 @@ namespace Cilsil.Test.Assets
             }
         }
 
-        public static string SwitchStatementReturnsString(char input)
+        public static string SwitchStatementReturnsString(string input)
         {
             string output;
-            switch (input)
+            char condition = input.ToCharArray()[0];
+            switch (condition)
             {
                 case 'a':
                     output = "a";
