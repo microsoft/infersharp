@@ -900,14 +900,14 @@ namespace Cilsil.Test.E2E
         [DataRow('c', InferError.None)]
         [DataRow('d', InferError.NULL_DEREFERENCE)]
         [DataTestMethod]
-        public void NullExceptionTestSwitch(char input, InferError expectedError)
+        public void NullExceptionTestSwitch(string input, InferError expectedError)
         {
             TestRunManager.Run(CallTestClassMethod(
                                    TestClassMethod.SwitchStatementReturnsString,
                                    true,
                                    args: new string[]
                                    {
-                                       "'" + input.ToString() + "'"
+                                       input
                                    }), GetString(expectedError));
         }
     }
