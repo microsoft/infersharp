@@ -91,8 +91,9 @@ namespace Cilsil.Cil.Parsers
             }
             // The SetResult method is used to set the output of an async method. To model this for
             // Infer, we simply represent it as a return value.
-            else if (state.Method.FullName.Contains("MoveNext") && 
-                     calledMethod.Name == "SetResult")
+            else if (state.IsMoveNextAsyncMethod() && 
+                     calledMethod.Name == "SetResult" && 
+                     state.MethodDefinitionToUpdate != null)
             {
                 var isAsyncNonVoidMethod = 
                     state.MethodDefinitionToUpdate.ReturnType.GetElementType() != 

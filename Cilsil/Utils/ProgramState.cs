@@ -503,6 +503,15 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
+        /// Returns <c>true</c> if the method being translated is a MoveNext method.
+        /// </summary>
+        /// <returns><c>true</c> if method is MoveNext; <c>false</c> otherwise.</returns>
+        public bool IsMoveNextAsyncMethod()
+        {
+            return Method.Name == "MoveNext";
+        }
+
+        /// <summary>
         /// Pops an instruction to be parsed.
         /// </summary>
         /// <returns>The instruction to be parsed.</returns>

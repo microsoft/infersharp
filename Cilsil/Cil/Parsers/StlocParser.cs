@@ -57,6 +57,16 @@ namespace Cilsil.Cil.Parsers
 
             (var value, var type) = state.Pop();
 
+            // The 0th memory location in the MoveNext() async method stores information concerning
+            // the state. To prevent false positive resource leaks, we hack the translation to
+            // always store a negative value (the disposal of IDisposable resources only occurs
+            // when the state is negative, which occurs when the Awaiter is completed. 
+            if (state.IsMoveNextAsyncMethod() && 
+                instruction.OpCode.Code == Code.Stloc_0)
+            {
+                value = new ConstExpression(new IntRepresentation(-1, false, false));
+            }
+
             // Records that the variable stores a boxed value.
             if (type is BoxedValueType boxedValueType)
             {

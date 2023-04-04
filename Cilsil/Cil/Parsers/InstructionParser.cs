@@ -553,6 +553,65 @@ namespace Cilsil.Cil.Parsers
             return (pruneTrueNode, pruneFalseNode);
         }
 
+
+        /// <summary>
+        /// Creates a new node to ensure finally instructions aren't attached to a body node.
+        /// </summary>
+        protected static CfgNode CreateFinallyHandlerNonExceptionalEntry(
+            ProgramState state, ExceptionHandler handler,
+            Instruction leaveTarget, CfgNode endFinallyThrowNode = null)
+        {
+            CfgNode finallyHandlerStartNode = null;
+            (var nodeOffset, _) = state.GetOffsetNode(handler.HandlerStart.Offset);
+            if (nodeOffset == null)
+            {
+                finallyHandlerStartNode = new StatementNode(
+                    location: GetHandlerStartLocation(state, handler),
+                    kind: StatementNode.StatementNodeKind.MethodBody,
+                    proc: state.ProcDesc);
+                state.Cfg.RegisterNode(finallyHandlerStartNode);
+                state.PreviousNode.Successors.Add(finallyHandlerStartNode);
+                state.AppendToPreviousNode = true;
+            }
+            if (leaveTarget != null)
+            {
+                state.EndfinallyControlFlow = leaveTarget;
+            }
+            if (endFinallyThrowNode != null)
+            {
+                state.EndfinallyThrowNode = endFinallyThrowNode;
+            }
+            return finallyHandlerStartNode;
+        }
+
+        protected void HandleFinallyControlFlowForHandlerTransition(
+            ProgramState state, Instruction currentInstr, Instruction targetInstr)
+        {
+            var exnInfo = state.MethodExceptionHandlers;
+            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
+                currentInstr.Offset, out var currentFinallyHandler);
+            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
+                targetInstr.Offset, out var targetFinallyHandler);
+            // If target is associated with a different finally handler than is
+            // the present instruction, then we need to route control flow through
+            // this finally block first as we're leaving the finally handler. If we just use
+            // GetExceptionHandlerAtInstruction, this would just yield a catch block, obscuring the
+            // need to first direct flow through the finally block.
+            if (currentFinallyHandler.Item1?.HandlerStart?.Offset !=
+                    targetFinallyHandler.Item1?.HandlerStart?.Offset && 
+                currentFinallyHandler.Item1 != null)
+            {
+                state.PushInstruction(
+                    currentFinallyHandler.Item1.HandlerStart,
+                    CreateFinallyHandlerNonExceptionalEntry(
+                        state, currentFinallyHandler.Item1, targetInstr));
+            }
+            else
+            {
+                state.PushInstruction(targetInstr);
+            }
+        }
+
         /// <summary>
         /// Determines if the declaring type associated with the given method derives from
         /// System.Delegate.

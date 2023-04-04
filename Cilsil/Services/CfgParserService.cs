@@ -34,6 +34,8 @@ namespace Cilsil.Services
 
         private int MoveNextMethodsNotMatched = 0;
 
+        private int MoveNextMethodsMatchedDuplicate = 0;
+
         public CfgParserService(bool writeConsoleProgress,
                                 IEnumerable<MethodDefinition> methods = null,
                                 IEnumerable<TypeDefinition> types = null)
@@ -55,7 +57,12 @@ namespace Cilsil.Services
             var removeReturnType = completeMethodName.Split(' ')[1];
             var className = removeReturnType.Split('$')[0];
             var methodNameStart = completeMethodName.IndexOf('<') + 1;
-            var methodNameLength = completeMethodName.IndexOf('>') - methodNameStart;
+            var methodNameEnd = completeMethodName.IndexOf('>');
+            if (methodNameStart < 0 || methodNameEnd < 0)
+            {
+                return null;
+            }
+            var methodNameLength = methodNameEnd - methodNameStart;
             var methodName = completeMethodName.Substring(methodNameStart, methodNameLength);
             return className + "::" + methodName;
         }
@@ -80,7 +87,9 @@ namespace Cilsil.Services
 
             foreach (var moveNextMethodName in moveNextMethodCompleteNames)
             {
-                if (!methodClassAndNameToCompleteName.TryGetValue(
+                var classAndName = GetClassAndNameFromMoveNext(moveNextMethodName);
+                if (classAndName == null || 
+                    !methodClassAndNameToCompleteName.TryGetValue(
                         GetClassAndNameFromMoveNext(moveNextMethodName),
                                                     out var completeName))
                 {
@@ -92,6 +101,7 @@ namespace Cilsil.Services
                         completeNameToMethodDefinition[completeName];
                 }
             }
+            Log.WriteWarning("Total MoveNext methods: " + moveNextMethodCompleteNames.Count);
             MatchedProperMethodNames = new HashSet<string>(
                 MoveNextMethodCompleteNameToMatchedMethodDefinition.Values.Select(
                     m => m.GetCompatibleFullName()));
@@ -136,7 +146,12 @@ namespace Cilsil.Services
             }
             Log.WriteWarning("Timed out methods: " + TimeoutMethodCount);
             Log.WriteWarning(
+                "Duplicate translations of matched MoveNext methods: " 
+                + MoveNextMethodsMatchedDuplicate);
+            Log.WriteWarning(
                 "Number of MoveNext methods not matched: " + MoveNextMethodsNotMatched);
+            Log.WriteWarning("Number of MoveNext methods matched: " +
+                             MoveNextMethodCompleteNameToMatchedMethodDefinition.Count);
             return new CfgParserResult(Cfg, Methods);
         }
 
@@ -273,17 +288,9 @@ namespace Cilsil.Services
             {
                 if (Cfg.Procs.ContainsKey(methodName))
                 {
-                    methodName = method.GetCompatibleFullName();
-                    if (Cfg.Procs.ContainsKey(methodName))
-                    {
-                        Log.WriteWarning($"Method with duplicate full name found: {methodName}");
-                        return;
-                    }
-                    if (method.DebugInformation.SequencePoints.FirstOrDefault() == null)
-                    {
-                        Log.WriteWarning($"Skipping method not found in source code: {methodName}");
-                        return;
-                    }
+                    Log.WriteWarning($"Method with duplicate full name found: {methodName}");
+                    return;
+
                 }
             } 
             catch (NotImplementedException e)
@@ -324,8 +331,11 @@ namespace Cilsil.Services
                     {
                         initNode = InitializeInstanceBooleanFields(programState);
                     }
-                    // There are no async constructors in .NET, so the cases won't overlap.
-                    else if (methodName.Contains("MoveNext"))
+                    // There are no async constructors in .NET, so the cases won't overlap. Note
+                    // that the MethodDefinitionToUpdate will be null when we couldn't successfully
+                    // match the MoveNext method signature to its original.
+                    else if (programState.IsMoveNextAsyncMethod() && 
+                             programState.MethodDefinitionToUpdate != null)
                     {
                         initNode = InitializeAsyncStateFields(programState);
                     }
@@ -360,7 +370,7 @@ namespace Cilsil.Services
                         else if (unhandledExceptionCase)
                         {
                             Log.WriteWarning($"Unhandled exception-handling.");
-                           Log.RecordUnknownInstruction("unhandled-exception");
+                            Log.RecordUnknownInstruction("unhandled-exception");
                             Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                        nextInstruction.RemainingInstructionCount());
                             translationUnfinished = true;
@@ -381,6 +391,8 @@ namespace Cilsil.Services
                             Log.WriteWarning("Translation timeout on " + methodName);
                             Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                        nextInstruction.RemainingInstructionCount());
+                            translationUnfinished = true;
+                            break;
                         }
                         else if (!InstructionParser.ParseCilInstruction(nextInstruction, programState))
                         {
@@ -436,7 +448,16 @@ namespace Cilsil.Services
                     var matchedMethod =
                         MoveNextMethodCompleteNameToMatchedMethodDefinition[methodName];
                     programState.ProcDesc.UpdateMethodDefinitionForAsync(matchedMethod);
-                    Cfg.Procs.Add(matchedMethod.GetCompatibleFullName(), programState.ProcDesc);
+                    // This occurs in the rare case that there is a duplicate on matched MoveNext
+                    // methods.
+                    if (Cfg.Procs.ContainsKey(matchedMethod.GetCompatibleFullName()))
+                    {
+                        Cfg.Procs.Add(methodName, programState.ProcDesc);
+                    }
+                    else
+                    {
+                        Cfg.Procs.Add(matchedMethod.GetCompatibleFullName(), programState.ProcDesc);
+                    }
                 }
                 else
                 {

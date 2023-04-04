@@ -31,11 +31,23 @@ namespace Cilsil.Cil.Parsers
                         }
                         else
                         {
-                        // We continue translation with that operand from the end of
-                        // the finally block, now that finally block has been
-                        // translated. Routing through the next finally block, if there is one
-                        // enclosing this block, will get handled at the leave instruction.
-                        state.PushInstruction(state.EndfinallyControlFlow);
+                            // We continue translation with that operand from the end of
+                            // the finally block, now that finally block has been
+                            // translated. Routing through the next finally block, if there is one
+                            // enclosing this block, will get handled at the leave instruction but
+                            // if there is a different handler applied to this instruction, we must
+                            // route there first.
+                            if (state.MethodExceptionHandlers
+                                     .TryOffsetToFinallyHandler
+                                     .ContainsKey(instruction.Offset))
+                            {
+                                HandleFinallyControlFlowForHandlerTransition(
+                                    state, instruction, state.EndfinallyControlFlow);
+                            }
+                            else
+                            {
+                                state.PushInstruction(state.EndfinallyControlFlow);
+                            }
                         }
                     }
                     // This instruction was reached through exceptional control flow.
