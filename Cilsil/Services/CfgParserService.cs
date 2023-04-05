@@ -9,7 +9,6 @@ using Cilsil.Sil.Instructions;
 using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,13 +27,11 @@ namespace Cilsil.Services
 
         private Cfg Cfg;
 
-        private Dictionary<string, MethodDefinition> MoveNextMethodCompleteNameToMatchedMethodDefinition;
+        private readonly Dictionary<string, MethodDefinition> MoveNextMethodCompleteNameToMatchedMethodDefinition;
 
         private HashSet<string> MatchedProperMethodNames;
 
         private int MoveNextMethodsNotMatched = 0;
-
-        private int MoveNextMethodsMatchedDuplicate = 0;
 
         public CfgParserService(bool writeConsoleProgress,
                                 IEnumerable<MethodDefinition> methods = null,
@@ -145,9 +142,6 @@ namespace Cilsil.Services
                 }
             }
             Log.WriteWarning("Timed out methods: " + TimeoutMethodCount);
-            Log.WriteWarning(
-                "Duplicate translations of matched MoveNext methods: " 
-                + MoveNextMethodsMatchedDuplicate);
             Log.WriteWarning(
                 "Number of MoveNext methods not matched: " + MoveNextMethodsNotMatched);
             Log.WriteWarning("Number of MoveNext methods matched: " +

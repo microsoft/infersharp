@@ -8,6 +8,7 @@ using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -95,9 +96,13 @@ namespace Cilsil.Cil.Parsers
                      calledMethod.Name == "SetResult" && 
                      state.MethodDefinitionToUpdate != null)
             {
-                var isAsyncNonVoidMethod = 
-                    state.MethodDefinitionToUpdate.ReturnType.GetElementType() != 
-                    state.Method.Module.TypeSystem.Void;
+                // Async methods that return a "Task" behave like methods that return void; that
+                // is, the top expression is the builder field, rather than the secondmost
+                // expression as it is in non-void async methods. 
+                var isAsyncNonVoidMethod =
+                    state.MethodDefinitionToUpdate.ReturnType.GetElementType() !=
+                        state.Method.Module.TypeSystem.Void && 
+                    !state.TopExpressionIsBuilderField();
 
                 // We treat the SetResult method identically to how we would treat the ret
                 // instruction on regular method; if the corresponding async method actually has a
@@ -106,10 +111,17 @@ namespace Cilsil.Cil.Parsers
                 if (isAsyncNonVoidMethod)
                 {
                     Expression returnVariable = new LvarExpression(
-                        new LocalVariable(Identifier.ReturnIdentifier, state.MethodDefinitionToUpdate));
+                        new LocalVariable(Identifier.ReturnIdentifier,
+                                          state.MethodDefinitionToUpdate));
                     (var returnValue, var retType) = state.Pop();
 
-                    // This refers to the builder argument, which we discard. 
+                    // The top stack item should refer to the builder argument, which we discard.
+                    // If it's not a builder argument, there is something unexpected going on.
+                    if (!state.TopExpressionIsBuilderField())
+                    {
+                        Log.WriteWarning("Async method did not find expected builder field.");
+                        return false;
+                    }
                     _ = state.Pop();
                     var retInstr = new Store(returnVariable,
                                              returnValue,

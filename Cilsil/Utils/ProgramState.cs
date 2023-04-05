@@ -373,6 +373,23 @@ namespace Cilsil.Utils
         public (Expression, Typ) Peek() => ProgramStack.Peek();
 
         /// <summary>
+        /// Returns <c>true</c> if the top expression on the program stack is an LfieldExpression 
+        /// that refers to an async method's builder field; <c>false</c> otherwise.
+        /// </summary>
+        /// <returns><c>true</c> if the top expression is an async method's builder field;
+        /// false otherwise.</returns>
+        public bool TopExpressionIsBuilderField()
+        {
+            if (ProgramStackIsEmpty())
+            {
+                return false;
+            }
+            (var topExpr, _) = Peek();
+            return topExpr is LfieldExpression topField && 
+                       topField.Identifier.FieldName.Contains("<>t__builder");
+        }
+
+        /// <summary>
         /// Returns and removes the top element of the stack.
         /// </summary>
         /// <exception cref="ServiceExecutionException">Thrown when popping on empty
