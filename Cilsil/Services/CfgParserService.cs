@@ -132,7 +132,6 @@ namespace Cilsil.Services
             {
                 foreach (var method in Methods)
                 {
- //                   if (method.FullName.Contains("DatabricksKernelService"))
                     ComputeMethodCfg(method);
                     i++;
                     bar.Report((double)i / total);

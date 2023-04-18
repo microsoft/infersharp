@@ -45,50 +45,6 @@ namespace Cilsil.Cil.Parsers
             {
                 instrs.Add(CreateLockedAttributeCall(false, calledMethod.Parameters.Count, state));
             }
-            // We do nothing for this method; it wraps an object with an Awaiter, which can confuse
-            // the IDisposable resource tracking. Rather than wrapping it, we just let the object
-            // sit on the stack and be passed to the next instruction.
-            else if (calledMethodName.Contains("GetAwaiter") &&
-                     calledMethod.DeclaringType.FullName.Contains("System.Threading.Tasks.Task"))
-            {
-                state.PushInstruction(instruction.Next);
-                return true;
-            }
-            // This instruction returns the object stored in a Task wrapper at a program location. 
-            // Similarly to how we handle the GetAwaiter, we remove this detail and just load the
-            // object at that location.
-            else if (calledMethodName.Contains("GetResult") && 
-                     calledMethod.DeclaringType.Name.Contains("TaskAwaiter"))
-            {
-                (var expr, var type) = state.Pop();
-                if (!(expr is LvarExpression varExpr && type is Address addr))
-                {
-                    Log.WriteError("Expected address input to TaskAwaiter GetResult method");
-                    return false;
-                }
-                else
-                {
-                    var variableInstruction = state.PushAndLoad(varExpr,
-                                                                addr.Type);
-                    state.PushInstruction(
-                        instruction.Next, 
-                        AddMethodBodyInstructionsToCfg(state, variableInstruction));
-                    return true;
-                }
-            }
-            // Similar to us storing a "-1" value in the state to force Infer to invoke the Dispose
-            // on allocated resource, we should force Infer to assume that TaskAwaiters are
-            // complete; otherwise, Infer will assume that resources are leaked. We push "true"
-            // onto the stack and simply discard the input program expression.
-            else if (calledMethodName.Contains("get_IsCompleted") &&
-                     calledMethod.DeclaringType.Name.Contains("TaskAwaiter"))
-            {
-                _ = state.Pop();
-                state.PushExpr(new ConstExpression(new IntRepresentation(1, false, false)),
-                               new Tint(Tint.IntKind.IBool));
-                state.PushInstruction(instruction.Next);
-                return true;
-            }
             else if (calledMethodName.Contains("op_") && 
                      HandleOperatorMethod(calledMethod.GetCompatibleFullName(), state))
             {
