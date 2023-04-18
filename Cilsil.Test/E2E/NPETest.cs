@@ -846,10 +846,6 @@ namespace Cilsil.Test.E2E
                                    }), GetString(expectedError));
         }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 20e91d6b170c71d757f98886b2b7d1b24123b58f
         /// <summary>
         /// Validates translation of ldlen. NOTE: Pulse seems not to yet interpret array length and
         /// thus an error occurs in both cases. However, biabduction does.
