@@ -20,26 +20,32 @@ namespace Cilsil.Cil.Parsers
                     // This instruction was reached through non-exceptional control flow.
                     if (!state.FinallyExceptionalTranslation)
                     {
-                        // In this case, we need to route control through the next finally block.
-                        if (exceptionHandler != null &&
-                            exceptionHandler.HandlerType == ExceptionHandlerType.Finally)
+
+                        // In this case, translation of the finally block was prompted by a
+                        // throw instruction; we then terminate the CFG branch with the throw
+                        // node via RegisterNode.
+                        if (state.EndfinallyThrowNode != null)
                         {
-                            state.PushInstruction(exceptionHandler.HandlerStart);
+                            RegisterNode(state, state.EndfinallyThrowNode);
+                            state.EndfinallyThrowNode = null;
                         }
                         else
                         {
-                            // In this case, translation of the finally block was prompted by a
-                            // throw instruction; we then terminate the CFG branch with the throw
-                            // node via RegisterNode.
-                            if (state.EndfinallyThrowNode != null)
+                            // We continue translation with that operand from the end of
+                            // the finally block, now that finally block has been
+                            // translated. Routing through the next finally block, if there is one
+                            // enclosing this block, will get handled at the leave instruction but
+                            // if there is a different handler applied to this instruction, we must
+                            // route there first.
+                            if (state.MethodExceptionHandlers
+                                     .TryOffsetToFinallyHandler
+                                     .ContainsKey(instruction.Offset))
                             {
-                                RegisterNode(state, state.EndfinallyThrowNode);
-                                state.EndfinallyThrowNode = null;
+                                HandleFinallyControlFlowForHandlerTransition(
+                                    state, instruction, state.EndfinallyControlFlow);
                             }
                             else
                             {
-                                // We continue translation with that operand from the end of the
-                                // finally block, now that finally block has been translated.
                                 state.PushInstruction(state.EndfinallyControlFlow);
                             }
                         }

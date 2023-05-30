@@ -156,7 +156,7 @@ namespace Cilsil.Cil.Parsers
             var methodBodyStartLocation = Location.FromSequencePoint(
                 state.Method.DebugInformation.GetSequencePoint(
                     state.Method.Body.Instructions.First()));
-            return handlerLocation.Line < 10000000 ? handlerLocation : methodBodyStartLocation;
+            return handlerLocation.IsSourceCodeLocation() ? handlerLocation : methodBodyStartLocation;
         }
 
         protected static Location GetHandlerEndLocation(ProgramState state,
@@ -167,7 +167,7 @@ namespace Cilsil.Cil.Parsers
             var methodBodyStartLocation = Location.FromSequencePoint(
                 state.Method.DebugInformation.GetSequencePoint(
                     state.Method.Body.Instructions.First()));
-            return handlerLocation.Line < 10000000 ? handlerLocation : methodBodyStartLocation;
+            return handlerLocation.IsSourceCodeLocation() ? handlerLocation : methodBodyStartLocation;
         }
 
         private static LvarExpression GetHandlerCatchVar(ProgramState state,
@@ -192,7 +192,10 @@ namespace Cilsil.Cil.Parsers
             var handlerStartLocation = GetHandlerStartLocation(state, handler);
             var returnIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
             var returnExpression = new LvarExpression(
-                new LocalVariable(Identifier.ReturnIdentifier, state.Method));
+                new LocalVariable(
+                    Identifier.ReturnIdentifier, 
+                    state.MethodDefinitionToUpdate == null ? state.Method : 
+                                                             state.MethodDefinitionToUpdate));
             var returnType = Typ.FromTypeReference(state.Method.ReturnType);
 
             var getReturnValue = new Load(returnIdentifier,
@@ -230,7 +233,6 @@ namespace Cilsil.Cil.Parsers
             return (node, exceptionIdentifier);
         }
 
-        /// TODO: Need to add is_csharp to Pvar.ml to parse CatchVar accordingly.
         /// <summary>
         /// Helper method for creating a component of the entry block to exception-handling blocks,
         /// in which the thrown exception stored in the CatchVar is handled.
@@ -314,12 +316,10 @@ namespace Cilsil.Cil.Parsers
                 // The CIL specification dictates that the exception object is on top of
                 // the stack when the catch handler is entered; the first instruction of
                 // the catch handler will handle the object pushed onto the stack.
-                state.PushExpr(new VarExpression(exceptionIdentifier),
-                               new Tptr(Tptr.PtrKind.Pk_pointer,
-                                        new Tstruct("System.Object")));
-                state.PushInstruction(
+                state.PushInstructionCatchHandlerStart(
                     handlerNode.ExceptionHandler.HandlerStart,
-                    state.ExceptionHandlerToCatchVarNode[handlerNode.ExceptionHandler].node);
+                    state.ExceptionHandlerToCatchVarNode[handlerNode.ExceptionHandler].node,
+                    exceptionIdentifier);
             }
             (var loadCatchVarNode, _) = GetHandlerCatchVarNode(
                 state, handlerNode.ExceptionHandler);
@@ -358,7 +358,9 @@ namespace Cilsil.Cil.Parsers
                 else
                 {
                     var returnVariable = new LvarExpression(
-                        new LocalVariable(Identifier.ReturnIdentifier, state.Method));
+                        new LocalVariable(Identifier.ReturnIdentifier, 
+                        state.MethodDefinitionToUpdate == null ?  state.Method : 
+                                                                  state.MethodDefinitionToUpdate));
                     var retType = state.Method.ReturnType.GetElementType();
                     var retInstr = new Store(
                         returnVariable,
@@ -549,6 +551,65 @@ namespace Cilsil.Cil.Parsers
             state.Cfg.RegisterNode(pruneTrueNode);
             state.Cfg.RegisterNode(pruneFalseNode);
             return (pruneTrueNode, pruneFalseNode);
+        }
+
+
+        /// <summary>
+        /// Creates a new node to ensure finally instructions aren't attached to a body node.
+        /// </summary>
+        protected static CfgNode CreateFinallyHandlerNonExceptionalEntry(
+            ProgramState state, ExceptionHandler handler,
+            Instruction leaveTarget, CfgNode endFinallyThrowNode = null)
+        {
+            CfgNode finallyHandlerStartNode = null;
+            (var nodeOffset, _) = state.GetOffsetNode(handler.HandlerStart.Offset);
+            if (nodeOffset == null)
+            {
+                finallyHandlerStartNode = new StatementNode(
+                    location: GetHandlerStartLocation(state, handler),
+                    kind: StatementNode.StatementNodeKind.MethodBody,
+                    proc: state.ProcDesc);
+                state.Cfg.RegisterNode(finallyHandlerStartNode);
+                state.PreviousNode.Successors.Add(finallyHandlerStartNode);
+                state.AppendToPreviousNode = true;
+            }
+            if (leaveTarget != null)
+            {
+                state.EndfinallyControlFlow = leaveTarget;
+            }
+            if (endFinallyThrowNode != null)
+            {
+                state.EndfinallyThrowNode = endFinallyThrowNode;
+            }
+            return finallyHandlerStartNode;
+        }
+
+        protected void HandleFinallyControlFlowForHandlerTransition(
+            ProgramState state, Instruction currentInstr, Instruction targetInstr)
+        {
+            var exnInfo = state.MethodExceptionHandlers;
+            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
+                currentInstr.Offset, out var currentFinallyHandler);
+            exnInfo.TryOffsetToFinallyHandler.TryGetValue(
+                targetInstr.Offset, out var targetFinallyHandler);
+            // If target is associated with a different finally handler than is
+            // the present instruction, then we need to route control flow through
+            // this finally block first as we're leaving the finally handler. If we just use
+            // GetExceptionHandlerAtInstruction, this would just yield a catch block, obscuring the
+            // need to first direct flow through the finally block.
+            if (currentFinallyHandler.Item1?.HandlerStart?.Offset !=
+                    targetFinallyHandler.Item1?.HandlerStart?.Offset && 
+                currentFinallyHandler.Item1 != null)
+            {
+                state.PushInstruction(
+                    currentFinallyHandler.Item1.HandlerStart,
+                    CreateFinallyHandlerNonExceptionalEntry(
+                        state, currentFinallyHandler.Item1, targetInstr));
+            }
+            else
+            {
+                state.PushInstruction(targetInstr);
+            }
         }
 
         /// <summary>

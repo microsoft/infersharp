@@ -185,6 +185,13 @@ namespace Cilsil.Utils
         public bool FinallyExceptionalTranslation;
 
         /// <summary>
+        /// Specifically for async methods, this is the method definition that we want to update 
+        /// the async method definition to (for example, needed for when we create program
+        /// variables).
+        /// </summary>
+        public MethodDefinition MethodDefinitionToUpdate = null;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ProgramState"/> class.
         /// </summary>
         /// <param name="method">The method being translated.</param>
@@ -239,7 +246,7 @@ namespace Cilsil.Utils
             // and the previous node is from a different handler block, we empty the saved stack,
             // as there should not be anything on the stack when transferring control between
             // different handler blocks.
-            if (MethodExceptionHandlers.GetMapTypeFromInstruction(CurrentInstruction) != 
+            if (MethodExceptionHandlers.GetMapTypeFromInstruction(CurrentInstruction) !=
                     MethodExceptionHandlers.MapType.CatchToCatch &&
                 node.BlockEndOffset != PreviousNode.BlockEndOffset)
             {
@@ -366,6 +373,23 @@ namespace Cilsil.Utils
         public (Expression, Typ) Peek() => ProgramStack.Peek();
 
         /// <summary>
+        /// Returns <c>true</c> if the top expression on the program stack is an LfieldExpression 
+        /// that refers to an async method's builder field; <c>false</c> otherwise.
+        /// </summary>
+        /// <returns><c>true</c> if the top expression is an async method's builder field;
+        /// false otherwise.</returns>
+        public bool TopExpressionIsBuilderField()
+        {
+            if (ProgramStackIsEmpty())
+            {
+                return false;
+            }
+            (var topExpr, _) = Peek();
+            return topExpr is LfieldExpression topField && 
+                       topField.Identifier.FieldName.Contains("<>t__builder");
+        }
+
+        /// <summary>
         /// Returns and removes the top element of the stack.
         /// </summary>
         /// <exception cref="ServiceExecutionException">Thrown when popping on empty
@@ -375,9 +399,7 @@ namespace Cilsil.Utils
             if (ProgramStack.Count == 0)
             {
                 throw new ServiceExecutionException(
-                    $@"Popping on empty stack at method: {
-                        Method.GetCompatibleFullName()} instruction: {
-                        CurrentInstruction} location: {CurrentLocation}", this);
+                    $@"Popping on empty stack at method: {Method.GetCompatibleFullName()} instruction: {CurrentInstruction} location: {CurrentLocation}", this);
             }
             return ProgramStack.Pop();
         }
@@ -434,7 +456,7 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
-        /// Pushes an instruction to be parsed.
+        /// Pushes an instruction to be parsed. 
         /// </summary>
         /// <param name="instruction">Instruction to be parsed.</param>
         /// <param name="node">The node to set <see cref="PreviousNode"/> to, i.e. the node from 
@@ -459,12 +481,51 @@ namespace Cilsil.Utils
         }
 
         /// <summary>
+        /// Pushes the next instruction to be parsed, but specially for the beginning of a catch
+        /// handler. In this case, the program stack of the snapshot contains only the expression
+        /// referring to the exception, which is exactly what the compiler expects. 
+        /// </summary>
+        /// <param name="instruction">The first instruction of the handler.</param>
+        /// <param name="node">The node beginning the handler from which to continue 
+        /// translation.</param>
+        /// <param name="exceptionIdentifier">The identifier for the exception.</param>
+        public void PushInstructionCatchHandlerStart(Instruction instruction, 
+                                                     CfgNode node, 
+                                                     Identifier exceptionIdentifier)
+        {
+            var handlerStack = new ProgramStack();
+            handlerStack.Push(
+                (new VarExpression(exceptionIdentifier),
+                 new Tptr(Tptr.PtrKind.Pk_pointer,
+                          new Tstruct("System.Object"))));
+            InstructionsStack.Push(
+                new TranslationSnapshot
+                {
+                    Instruction = instruction,
+                    PreviousNode = node ?? PreviousNode,
+                    PreviousStack = handlerStack,
+                    NextAvailableTemporaryVariableId = NextAvailableTemporaryVariableId,
+                    FinallyExceptionalTranslation = FinallyExceptionalTranslation,
+                    EndfinallyControlFlow = EndfinallyControlFlow,
+                });
+        }
+
+        /// <summary>
         /// Checks null-state of the top snapshot instruction of the stack.
         /// </summary>
         /// <returns><c>True</c> if instruction null; <c>false</c> otherwise.</returns>
         public bool IsTopSnapshotInstructionNull()
         {
             return InstructionsStack.Peek().Instruction == null;
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if the method being translated is a MoveNext method.
+        /// </summary>
+        /// <returns><c>true</c> if method is MoveNext; <c>false</c> otherwise.</returns>
+        public bool IsMoveNextAsyncMethod()
+        {
+            return Method.Name == "MoveNext";
         }
 
         /// <summary>

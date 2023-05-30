@@ -8,6 +8,7 @@ using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -88,6 +89,58 @@ namespace Cilsil.Cil.Parsers
                         state.PushExpr(new VarExpression(retId), methodReturnType);
                     }
                 }
+            }
+            // The SetResult method is used to set the output of an async method. To model this for
+            // Infer, we simply represent it as a return value.
+            else if (state.IsMoveNextAsyncMethod() && 
+                     calledMethod.Name == "SetResult" && 
+                     state.MethodDefinitionToUpdate != null)
+            {
+                // Async methods that return a "Task" behave like methods that return void; that
+                // is, the top expression is the builder field, rather than the secondmost
+                // expression as it is in non-void async methods. 
+                var isAsyncNonVoidMethod =
+                    state.MethodDefinitionToUpdate.ReturnType.GetElementType() !=
+                        state.Method.Module.TypeSystem.Void && 
+                    !state.TopExpressionIsBuilderField();
+
+                // We treat the SetResult method identically to how we would treat the ret
+                // instruction on regular method; if the corresponding async method actually has a
+                // return value, we create the return instruction. Otherwise, we simply exit as we
+                // would for the return on a regular void method.
+                if (isAsyncNonVoidMethod)
+                {
+                    Expression returnVariable = new LvarExpression(
+                        new LocalVariable(Identifier.ReturnIdentifier,
+                                          state.MethodDefinitionToUpdate));
+                    (var returnValue, var retType) = state.Pop();
+
+                    // The top stack item should refer to the builder argument, which we discard.
+                    // If it's not a builder argument, there is something unexpected going on.
+                    if (!state.TopExpressionIsBuilderField())
+                    {
+                        Log.WriteWarning("Async method did not find expected builder field.");
+                        return false;
+                    }
+                    _ = state.Pop();
+                    var retInstr = new Store(returnVariable,
+                                             returnValue,
+                                             retType,
+                                             state.CurrentLocation);
+                    var retNode = new StatementNode(state.CurrentLocation,
+                                                    StatementNode.StatementNodeKind.ReturnStmt,
+                                                    state.ProcDesc);
+                    retNode.Instructions.Add(retInstr);
+                    retNode.Successors = new List<CfgNode> { state.ProcDesc.ExitNode };
+                    RegisterNode(state, retNode);
+                }
+                else
+                {
+                    _ = state.Pop();
+                    state.PreviousNode.Successors.Add(state.ProcDesc.ExitNode);
+
+                }
+                return true;
             }
             else
             {

@@ -9,7 +9,6 @@ using Cilsil.Sil.Instructions;
 using Cilsil.Sil.Types;
 using Cilsil.Utils;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +27,12 @@ namespace Cilsil.Services
 
         private Cfg Cfg;
 
+        private readonly Dictionary<string, MethodDefinition> MoveNextMethodCompleteNameToMatchedMethodDefinition;
+
+        private HashSet<string> MatchedProperMethodNames;
+
+        private int MoveNextMethodsNotMatched = 0;
+
         public CfgParserService(bool writeConsoleProgress,
                                 IEnumerable<MethodDefinition> methods = null,
                                 IEnumerable<TypeDefinition> types = null)
@@ -35,6 +40,69 @@ namespace Cilsil.Services
             WriteConsoleProgress = writeConsoleProgress;
             Methods = methods;
             Types = types;
+            MoveNextMethodCompleteNameToMatchedMethodDefinition = new Dictionary<string, MethodDefinition>();
+        }
+        private string ExtractClassAndName(string completeMethodName)
+        {
+            var removeReturnType = completeMethodName.Split(' ')[1];
+            var removeArgs = removeReturnType.Split('(')[0];
+            return removeArgs;
+        }
+
+        private string GetClassAndNameFromMoveNext(string completeMethodName)
+        {
+            var removeReturnType = completeMethodName.Split(' ')[1];
+            var className = removeReturnType.Split('$')[0];
+            var methodNameStart = completeMethodName.IndexOf('<') + 1;
+            var methodNameEnd = completeMethodName.IndexOf('>');
+            if (methodNameStart < 0 || methodNameEnd < 0)
+            {
+                return null;
+            }
+            var methodNameLength = methodNameEnd - methodNameStart;
+            var methodName = completeMethodName.Substring(methodNameStart, methodNameLength);
+            return className + "::" + methodName;
+        }
+
+        private void MatchMoveNextMethodsToProperName()
+        {
+            var moveNextMethodCompleteNames = new HashSet<string>();
+            var methodClassAndNameToCompleteName = new Dictionary<string, string>();
+            var completeNameToMethodDefinition = new Dictionary<string, MethodDefinition>();
+            
+            foreach (var method in Methods)
+            {
+                var methodName = method.GetCompatibleFullName();
+                methodClassAndNameToCompleteName[ExtractClassAndName(methodName)] = methodName;
+                completeNameToMethodDefinition[methodName] = method;
+
+                if (methodName.Contains("MoveNext()"))
+                {
+                    moveNextMethodCompleteNames.Add(methodName);
+                }
+            }
+
+            foreach (var moveNextMethodName in moveNextMethodCompleteNames)
+            {
+                var classAndName = GetClassAndNameFromMoveNext(moveNextMethodName);
+                if (classAndName == null || 
+                    !methodClassAndNameToCompleteName.TryGetValue(
+                        GetClassAndNameFromMoveNext(moveNextMethodName),
+                                                    out var completeName))
+                {
+                    MoveNextMethodsNotMatched++;
+                }
+                else
+                {
+                    MoveNextMethodCompleteNameToMatchedMethodDefinition[moveNextMethodName] =
+                        completeNameToMethodDefinition[completeName];
+                }
+            }
+            Log.WriteWarning("Total MoveNext methods: " + moveNextMethodCompleteNames.Count);
+            MatchedProperMethodNames = new HashSet<string>(
+                MoveNextMethodCompleteNameToMatchedMethodDefinition.Values.Select(
+                    m => m.GetCompatibleFullName()));
+
         }
 
         public ServiceExecutionResult Execute()
@@ -55,6 +123,8 @@ namespace Cilsil.Services
                 }
             }
 
+            MatchMoveNextMethodsToProperName();
+
             var i = 0;
             var total = Methods.Count();
             Cfg = new Cfg();
@@ -72,6 +142,10 @@ namespace Cilsil.Services
                 }
             }
             Log.WriteWarning("Timed out methods: " + TimeoutMethodCount);
+            Log.WriteWarning(
+                "Number of MoveNext methods not matched: " + MoveNextMethodsNotMatched);
+            Log.WriteWarning("Number of MoveNext methods matched: " +
+                             MoveNextMethodCompleteNameToMatchedMethodDefinition.Count);
             return new CfgParserResult(Cfg, Methods);
         }
 
@@ -94,20 +168,8 @@ namespace Cilsil.Services
             return Execute();
         }
 
-        /// <summary>
-        /// This method should be invoked before translation of a program begins, if applicable. 
-        /// It is intended for the default initialization of boolean fields to false in the 
-        /// construction of an object, in the absence of there being IL that actually performs this
-        /// (this can happen for uninitialized boolean fields). The purpose of adding this is to
-        /// combat false positive resource leaks that can occur when users declare IDisposable 
-        /// objects with a boolean field indicating whether the object has already been disposed.
-        /// </summary>
-        /// <param name="state">The program state.</param>
-        /// <returns>The node containing the instructions for initializing the boolean fields to 
-        /// their default initializations.</returns>
-        private CfgNode InitializeInstanceBooleanFields(ProgramState state)
+        private static (CfgNode, VarExpression) InitializeNodeWithLoadThis(ProgramState state)
         {
-            var objectFields = state.Method.DeclaringType.Fields;
             var newNode = new StatementNode(location: state.CurrentLocation,
                                             kind: StatementNode.StatementNodeKind.MethodBody,
                                             proc: state.ProcDesc);
@@ -123,20 +185,86 @@ namespace Cilsil.Services
             newNode.Instructions.Add(
                 new Load(thisValueIdentifier, thisExpr, thisType, state.CurrentLocation));
 
+            return (newNode, thisValueExpression);
+        }
+
+        private static void AddDefaultInstanceFieldInitializationInstruction(
+            CfgNode node, 
+            VarExpression thisValueExpression, 
+            FieldDefinition field, 
+            Expression defaultValue,
+            ProgramState state)
+        {
+            var fieldExpression = InstructionParser.CreateFieldExpression(
+                thisValueExpression, field);
+
+            var fieldStore = new Store(
+                fieldExpression,
+                defaultValue,
+                Typ.FromTypeReferenceNoPointer(field.DeclaringType),
+                state.CurrentLocation);
+            node.Instructions.Add(fieldStore);
+        }
+
+        /// <summary>
+        /// This method should be invoked before translation of a program begins, if applicable. 
+        /// It is intended for the default initialization of boolean fields to false in the 
+        /// construction of an object, in the absence of there being IL that actually performs this
+        /// (this can happen for uninitialized boolean fields). The purpose of adding this is to
+        /// combat false positive resource leaks that can occur when users declare IDisposable 
+        /// objects with a boolean field indicating whether the object has already been disposed.
+        /// </summary>
+        /// <param name="state">The program state.</param>
+        /// <returns>The node containing the instructions for initializing the boolean fields to 
+        /// their default initializations.</returns>
+        private CfgNode InitializeInstanceBooleanFields(ProgramState state)
+        {
+            (var newNode, var thisValueExpression) = InitializeNodeWithLoadThis(state);
+            var objectFields = state.Method.DeclaringType.Fields;
+
             foreach (var field in objectFields)
             {
                 if (field.FieldType.FullName == "System.Boolean" && !field.IsStatic)
                 {
                     var falseBoolean = new ConstExpression(new IntRepresentation(0, false, false));
-                    var fieldExpression = InstructionParser.CreateFieldExpression(
-                        thisValueExpression, field);
+                    AddDefaultInstanceFieldInitializationInstruction(
+                        newNode, thisValueExpression, field, falseBoolean, state);
+                }
+            }
+            return newNode;
+        }
 
-                    var fieldStore = new Store(
-                        fieldExpression, 
-                        falseBoolean, 
-                        Typ.FromTypeReferenceNoPointer(field.DeclaringType), 
+        private CfgNode InitializeAsyncStateFields(ProgramState state)
+        {
+            (var newNode, var thisValueExpression) = InitializeNodeWithLoadThis(state);
+            var objectFields = state.Method.DeclaringType.Fields;
+            foreach (var field in objectFields)
+            {
+                if (field.FullName.Contains("__state"))
+                {
+                    var initialState = 
+                        new ConstExpression(new IntRepresentation(-1, false, false));
+                    AddDefaultInstanceFieldInitializationInstruction(
+                        newNode, thisValueExpression, field, initialState, state);
+                }
+                // Fields storing the input parameters of the method (async methods have their
+                // parameters represented as fields) shouldn't have either '<' or '>'.
+                else if (!(field.Name.Contains('<') || field.Name.Contains('>')))
+                {
+                    var localVariableExpression = 
+                        new LvarExpression(
+                            new LocalVariable(field.Name, state.MethodDefinitionToUpdate));
+                    var localVariableType = Typ.FromTypeReference(field.FieldType);
+                    var variableLoadIdentifier = state.GetIdentifier(Identifier.IdentKind.Normal);
+                    var variableLoadExpression = new VarExpression(variableLoadIdentifier);
+                    var variableLoad = new Load(
+                        variableLoadIdentifier, 
+                        localVariableExpression, 
+                        localVariableType, 
                         state.CurrentLocation);
-                    newNode.Instructions.Add(fieldStore);
+                    newNode.Instructions.Add(variableLoad);
+                    AddDefaultInstanceFieldInitializationInstruction(
+                        newNode, thisValueExpression, field, variableLoadExpression, state);
                 }
             }
             return newNode;
@@ -144,19 +272,19 @@ namespace Cilsil.Services
 
         private void ComputeMethodCfg(MethodDefinition method)
         {
-            string methodName;
-            try
+            var methodName = method.GetCompatibleFullName();
+
+            if (MatchedProperMethodNames.Contains(methodName))
             {
-                methodName = method.GetCompatibleFullName();
+                return;
+            }
+            try 
+            {
                 if (Cfg.Procs.ContainsKey(methodName))
                 {
                     Log.WriteWarning($"Method with duplicate full name found: {methodName}");
                     return;
-                }
-                if (method.DebugInformation.SequencePoints.FirstOrDefault() == null)
-                {
-                    Log.WriteWarning($"Skipping method not found in source code: {methodName}");
-                    return;
+
                 }
             } 
             catch (NotImplementedException e)
@@ -164,14 +292,16 @@ namespace Cilsil.Services
                 Log.WriteWarning($"Skipping method {method.GetCompatibleFullName()}: {e.Message}");
                 return;
             }
-            catch (NotSupportedException e)
-            {
-                Log.WriteWarning($"Skipping method {method.GetCompatibleFullName()}: {e.Message}");
-                return;
-            }
 
             var programState = new ProgramState(method, Cfg);
 
+            if (MoveNextMethodCompleteNameToMatchedMethodDefinition.ContainsKey(methodName))
+            {
+                var matchedMethod =
+                    MoveNextMethodCompleteNameToMatchedMethodDefinition[methodName];
+                programState.MethodDefinitionToUpdate = matchedMethod;
+            }
+            
             var methodBody = method.Body;
             var unhandledExceptionCase =
                 programState.MethodExceptionHandlers.UnhandledExceptionBlock;
@@ -194,6 +324,14 @@ namespace Cilsil.Services
                             p => p.FieldType.FullName).Contains("System.Boolean"))
                     {
                         initNode = InitializeInstanceBooleanFields(programState);
+                    }
+                    // There are no async constructors in .NET, so the cases won't overlap. Note
+                    // that the MethodDefinitionToUpdate will be null when we couldn't successfully
+                    // match the MoveNext method signature to its original.
+                    else if (programState.IsMoveNextAsyncMethod() && 
+                             programState.MethodDefinitionToUpdate != null)
+                    {
+                        initNode = InitializeAsyncStateFields(programState);
                     }
 
                     programState.PushInstruction(methodBody.Instructions.First(), initNode);
@@ -226,7 +364,7 @@ namespace Cilsil.Services
                         else if (unhandledExceptionCase)
                         {
                             Log.WriteWarning($"Unhandled exception-handling.");
-                           Log.RecordUnknownInstruction("unhandled-exception");
+                            Log.RecordUnknownInstruction("unhandled-exception");
                             Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                        nextInstruction.RemainingInstructionCount());
                             translationUnfinished = true;
@@ -235,7 +373,7 @@ namespace Cilsil.Services
                         else if (excessiveVisits)
                         {
                             TimeoutMethodCount++;
-                            Log.WriteWarning("Translation timeout.");
+                            Log.WriteWarning("Translation timeout on " + methodName);
                             Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                        nextInstruction.RemainingInstructionCount());
                             translationUnfinished = true;
@@ -244,9 +382,11 @@ namespace Cilsil.Services
                         else if (iterationCount > 100000)
                         {
                             TimeoutMethodCount++;
-                            Log.WriteWarning("Translation timeout.");
+                            Log.WriteWarning("Translation timeout on " + methodName);
                             Log.RecordUnfinishedMethod(programState.Method.GetCompatibleFullName(),
                                                        nextInstruction.RemainingInstructionCount());
+                            translationUnfinished = true;
+                            break;
                         }
                         else if (!InstructionParser.ParseCilInstruction(nextInstruction, programState))
                         {
@@ -287,8 +427,8 @@ namespace Cilsil.Services
                     }
                 }
 
-                // Exception node for start and exception sink should be exit, exception node for exit 
-                // should be empty.
+                // Exception node for start and exception sink should be exit, exception node for
+                // exit should be empty.
                 programState.ProcDesc.StartNode.ExceptionNodes.Clear();
                 programState.ProcDesc.ExitNode.ExceptionNodes.Clear();
                 programState.ProcDesc.ExceptionSinkNode.ExceptionNodes.Clear();
@@ -297,7 +437,27 @@ namespace Cilsil.Services
                     programState.ProcDesc.ExitNode);
 
                 SetNodePredecessors(programState);
-                Cfg.Procs.Add(methodName, programState.ProcDesc);
+                if (MoveNextMethodCompleteNameToMatchedMethodDefinition.ContainsKey(methodName))
+                {
+                    var matchedMethod =
+                        MoveNextMethodCompleteNameToMatchedMethodDefinition[methodName];
+                    programState.ProcDesc.UpdateMethodDefinitionForAsync(matchedMethod);
+                    // This occurs in the rare case that there is a duplicate on matched MoveNext
+                    // methods.
+                    if (Cfg.Procs.ContainsKey(matchedMethod.GetCompatibleFullName()))
+                    {
+                        Cfg.Procs.Add(methodName, programState.ProcDesc);
+                    }
+                    else
+                    {
+                        Cfg.Procs.Add(matchedMethod.GetCompatibleFullName(), programState.ProcDesc);
+                    }
+                }
+                else
+                {
+                    Cfg.Procs.Add(methodName, programState.ProcDesc);
+                }
+                
             }
         }
 

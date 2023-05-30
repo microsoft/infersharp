@@ -74,6 +74,31 @@ namespace Cilsil.Sil
         [JsonProperty("pd_exn_node")]
         public long ExceptionSinkNodeId => ExceptionSinkNode.Id;
 
+        private Location GetEndSourceCodeLocation(
+            MethodDefinition methodDefinition, bool computeFirst)
+        {
+            var defaultInstruction = computeFirst ?
+                methodDefinition.Body.Instructions.First() :
+                methodDefinition.Body.Instructions.Last();
+            var current = defaultInstruction;
+
+            var location = Location.FromSequencePoint(
+                methodDefinition.DebugInformation.GetSequencePoint(current));
+
+            while (!location.IsSourceCodeLocation() || location.IsDummy())
+            {
+                current = computeFirst ? current.Next : current.Previous;
+                if (current == null)
+                {
+                    return Location.FromSequencePoint(
+                        methodDefinition.DebugInformation.GetSequencePoint(defaultInstruction));
+                }
+                location = Location.FromSequencePoint(
+                    methodDefinition.DebugInformation.GetSequencePoint(current));
+            }
+            return location;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcedureDescription"/> class.
         /// </summary>
@@ -94,8 +119,9 @@ namespace Cilsil.Sil
                                                 methodDefinition.DeclaringType)));
             }
 
-            var location = Location.FromSequencePoint(
-                methodDefinition.DebugInformation.SequencePoints.FirstOrDefault());
+            var firstLocation = GetEndSourceCodeLocation(methodDefinition, true);
+            var lastLocation = GetEndSourceCodeLocation(methodDefinition, false);
+            var current = methodDefinition.Body.Instructions.First();
 
             PdAttributes = new ProcedureAttributes()
             {
@@ -106,7 +132,7 @@ namespace Cilsil.Sil
                          ProcedureAttributes.ProcedureAccessKind.Default,
                 Formals = parameters.ToList(),
                 RetType = Typ.FromTypeReference(methodDefinition.ReturnType),
-                Loc = location,
+                Loc = firstLocation,
                 ProcName = new ProcedureName(methodDefinition)
             };
             
@@ -119,19 +145,51 @@ namespace Cilsil.Sil
             }
 
             Nodes = new List<CfgNode>();
-            StartNode = new StartNode(location, this);
-            ExitNode = new ExitNode(Location.FromSequencePoint(methodDefinition
-                                                               .DebugInformation
-                                                               .SequencePoints
-                                                               .LastOrDefault()),
-                                    this);
-            ExceptionSinkNode = new StatementNode(location,
+            StartNode = new StartNode(firstLocation, this);
+            ExitNode = new ExitNode(lastLocation, this);
+            ExceptionSinkNode = new StatementNode(firstLocation,
                                                   StatementNode.StatementNodeKind.ExceptionsSink,
                                                   proc: this);
 
             cfg.RegisterNode(StartNode);
             cfg.RegisterNode(ExitNode);
             cfg.RegisterNode(ExceptionSinkNode);
+        }
+
+        /// <summary>
+        /// Helper method for updating a procedure description's associated method, specifically in
+        /// the case of hacking the description for the MoveNext method.
+        /// </summary>
+        /// <param name="newMethod">The new method.</param>
+        public void UpdateMethodDefinitionForAsync(MethodDefinition newMethod)
+        {
+            var parameters = newMethod.Parameters.Select(
+                p => new VariableDescription(p.Name, Typ.FromTypeReference(p.ParameterType)));
+
+            if (!newMethod.IsStatic)
+            {
+                parameters = parameters.Prepend(
+                    new VariableDescription(
+                        Identifier.ThisIdentifier, 
+                        Typ.FromTypeReference(newMethod.DeclaringType)));
+            }
+            
+
+            PdAttributes.Access = 
+                newMethod.IsPublic ? ProcedureAttributes.ProcedureAccessKind.Public :
+                newMethod.IsPrivate ? ProcedureAttributes.ProcedureAccessKind.Private :
+                                      ProcedureAttributes.ProcedureAccessKind.Default;
+            PdAttributes.Formals = parameters.ToList();
+            PdAttributes.RetType = Typ.FromTypeReference(newMethod.ReturnType);
+            PdAttributes.ProcName = new ProcedureName(newMethod);
+
+            foreach (var attribute in newMethod.CustomAttributes)
+            {
+                // Although this ignores annotation parameters that may be present, the annotation
+                // parameters are not yet used in any way in the Infer analysis.
+                PdAttributes.MethodAnnotations.AddAnnotationNoParameter(
+                    attribute.AttributeType.ToString());
+            }
         }
 
         /// <summary>
