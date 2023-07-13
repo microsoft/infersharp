@@ -5,6 +5,7 @@
   * [GitHub Action or Azure Pipelines](#github-action-or-azure-pipelines)
 - [Analysis Running Out of Disk Space](#analysis-running-out-of-disk-space)
 - [Analysis Times Out](#analysis-times-out) 
+- [Nothing to compile. Try cleaning the build first](#nothing-to-compile)
 
 ## Analysis Running Out of Memory
 Fixes depend on the usage method of Infer#.
@@ -24,3 +25,6 @@ The interprocedural analysis can be resource-intensive and can time out on big p
 Note: Infer# ignores the .dll files if their corresponding .pdb files are not also present. For example, NuGet packages typically do not contain .pdb files and thus will not affect the overall length of the analysis. However, if the external dependencies do contain .pdb files or have .pdb embedded in the .dll files, removing those will help. 
  
 Keep in mind that removing frequently-used upstream dependencies may reduce the capabilities of Infer#'s analysis, as it will no longer have knowledge of these dependencies. Therefore, consider removing binaries of libraries which are large but also less-frequently used in your project.
+
+## Nothing to Compile
+If you get this issue when attempting to run Infer# in WSL or via the VS extension, then check the version of WSL via `wsl -l -v`. You should be running WSL2, and running WSL1 will cause this error.
