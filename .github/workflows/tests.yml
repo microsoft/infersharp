@@ -1,0 +1,43 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  INFER_VERSION: v1.3.0
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Download Infer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$INFER_VERSION" \
+            --repo facebook/infer \
+            --pattern "infer-linux-x86_64-$INFER_VERSION.tar.xz" \
+            --dir "$RUNNER_TEMP"
+          tar -xJf "$RUNNER_TEMP/infer-linux-x86_64-$INFER_VERSION.tar.xz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/infer-linux-x86_64-$INFER_VERSION/bin" >> "$GITHUB_PATH"
+
+      - name: Check tools
+        run: |
+          dotnet --version
+          infer --version
+
+      - name: Run tests
+        run: dotnet test Cilsil.Test/Cilsil.Test.csproj --logger "console;verbosity=normal"

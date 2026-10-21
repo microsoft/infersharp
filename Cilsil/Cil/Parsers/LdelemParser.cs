@@ -23,6 +23,9 @@ namespace Cilsil.Cil.Parsers
                 case Code.Ldelem_I2:
                 case Code.Ldelem_I4:
                 case Code.Ldelem_I8:
+                case Code.Ldelem_U1:
+                case Code.Ldelem_U2:
+                case Code.Ldelem_U4:
                 case Code.Ldelem_R4:
                 case Code.Ldelem_R8:
                 case Code.Ldelem_Ref:

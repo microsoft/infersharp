@@ -54,9 +54,9 @@ namespace Cilsil.Test.Assets
         public enum InferError
         {
             None,
-            NULL_DEREFERENCE,
+            NULLPTR_DEREFERENCE,
             DANGLING_POINTER_DEREFERENCE,
-            DOTNET_RESOURCE_LEAK,
+            PULSE_RESOURCE_LEAK,
             THREAD_SAFETY_VIOLATION,
             CLASS_CAST_EXCEPTION
         }
@@ -187,8 +187,8 @@ namespace Cilsil.Test.Assets
             switch (error)
             {
                 case InferError.DANGLING_POINTER_DEREFERENCE:
-                case InferError.NULL_DEREFERENCE:
-                case InferError.DOTNET_RESOURCE_LEAK:
+                case InferError.NULLPTR_DEREFERENCE:
+                case InferError.PULSE_RESOURCE_LEAK:
                 case InferError.THREAD_SAFETY_VIOLATION:
                 case InferError.CLASS_CAST_EXCEPTION:
                     return error.ToString();
