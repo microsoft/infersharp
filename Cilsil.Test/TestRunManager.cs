@@ -212,6 +212,12 @@ namespace Cilsil.Test
             var inferReport = JToken.Parse(jsonText);
             foreach (var bug in inferReport)
             {
+                // TestClass contains methods with deliberate bugs for the tests to call into;
+                // only bugs located in the generated test code are relevant to the test case.
+                if (Path.GetFileName(bug.Value<string>("file")) != TestCodeFileName)
+                {
+                    continue;
+                }
                 var severity = bug.Value<string>("severity");
                 switch (severity)
                 {

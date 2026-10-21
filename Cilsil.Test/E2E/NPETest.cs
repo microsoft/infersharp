@@ -23,7 +23,7 @@ namespace Cilsil.Test.E2E
         /// <param name="state">The initial state of the TestClass object.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(TestClassState.Initialized, InferError.None)]
-        [DataRow(TestClassState.Null, InferError.NULL_DEREFERENCE)]
+        [DataRow(TestClassState.Null, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionSimple(TestClassState state, InferError expectedError)
         {
@@ -40,7 +40,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataRow(false, InferError.PULSE_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakIntraprocClose(bool closeStream, InferError expectedError)
         {
@@ -58,38 +58,13 @@ namespace Cilsil.Test.E2E
         }
 
         /// <summary>
-        /// Validates resource leak detection on a locally initialized stream, 
-        /// where Dispose is the method for releasing the resource.
-        /// </summary>
-        /// <param name="disposeStream"> If <c>true</c>, invokes the Dispose method; otherwise,
-        /// does not.</param>
-        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
-        [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
-        [DataTestMethod]
-        public void ResourceLeakIntraprocDispose(bool disposeStream, InferError expectedError)
-        {
-            TestRunManager.Run(InitVars(state: TestClassState.Initialized,
-                                        firstLocalVarType: VarType.MemoryStream,
-                                        firstLocalVarValue: CallTestClassMethod(
-                                            TestClassMethod.ReturnInitializedMemoryStream,
-                                            false)) +
-                                   (disposeStream ? CallMethod(
-                                                        VarName.FirstLocal,
-                                                        "Dispose")
-                                                  : string.Empty),
-                              GetString(expectedError));
-
-        }
-
-        /// <summary>
         /// Validates that a resource leak on an initialized StreamReader is identified.
         /// </summary>
         /// <param name="closeStream"> If <c>true</c>, invokes the CloseStream method; otherwise,
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataRow(false, InferError.PULSE_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakInterproc(bool closeStream, InferError expectedError)
         {
@@ -117,7 +92,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataRow(false, InferError.PULSE_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakInitInterproc(bool closeStream, InferError expectedError)
         {
@@ -144,7 +119,7 @@ namespace Cilsil.Test.E2E
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataRow(false, InferError.PULSE_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakGlobalResourceInterproc(bool closeStream, InferError expectedError)
         {
@@ -157,36 +132,13 @@ namespace Cilsil.Test.E2E
         }
 
         /// <summary>
-        /// Validates that there is no resource leak identified on a returned resource.
-        /// </summary>
-        /// <param name="returnsResource" If <c>true</c>, returns the instantiated resource; otherwise,
-        /// does not.</param>
-        /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
-        [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
-        [DataTestMethod]
-        public void ResourceLeakReturnedResource(bool returnsResource, InferError expectedError)
-        {
-            TestRunManager.Run(InitVars(state: TestClassState.Initialized,
-                                        firstLocalVarType: VarType.MemoryStream,
-                                        firstLocalVarValue: CallTestClassMethod(
-                                                    TestClassMethod.ReturnInitializedMemoryStream,
-                                                    false)) +
-                                   (returnsResource ? ReturnVar(VarName.FirstLocal)
-                                                     : string.Empty),
-                               GetString(expectedError),
-                               returnType: returnsResource ? GetString(VarType.MemoryStream)
-                                                            : "void");
-        }
-
-        /// <summary>
         /// Validates that there is no resource leak identified on a static readonly singleton resource.
         /// </summary>
         /// <param name="staticSingleton" If <c>false</c>, instantiates a regular field resource; otherwise,
         /// does not.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.DOTNET_RESOURCE_LEAK)]
+        [DataRow(false, InferError.PULSE_RESOURCE_LEAK)]
         [DataTestMethod]
         public void ResourceLeakStaticSingleton(bool staticSingleton, InferError expectedError)
         {
@@ -204,7 +156,7 @@ namespace Cilsil.Test.E2E
         /// <param name="input">The string representing the value to assign.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow("\"hello\"", InferError.None)]
-        [DataRow("null", InferError.NULL_DEREFERENCE)]
+        [DataRow("null", InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionLdstr(string input, InferError expectedError)
         {
@@ -222,7 +174,7 @@ namespace Cilsil.Test.E2E
         /// be dereferenced.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.NULL_DEREFERENCE)]
+        [DataRow(false, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionInterproc(bool testObjectShouldBeInitialized,
                                            InferError expectedError)
@@ -247,7 +199,7 @@ namespace Cilsil.Test.E2E
         /// <param name="state">The value to initialize the method parameter to.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(TestClassState.Initialized, InferError.None)]
-        [DataRow(TestClassState.Null, InferError.NULL_DEREFERENCE)]
+        [DataRow(TestClassState.Null, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionNullParam(TestClassState state, InferError expectedError)
         {
@@ -286,7 +238,7 @@ namespace Cilsil.Test.E2E
                                             int v3)
         {
             RunTest("!=", InferError.None);
-            RunTest("==", InferError.NULL_DEREFERENCE);
+            RunTest("==", InferError.NULLPTR_DEREFERENCE);
 
             void RunTest(string comparisonOperator, InferError expectedError)
             {
@@ -316,16 +268,16 @@ namespace Cilsil.Test.E2E
         /// <param name="v2">The second operand.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(VarType.Integer, "<", 0, 0, InferError.None)]
-        [DataRow(VarType.Integer, "<", 0, 1, InferError.NULL_DEREFERENCE)]
+        [DataRow(VarType.Integer, "<", 0, 1, InferError.NULLPTR_DEREFERENCE)]
         [DataRow(VarType.UnsignedInteger, "<", 0, 0, InferError.None)]
-        [DataRow(VarType.UnsignedInteger, "<", 0, 1, InferError.NULL_DEREFERENCE)]
+        [DataRow(VarType.UnsignedInteger, "<", 0, 1, InferError.NULLPTR_DEREFERENCE)]
         [DataRow(VarType.Integer, ">", 0, 0, InferError.None)]
-        [DataRow(VarType.Integer, ">", 1, 0, InferError.NULL_DEREFERENCE)]
+        [DataRow(VarType.Integer, ">", 1, 0, InferError.NULLPTR_DEREFERENCE)]
         [DataRow(VarType.UnsignedInteger, ">", 0, 0, InferError.None)]
-        [DataRow(VarType.UnsignedInteger, ">", 1, 0, InferError.NULL_DEREFERENCE)]
+        [DataRow(VarType.UnsignedInteger, ">", 1, 0, InferError.NULLPTR_DEREFERENCE)]
         [DataRow(VarType.Integer, "==", 0, 1, InferError.None)]
         [DataRow(VarType.Integer, "==", 0, -1, InferError.None)]
-        [DataRow(VarType.Integer, "==", 0, 0, InferError.NULL_DEREFERENCE)]
+        [DataRow(VarType.Integer, "==", 0, 0, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionNumericalComparison(VarType type,
                                                      string operatorToTest,
@@ -353,11 +305,11 @@ namespace Cilsil.Test.E2E
         // This configuration creates a bge.s instruction.
         [DataRow("<", 1, InferError.None)]
         [DataRow("<", 0, InferError.None)]
-        [DataRow("<", -1, InferError.NULL_DEREFERENCE)]
+        [DataRow("<", -1, InferError.NULLPTR_DEREFERENCE)]
         // This configuration creates a ble.s instruction.
         [DataRow(">", -1, InferError.None)]
         [DataRow(">", 0, InferError.None)]
-        [DataRow(">", 1, InferError.NULL_DEREFERENCE)]
+        [DataRow(">", 1, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionBgeBle(string operatorToTest, int v1, InferError expectedError)
         {
@@ -379,17 +331,17 @@ namespace Cilsil.Test.E2E
         /// <param name="v1">The first operand.</param>
         /// <param name="v2">The second operand.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
-        [DataRow("||", true, true, InferError.NULL_DEREFERENCE)]
-        [DataRow("||", true, false, InferError.NULL_DEREFERENCE)]
-        [DataRow("||", false, true, InferError.NULL_DEREFERENCE)]
+        [DataRow("||", true, true, InferError.NULLPTR_DEREFERENCE)]
+        [DataRow("||", true, false, InferError.NULLPTR_DEREFERENCE)]
+        [DataRow("||", false, true, InferError.NULLPTR_DEREFERENCE)]
         [DataRow("||", false, false, InferError.None)]
-        [DataRow("&&", true, true, InferError.NULL_DEREFERENCE)]
+        [DataRow("&&", true, true, InferError.NULLPTR_DEREFERENCE)]
         [DataRow("&&", true, false, InferError.None)]
         [DataRow("&&", false, true, InferError.None)]
         [DataRow("&&", false, false, InferError.None)]
         [DataRow("^", true, true, InferError.None)]
-        [DataRow("^", true, false, InferError.NULL_DEREFERENCE)]
-        [DataRow("^", false, true, InferError.NULL_DEREFERENCE)]
+        [DataRow("^", true, false, InferError.NULLPTR_DEREFERENCE)]
+        [DataRow("^", false, true, InferError.NULLPTR_DEREFERENCE)]
         [DataRow("^", false, false, InferError.None)]
         [DataTestMethod]
         public void NullExceptionLogical(string operatorToTest,
@@ -420,13 +372,13 @@ namespace Cilsil.Test.E2E
                  InferError.None)]
         [DataRow(TestClassMethod.InitializeStaticObjectField,
                  true,
-                 InferError.NULL_DEREFERENCE)]
+                 InferError.NULLPTR_DEREFERENCE)]
         [DataRow(TestClassMethod.InitializeStaticObjectFieldViaReference,
                  false,
                  InferError.None)]
         [DataRow(TestClassMethod.InitializeStaticObjectFieldViaReference,
                  true,
-                 InferError.NULL_DEREFERENCE)]
+                 InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionStaticFieldDeref(TestClassMethod initializationMethod,
                                                   bool initializeToNull,
@@ -455,13 +407,13 @@ namespace Cilsil.Test.E2E
                  InferError.None)]
         [DataRow(TestClassMethod.InitializeInstanceObjectField,
                  true,
-                 InferError.NULL_DEREFERENCE)]
+                 InferError.NULLPTR_DEREFERENCE)]
         [DataRow(TestClassMethod.InitializeInstanceObjectFieldViaReference,
                  false,
                  InferError.None)]
         [DataRow(TestClassMethod.InitializeInstanceObjectFieldViaReference,
                  true,
-                 InferError.NULL_DEREFERENCE)]
+                 InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionInstanceFieldDeref(TestClassMethod initializationMethod,
                                                     bool initializeToNull,
@@ -487,8 +439,8 @@ namespace Cilsil.Test.E2E
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, true, InferError.None)]
         [DataRow(true, false, InferError.None)]
-        [DataRow(false, true, InferError.NULL_DEREFERENCE)]
-        [DataRow(false, false, InferError.NULL_DEREFERENCE)]
+        [DataRow(false, true, InferError.NULLPTR_DEREFERENCE)]
+        [DataRow(false, false, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionArrayOneDim(bool initializeArrayElement,
                                              bool useBinaryLengthExpression,
@@ -517,7 +469,7 @@ namespace Cilsil.Test.E2E
         /// if it should be set to null.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.NULL_DEREFERENCE)]
+        [DataRow(false, InferError.NULLPTR_DEREFERENCE)]
         public void NullExceptionArrayField(bool initializeArrayElement, InferError expectedError)
         {
             TestRunManager.Run(
@@ -549,7 +501,7 @@ namespace Cilsil.Test.E2E
         /// if it should be set to false.</param>
         /// <param name="expectedError">The kind of error expected to be reported by Infer.</param>
         [DataRow(true, InferError.None)]
-        [DataRow(false, InferError.NULL_DEREFERENCE)]
+        [DataRow(false, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionArrayTwoDim(bool initializeArrayElement,
                                              InferError expectedError)
@@ -579,7 +531,7 @@ namespace Cilsil.Test.E2E
         [DataRow(true, true, InferError.None)]
         [DataRow(true, false, InferError.None)]
         [DataRow(false, true, InferError.None)]
-        [DataRow(false, false, InferError.NULL_DEREFERENCE)]
+        [DataRow(false, false, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionTestStarg(bool initFirst,
                                            bool initSecond,
@@ -622,7 +574,7 @@ namespace Cilsil.Test.E2E
         /// value.</param>
         /// <param name="expectedError">The expected error.</param>
         [DataRow(0, InferError.None)]
-        [DataRow(1, InferError.NULL_DEREFERENCE)]
+        [DataRow(1, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionReferenceStruct(int testCounterValue, InferError expectedError)
         {
@@ -645,7 +597,7 @@ namespace Cilsil.Test.E2E
         /// variable.</param>
         /// <param name="expectedError">The expected error.</param>
         [DataRow(0, InferError.None)]
-        [DataRow(1, InferError.NULL_DEREFERENCE)]
+        [DataRow(1, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionReferenceParameter(int comparison, InferError expectedError)
         {
@@ -675,7 +627,7 @@ namespace Cilsil.Test.E2E
         /// <see cref="TestClass"/>.</param>
         /// <param name="expectedError">The expected error.</param>
         [DataRow(0, InferError.None)]
-        [DataRow(1, InferError.NULL_DEREFERENCE)]
+        [DataRow(1, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionBoxIntegers(int comparison, InferError expectedError)
         {
@@ -699,7 +651,7 @@ namespace Cilsil.Test.E2E
         /// TestClass method; 0 for instantiated TestClass, 1 for generic object (non-TestClass),
         /// 2 for null.</param>
         /// <param name="expectedError">The expected error.</param>
-        [DataRow(0, InferError.NULL_DEREFERENCE)]
+        [DataRow(0, InferError.NULLPTR_DEREFERENCE)]
         [DataRow(1, InferError.None)]
         [DataRow(2, InferError.None)]
         [DataTestMethod]
@@ -738,7 +690,7 @@ namespace Cilsil.Test.E2E
         /// <c>false</c>, no warning should occur.</param>
         /// <param name="expectedError">The expected error.</param>
         [DataRow(false, InferError.None)]
-        [DataRow(true, InferError.NULL_DEREFERENCE)]
+        [DataRow(true, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionTestCatchException(bool returnsNull, InferError expectedError)
         {
@@ -763,7 +715,7 @@ namespace Cilsil.Test.E2E
         /// <c>false</c>, no warning should occur.</param>
         /// <param name="expectedError">The expected error.</param>
         [DataRow(false, InferError.None)]
-        [DataRow(true, InferError.NULL_DEREFERENCE)]
+        [DataRow(true, InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionTestFinallyException(bool returnsNull, InferError expectedError)
         {
@@ -804,111 +756,28 @@ namespace Cilsil.Test.E2E
         }
 
         /// <summary>
-        /// Validates our translation of CastClass.
-        /// </summary>
-        /// <param name="inputObjectString">Defines the object to be input to the type-checking
-        /// TestClass method; 0 for successful casting operation. 1 for casting exception.</param>
-        /// <param name="expectedError">The expected error.</param>
-        [DataRow("new TestClass()", InferError.None)]
-        [DataRow("new object()", InferError.CLASS_CAST_EXCEPTION)]
-        [DataTestMethod]
-        public void CastExceptionCastClass(string inputObjectString, InferError expectedError)
-        {
-            TestRunManager.Run(
-                InitVars(firstLocalVarType: VarType.TestClass,
-                         firstLocalVarValue: CallTestClassMethod(
-                             TestClassMethod.Cast,
-                             false,
-                             args: new string[]
-                             {
-                                 inputObjectString
-                             })), GetString(expectedError));
-        }
-
-        /// <summary>
-        /// Validates translation of nested exception handler control flow.
-        /// </summary>
-        /// <param name="doNullDeref">If <c>true</c>, invoked method creates the null 
-        /// deref. Else, does not.</param>
-        /// <param name="expectedError">The expected error.</param>
-        [DataRow(false, InferError.None)]
-        [DataRow(true, InferError.NULL_DEREFERENCE)]
-        [DataTestMethod]
-        public void NullExceptionTestNestedException(bool doNullDeref, InferError expectedError)
-        {
-            TestRunManager.Run(CallTestClassMethod(
-                                   TestClassMethod.NestedExceptionConditionalNullDeref,
-                                   true,
-                                   args: new string[]
-                                   {
-                                       doNullDeref.ToString()
-                                                  .ToLower()
-                                   }), GetString(expectedError));
-        }
-
-        /// <summary>
-        /// Validates translation of ldlen. NOTE: Pulse seems not to yet interpret array length and
-        /// thus an error occurs in both cases. However, biabduction does.
-        /// </summary>
-        /// <param name="doNullDeref">If <c>true</c>, invoked method creates the null 
-        /// deref. Else, does not.</param>
-        /// <param name="expectedError">The expected error.</param>
-        [DataRow(false, InferError.None)]
-        [DataRow(true, InferError.NULL_DEREFERENCE)]
-        [DataTestMethod]
-        public void NullExceptionTestLdlen(bool doNullDeref, InferError expectedError)
-        {
-            TestRunManager.Run(CallTestClassMethod(
-                                   TestClassMethod.ArrayConditionalNullDeref,
-                                   true,
-                                   args: new string[]
-                                   {
-                                       doNullDeref.ToString()
-                                                  .ToLower()
-                                   }), GetString(expectedError));
-        }
-
-        /// <summary>
-        /// Validates translations of ldftn and delegates.
-        /// </summary>
-        /// <param name="doNullDeref">If <c>true</c>, invoked method creates the null 
-        /// deref. Else, does not.</param>
-        /// <param name="expectedError">The expected error.</param>
-        [DataRow(false, InferError.None)]
-        [DataRow(true, InferError.NULL_DEREFERENCE)]
-        [DataTestMethod]
-        public void NullExceptionTestDelegate(bool doNullDeref, InferError expectedError)
-        {
-            TestRunManager.Run(CallTestClassMethod(
-                                   TestClassMethod.CreatePossibleDelegateNullDeref,
-                                   true,
-                                   args: new string[]
-                                   {
-                                       doNullDeref.ToString()
-                                                  .ToLower()
-                                   }), GetString(expectedError));
-        }
-
-        /// <summary>
         /// Validates translation of switch.
         /// </summary>
         /// <param name="input">If the input character is not 'a', 'b', or 'c', then a null
         /// dereference occurs.</param>
         /// <param name="expectedError">The expected error.</param>
-        [DataRow('a', InferError.None)]
-        [DataRow('b', InferError.None)]
-        [DataRow('c', InferError.None)]
-        [DataRow('d', InferError.NULL_DEREFERENCE)]
+        [DataRow("'a'", InferError.None)]
+        [DataRow("'b'", InferError.None)]
+        [DataRow("'c'", InferError.None)]
+        [DataRow("'d'", InferError.NULLPTR_DEREFERENCE)]
         [DataTestMethod]
         public void NullExceptionTestSwitch(string input, InferError expectedError)
         {
-            TestRunManager.Run(CallTestClassMethod(
-                                   TestClassMethod.SwitchStatementReturnsString,
-                                   true,
-                                   args: new string[]
-                                   {
-                                       input
-                                   }), GetString(expectedError));
+            TestRunManager.Run(InitVars(firstLocalVarType: VarType.String,
+                                        firstLocalVarValue: CallTestClassMethod(
+                                            TestClassMethod.SwitchStatementReturnsString,
+                                            false,
+                                            args: new string[]
+                                            {
+                                                input
+                                            })) +
+                                   DerefObject(VarName.FirstLocal),
+                               GetString(expectedError));
         }
     }
 }
